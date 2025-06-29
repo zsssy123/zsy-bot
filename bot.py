@@ -16,38 +16,43 @@ client = openai.OpenAI(
     base_url=OPENAI_BASE_URL
 )
 
-# 会话上下文缓存
+# 用户聊天上下文存储
 user_histories = {}
 MAX_HISTORY = 10
 
-# /start 指令
+# /start 命令
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         print("⚠️ /start 被触发但没有 message")
         return
     await update.message.reply_text("你好，我是基于 DeepSeek 的 AI 聊天机器人，有记忆能力哟 🧠✨")
 
-# /clear 指令
+# /clear 命令
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = getattr(update.effective_user, "id", None)
+    user_id = getattr(getattr(update, "effective_user", None), "id", None)
     if user_id is None or not update.message:
         print("⚠️ /clear 无法获取用户信息")
         return
     user_histories.pop(user_id, None)
     await update.message.reply_text("🧽 记忆已清除，我们重新认识一下吧～")
 
-# 主聊天处理
+# 主聊天函数
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
-        print("⚠️ 消息为空或不包含文字")
+    if not update or not hasattr(update, "message") or not update.message:
+        print("⚠️ update 或 message 不存在")
         return
 
-    user_id = getattr(update.effective_user, "id", None)
+    message_text = getattr(update.message, "text", None)
+    if not message_text:
+        print("⚠️ message.text 不存在，非文本消息")
+        return
+
+    user_id = getattr(getattr(update, "effective_user", None), "id", None)
     if user_id is None:
         print("⚠️ chat() 无法获取用户 ID")
         return
 
-    user_input = update.message.text.strip()
+    user_input = message_text.strip()
     history = user_histories.get(user_id, [])
     history.append({"role": "user", "content": user_input})
     history = history[-MAX_HISTORY:]
@@ -66,7 +71,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply)
     except Exception as e:
         print("❌ DeepSeek 报错：", e)
-        await update.message.reply_text("⚠️ 出错啦，可能是 API 错误或网络异常，请稍后再试～")
+        await update.message.reply_text("⚠️ 出错啦，可能是 API 错误或网络问题，请稍后再试～")
 
 # 启动 bot
 if TELEGRAM_TOKEN:
