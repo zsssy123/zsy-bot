@@ -1,5 +1,4 @@
-Flask：
+Flask==2.3.3
 python-telegram-bot==20.3
 openai
-flask
 python-dotenv
