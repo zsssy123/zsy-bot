@@ -82,3 +82,17 @@ if TELEGRAM_TOKEN:
     app.run_polling()
 else:
     print("❌ 未设置 TELEGRAM_TOKEN，无法启动机器人")
+from flask import Flask
+from threading import Thread
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "🤖 ZSY Bot is running on Render!"
+
+def run_flask():
+    app.run(host='0.0.0.0', port=10000)
+
+# 启动 Flask 监听端口的线程
+Thread(target=run_flask).start()
