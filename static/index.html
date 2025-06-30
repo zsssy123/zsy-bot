@@ -1,38 +1,73 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ZSY AI 聊天室</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-    #chat { white-space: pre-wrap; margin-bottom: 10px; }
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
     .msg-user { color: #007bff; }
-    .msg-bot { color: #28a745; }
+    .msg-bot  { color: #28a745; }
   </style>
 </head>
 <body>
   <h2>🤖 和 ZSY 聊天中</h2>
   <div id="chat"></div>
-  <input id="msg" style="width:80%;" placeholder="说点什么…" />
+  <input id="msg" style="width: 80%;" placeholder="说点什么…" autofocus />
   <button onclick="send()">发送</button>
 
   <script>
     const chat = document.getElementById("chat");
+
+    // 防止 XSS 注入的 HTML 转义函数
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;',
+        '"': '&quot;', "'": '&#39;'
+      }[m]));
+    }
+
     async function send() {
       const input = document.getElementById("msg");
       const text = input.value.trim();
       if (!text) return;
-      chat.innerHTML += `👤 <span class="msg-user">${text}</span>\n`;
+
+      // 显示用户发言
+      chat.innerHTML += `<p>👤 <span class="msg-user">${escapeHtml(text)}</span></p>`;
       input.value = "";
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
-      const data = await res.json();
-      chat.innerHTML += `🤖 <span class="msg-bot">${data.reply || "出错了..."}</span>\n\n`;
-      chat.scrollTop = chat.scrollHeight;
+
+      // 请求后端 /api/chat
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        const reply = escapeHtml(data.reply || "出错了…");
+        chat.innerHTML += `<p>🤖 <span class="msg-bot">${reply}</span></p>`;
+        chat.scrollTop = chat.scrollHeight;
+      } catch (err) {
+        chat.innerHTML += `<p><i style="color:red;">❌ 网络错误</i></p>`;
+      }
     }
+
+    // 回车键发送
+    document.getElementById("msg").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") send();
+    });
   </script>
 </body>
 </html>
