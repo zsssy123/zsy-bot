@@ -112,12 +112,19 @@
   <!-- 聊天区 -->
   <div id="chat"></div>
 
-  <!-- 输入区 -->
-  <div id="input-bar">
-    <input id="msg" placeholder="说点什么…" autocomplete="off" />
-    <button id="send-btn" onclick="send()">发送
-   </button>
-  </div>
+<body>
+  <!-- 聊天输入框 + 按钮等 -->
+
+  <script>
+    function send() {
+      const input = document.getElementById("msg");
+      const text = input.value.trim();
+      if (!text) return;
+      alert("你发送了：" + text);
+    }
+  </script>
+</body>
+
 
   <script>
     const chat = document.getElementById("chat");
@@ -153,7 +160,7 @@
     function showTyping() {
       const typing = document.createElement("div");
     typing.className = "message bot typing-indicator";
-      typing.innerHTML =<img class="avatar" src="https://i.imgur.com/wB8zF7v.png" />
+      chat.innerHTML += `<img class="avatar" src="https://i.imgur.com/wB8zF7v.png" />`;
         <div class="bubble"><div class="name">ZSY AI 机器人</div><span class="typing">ZSY 正在输入中...</span></div>;
       chat.appendChild(typing);
       chat.scrollTop = chat.scrollHeight;
