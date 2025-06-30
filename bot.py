@@ -31,6 +31,31 @@ def home():
 
 def run_flask():
     app.run(host="0.0.0.0", port=8080)
+from flask import request, jsonify, send_from_directory
+
+@app.route("/api/chat", methods=["POST"])
+def web_chat():
+    data = request.get_json()
+    user_msg = data.get("message", "")
+    if not user_msg:
+        return jsonify({"error": "消息为空"}), 400
+    try:
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {"role": "system", "content": "你是一个温和、真实、有点性格的 AI 伙伴。"},
+                {"role": "user", "content": user_msg}
+            ]
+        )
+        reply = response.choices[0].message.content.strip()
+        return jsonify({"reply": reply})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/chat")
+def serve_chat_page():
+    return send_from_directory("static", "index.html")
+
 
 Thread(target=run_flask).start()
 
