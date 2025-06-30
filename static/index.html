@@ -5,50 +5,116 @@
   <title>ZSY AI 聊天室</title>
   <style>
     body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
+      font-family: "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
     #chat {
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 300px;
+      flex: 1;
       overflow-y: auto;
-      margin-bottom: 10px;
-      white-space: pre-wrap;
+      padding: 16px;
+      box-sizing: border-box;
     }
-    .msg-user { color: #007bff; }
-    .msg-bot  { color: #28a745; }
+    .bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 16px;
+      display: inline-block;
+      line-height: 1.4em;
+    }
+    .user {
+      background: #d0e7ff;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+    .bot {
+      background: #e2f5d3;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
+    #input-bar {
+      display: flex;
+      padding: 10px;
+      background: #ffffff;
+      border-top: 1px solid #ddd;
+    }
+    #msg {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+    #send-btn {
+      margin-left: 10px;
+      padding: 8px 16px;
+      font-size: 1em;
+      border: none;
+      border-radius: 20px;
+      background: #28a745;
+      color: #fff;
+      cursor: pointer;
+    }
+    .typing {
+      font-style: italic;
+      font-size: 0.9em;
+      color: #999;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
-  <h2>🤖 和 ZSY 聊天中</h2>
   <div id="chat"></div>
-  <input id="msg" style="width: 80%;" placeholder="说点什么…" autofocus />
-  <button onclick="send()">发送</button>
+
+  <div id="input-bar">
+    <input id="msg" placeholder="说点什么…" autocomplete="off" autofocus />
+    <button id="send-btn" onclick="send()">发送</button>
+  </div>
 
   <script>
     const chat = document.getElementById("chat");
+    const input = document.getElementById("msg");
 
-    // 防止 XSS 注入的 HTML 转义函数
     function escapeHtml(str) {
       return str.replace(/[&<>"']/g, m => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;',
-        '"': '&quot;', "'": '&#39;'
+        "&": "&amp;", "<": "&lt;", ">": "&gt;",
+        '"': "&quot;", "'": "&#39;"
       }[m]));
     }
 
+    function appendBubble(text, sender = "bot") {
+      const bubble = document.createElement("div");
+      bubble.className = `bubble ${sender}`;
+      bubble.innerHTML = escapeHtml(text);
+      chat.appendChild(bubble);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function showTyping() {
+      const typing = document.createElement("div");
+      typing.className = "bubble bot typing-indicator";
+      typing.innerHTML = "<span class='typing'>ZSY 正在输入中…</span>";
+      chat.appendChild(typing);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function removeTyping() {
+      const last = chat.querySelector(".typing-indicator");
+      if (last) last.remove();
+    }
+
     async function send() {
-      const input = document.getElementById("msg");
       const text = input.value.trim();
       if (!text) return;
-
-      // 显示用户发言
-      chat.innerHTML += `<p>👤 <span class="msg-user">${escapeHtml(text)}</span></p>`;
+      appendBubble(text, "user");
       input.value = "";
+      showTyping();
 
-      // 请求后端 /api/chat
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
@@ -56,16 +122,16 @@
           body: JSON.stringify({ message: text })
         });
         const data = await res.json();
-        const reply = escapeHtml(data.reply || "出错了…");
-        chat.innerHTML += `<p>🤖 <span class="msg-bot">${reply}</span></p>`;
-        chat.scrollTop = chat.scrollHeight;
-      } catch (err) {
-        chat.innerHTML += `<p><i style="color:red;">❌ 网络错误</i></p>`;
+        removeTyping();
+        appendBubble(data.reply || "出错了", "bot");
+      } catch (e) {
+        removeTyping();
+        appendBubble("❌ 网络错误", "bot");
       }
     }
 
     // 回车键发送
-    document.getElementById("msg").addEventListener("keydown", function(e) {
+    input.addEventListener("keydown", e => {
       if (e.key === "Enter") send();
     });
   </script>
