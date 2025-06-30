@@ -115,15 +115,17 @@
 <body>
   <!-- 聊天输入框 + 按钮等 -->
 
-  <script>
-    function send() {
-      const input = document.getElementById("msg");
-      const text = input.value.trim();
-      if (!text) return;
-      alert("你发送了：" + text);
-    }
-  </script>
-</body>
+  <input id="msg" placeholder="说点什么…" />
+<button id="send-btn" onclick="send()">发送</button>
+
+<script>
+  function send() {
+    const input = document.getElementById("msg");
+    const text = input.value.trim();
+    if (!text) return;
+    alert("ZSY 收到你的消息：" + text);
+  }
+</script>
 
 
   <script>
