@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>ZSY AI 聊天室</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    #chat { white-space: pre-wrap; margin-bottom: 10px; }
+    .msg-user { color: #007bff; }
+    .msg-bot { color: #28a745; }
+  </style>
+</head>
+<body>
+  <h2>🤖 和 ZSY 聊天中</h2>
+  <div id="chat"></div>
+  <input id="msg" style="width:80%;" placeholder="说点什么…" />
+  <button onclick="send()">发送</button>
+
+  <script>
+    const chat = document.getElementById("chat");
+    async function send() {
+      const input = document.getElementById("msg");
+      const text = input.value.trim();
+      if (!text) return;
+      chat.innerHTML += `👤 <span class="msg-user">${text}</span>\n`;
+      input.value = "";
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      chat.innerHTML += `🤖 <span class="msg-bot">${data.reply || "出错了..."}</span>\n\n`;
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>
