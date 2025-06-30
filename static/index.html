@@ -163,7 +163,11 @@
       const typing = document.createElement("div");
     typing.className = "message bot typing-indicator";
       chat.innerHTML += `<img class="avatar" src="https://i.imgur.com/wB8zF7v.png" />`;
-        <div class="bubble"><div class="name">ZSY AI 机器人</div><span class="typing">ZSY 正在输入中...</span></div>;
+          <div class="bubble">
+        <div class="name">ZSY AI 机器人</div>
+        <span class="typing">ZSY 正在输入中...</span>
+      </div>
+
       chat.appendChild(typing);
       chat.scrollTop = chat.scrollHeight;
     }
