@@ -109,7 +109,9 @@ def web_chat():
     user_msg = data.get("message", "")
     use_memory = data.get("useMemory", True)  # 获取是否启用记忆
     use_zsy_mode = data.get("useZSYMode", False)  # 获取是否启用 ZSY 人格模式
-    print("ZSY 模式：", use_zsy_mode)  # ✅ 你就加在这里
+
+    print("✅ 接收到请求，ZSY 模式是否启用：", use_zsy_mode, "🔁")
+
     if not user_msg:
         return jsonify({"error": "消息为空"}), 400
 
