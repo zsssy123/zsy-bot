@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D银河系模拟器增强版 | 宇宙探索</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            background: radial-gradient(ellipse at center, #0a0e2a 0%, #000000 70%);
+        }
+        
+        #container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(100, 200, 255, 0.8);
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #4facfe, #00f2fe, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0d2ff;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+        
+        .control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 15, 40, 0.92);
+            border-radius: 15px;
+            padding: 20px;
+            width: 340px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 180, 255, 0.4);
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .control-panel.hidden {
+            transform: translateY(-1000px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(79, 172, 254, 0.4);
+        }
+        
+        .panel-header h2 {
+            font-size: 1.6rem;
+            color: #4facfe;
+            font-weight: 600;
+            text-shadow: 0 0 8px rgba(79, 172, 254, 0.5);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #4facfe;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            transform: scale(1.2);
+            text-shadow: 0 0 10px rgba(79, 172, 254, 0.8);
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(100, 180, 255, 0.2);
+        }
+        
+        .control-group:last-child {
+            border-bottom: none;
+        }
+        
+        .control-group h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #bbdefb;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-group h3:before {
+            content: "✦";
+            margin-right: 10px;
+            color: #4facfe;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        label {
+            flex: 1;
+            font-size: 1rem;
+            color: #a0d2ff;
+        }
+        
+        .value-display {
+            width: 60px;
+            text-align: right;
+            font-size: 1rem;
+            color: #4facfe;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(79, 172, 254, 0.5);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #0d47a1, #2196f3);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4facfe;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(100, 181, 246, 0.9);
+            border: 2px solid white;
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #00f2fe;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #2196f3, #0d47a1);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #42a5f5, #1565c0);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toggle-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 15, 40, 0.8);
+            border: 2px solid rgba(100, 180, 255, 0.4);
+            color: #4facfe;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 99;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .toggle-btn:hover {
+            transform: scale(1.1) rotate(30deg);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+            background: rgba(0, 30, 80, 0.9);
+        }
+        
+        .stats {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 2.5s ease-out;
+        }
+        
+        .star-count {
+            color: #4facfe;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .performance {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 3s ease-out;
+        }
+        
+        .fps {
+            color: #4facfe;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .info {
+            position: absolute;
+            top: 150px;
+            left: 30px;
+            max-width: 350px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        .info h3 {
+            color: #4facfe;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            text-shadow: 0 0 8px rgba(79, 172, 254, 0.5);
+            display: flex;
+            align-items: center;
+        }
+        
+        .info h3:before {
+            content: "★";
+            margin-right: 10px;
+        }
+        
+        .info p {
+            color: #bbdefb;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+        
+        .color-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .color-control {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .color-control label {
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        
+        .color-control input {
+            width: 100%;
+            height: 40px;
+            border-radius: 6px;
+            border: 2px solid rgba(100, 180, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .color-control input:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 80px;
+            left: 30px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            max-width: 350px;
+            animation: fadeIn 2s ease-out;
+        }
+        
+        .instructions p {
+            color: #bbdefb;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .instructions p:before {
+            content: "➤";
+            margin-right: 10px;
+            color: #4facfe;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #0f0;
+            margin-right: 8px;
+            box-shadow: 0 0 8px #0f0;
+        }
+        
+        .galaxy-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4facfe, #00f2fe, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(79, 172, 254, 0.7);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            pointer-events: none;
+            animation: titlePulse 4s infinite alternate;
+        }
+        
+        .galaxy-title.visible {
+            opacity: 1;
+        }
+        
+        .boundary-indicator {
+            position: absolute;
+            top: 120px;
+            right: 30px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 2s ease-out;
+        }
+        
+        .boundary-indicator .status {
+            color: #4facfe;
+            font-weight: bold;
+        }
+        
+        .galaxy-selector {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(0, 15, 40, 0.8);
+            padding: 12px 20px;
+            border-radius: 10px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.4);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        .galaxy-selector select {
+            background: rgba(30, 60, 120, 0.8);
+            color: white;
+            border: 1px solid #4facfe;
+            border-radius: 6px;
+            padding: 8px 15px;
+            font-size: 1rem;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .galaxy-selector select:hover {
+            background: rgba(50, 90, 160, 0.9);
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.5);
+        }
+        
+        .galaxy-selector select:focus {
+            outline: none;
+            border-color: #00f2fe;
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+        
+        .loading-text {
+            font-size: 1.8rem;
+            color: #4facfe;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: pulseText 2s infinite;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .loading-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .loading-percentage {
+            margin-top: 15px;
+            color: #a0d2ff;
+            font-size: 1.2rem;
+        }
+        
+        .performance-indicator {
+            position: absolute;
+            bottom: 80px;
+            right: 30px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 2s ease-out;
+        }
+        
+        .performance-indicator .status {
+            color: #4facfe;
+            font-weight: bold;
+        }
+        
+        .star-preview {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .star-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .star-option.selected {
+            border: 2px solid #4facfe;
+            box-shadow: 0 0 10px #4facfe;
+        }
+        
+        .star-option.standard {
+            background: radial-gradient(circle, #ffffff 0%, #4facfe 100%);
+        }
+        
+        .star-option.cross {
+            background: radial-gradient(circle, #ffffff 0%, #ff00ff 100%);
+            position: relative;
+        }
+        
+        .star-option.cross::before, .star-option.cross::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 2px;
+            background: #fff;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
+        .star-option.cross::after {
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+        
+        .scale-indicator {
+            position: absolute;
+            bottom: 120px;
+            left: 25px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 2s ease-out;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scale-bar {
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            margin: 0 10px;
+            position: relative;
+        }
+        
+        .scale-bar::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 0;
+            width: 2px;
+            height: 14px;
+            background: #4facfe;
+        }
+        
+        .scale-bar::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 0;
+            width: 2px;
+            height: 14px;
+            background: #4facfe;
+        }
+        
+        .scale-label {
+            color: #4facfe;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        .time-display {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 15, 40, 0.6);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 2s ease-out;
+        }
+        
+        .time-value {
+            color: #4facfe;
+            font-weight: bold;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(79, 172, 254, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(79, 172, 254, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(79, 172, 254, 0.4); }
+        }
+        
+        @keyframes galaxyEntrance {
+            0% { transform: translateX(0) translateY(0) scale(0.1); opacity: 0; }
+            50% { transform: translateX(0) translateY(0) scale(1.5); opacity: 1; }
+            100% { transform: translateX(0) translateY(0) scale(1); opacity: 1; }
+        }
+        
+        @keyframes titlePulse {
+            0% { transform: translate(-50%, -50%) scale(1); text-shadow: 0 0 20px rgba(79, 172, 254, 0.5); }
+            100% { transform: translate(-50%, -50%) scale(1.05); text-shadow: 0 0 40px rgba(79, 172, 254, 0.9); }
+        }
+        
+        @keyframes pulseText {
+            0% { opacity: 0.6; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); }
+            50% { opacity: 1; text-shadow: 0 0 20px rgba(79, 172, 254, 0.8); }
+            100% { opacity: 0.6; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); }
+        }
+        
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 15, 40, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            text-align: center;
+            z-index: 2000;
+            border: 2px solid #ff4d4d;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .error-title {
+            color: #ff4d4d;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .error-content {
+            color: #bbdefb;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .error-button {
+            background: linear-gradient(to right, #ff4d4d, #cc0000);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .error-button:hover {
+            background: linear-gradient(to right, #ff6666, #ff0000);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+        
+        .error-button:active {
+            transform: translateY(1px);
+        }
+        
+        @media (max-width: 900px) {
+            .control-panel {
+                width: 90%;
+                left: 5%;
+                right: auto;
+                top: 10px;
+            }
+            
+            .control-panel.hidden {
+                transform: translateY(-1000px);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+                padding-top: 20px;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+                padding: 0 20px;
+            }
+            
+            .info {
+                top: 180px;
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+            
+            .instructions {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+                bottom: 70px;
+            }
+            
+            .galaxy-title {
+                font-size: 3rem;
+            }
+            
+            .boundary-indicator {
+                top: 160px;
+                right: 20px;
+                left: 20px;
+                text-align: center;
+            }
+            
+            .galaxy-selector {
+                top: 100px;
+                left: 20px;
+                right: 20px;
+                text-align: center;
+            }
+            
+            .error-message {
+                width: 90%;
+                padding: 20px;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+            
+            .error-content {
+                font-size: 1rem;
+            }
+            
+            .scale-indicator {
+                bottom: 150px;
+                left: 20px;
+                right: 20px;
+                justify-content: center;
+            }
+            
+            .time-display {
+                top: 180px;
+                right: 20px;
+                left: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">初始化3D银河系模拟器</div>
+        <div class="loading-bar">
+            <div class="loading-fill" id="loadingFill"></div>
+        </div>
+        <div class="loading-percentage" id="loadingPercentage">0%</div>
+    </div>
+    
+    <div class="error-message" id="errorMessage">
+        <div class="error-title">初始化失败</div>
+        <div class="error-content" id="errorContent">
+            无法加载Three.js库或您的浏览器不支持WebGL。请确保：
+            <ul style="text-align: left; margin: 15px 0;">
+                <li>您已连接到互联网</li>
+                <li>浏览器支持WebGL（最新Chrome/Firefox/Edge）</li>
+                <li>显卡驱动程序已更新</li>
+            </ul>
+            如果问题仍然存在，请尝试刷新页面或使用其他浏览器。
+        </div>
+        <button class="error-button" id="reloadButton">重新加载页面</button>
+    </div>
+    
+    <div class="header">
+        <h1>3D银河系模拟器增强版</h1>
+        <p class="subtitle">中心恒星控制 | 时间系统 | 基准网格 | 黑洞/中子星/红巨星</p>
+    </div>
+    
+    <div id="container"></div>
+    
+    <div class="galaxy-title" id="galaxyTitle">银河系</div>
+    
+    <div class="toggle-btn" id="toggleControl">⚙️</div>
+    
+    <div class="control-panel" id="controlPanel">
+        <div class="panel-header">
+            <h2>星系控制中心</h2>
+            <button class="close-btn" id="closeControl">×</button>
+        </div>
+        
+        <div class="control-group">
+            <h3>星系选择</h3>
+            <div class="slider-container">
+                <label>星系类型</label>
+                <select id="galaxyType">
+                    <option value="milkyway">银河系</option>
+                    <option value="andromeda">仙女座星系</option>
+                    <option value="triangulum">三角座星系</option>
+                    <option value="sombrero">草帽星系</option>
+                    <option value="pinwheel">风车星系</option>
+                    <option value="crab">蟹状星系</option>
+                    <option value="barred">棒状星系</option>
+                    <option value="pillars">创世支柱</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>核心恒星参数</h3>
+            <div class="slider-container">
+                <label>恒星大小 (5-50)</label>
+                <span class="value-display" id="starSizeValue">15</span>
+            </div>
+            <input type="range" id="starSize" min="5" max="50" value="15" step="1">
+            
+            <div class="slider-container">
+                <label>恒星亮度 (0.1-5.0)</label>
+                <span class="value-display" id="starBrightnessValue">2.0</span>
+            </div>
+            <input type="range" id="starBrightness" min="0.1" max="5.0" value="2.0" step="0.1">
+            
+            <div class="buttons" style="margin-top: 15px;">
+                <button id="toggleStarType">恒星类型: 普通恒星</button>
+            </div>
+            
+            <div class="slider-container">
+                <label>扭曲强度 (0-100%)</label>
+                <span class="value-display" id="distortionValue">50%</span>
+            </div>
+            <input type="range" id="distortion" min="0" max="100" value="50" step="1">
+        </div>
+        
+        <div class="control-group">
+            <h3>星系参数</h3>
+            <div class="slider-container">
+                <label>星系大小</label>
+                <span class="value-display" id="sizeValue">100%</span>
+            </div>
+            <input type="range" id="size" min="50" max="150" value="100">
+            
+            <div class="slider-container">
+                <label>旋转速度</label>
+                <span class="value-display" id="speedValue">1.0x</span>
+            </div>
+            <input type="range" id="speed" min="0.1" max="3" value="1.0" step="0.1">
+            
+            <div class="slider-container">
+                <label>恒星密度 (10-200%)</label>
+                <span class="value-display" id="densityValue">100%</span>
+            </div>
+            <input type="range" id="density" min="10" max="200" value="100" step="1">
+        </div>
+        
+        <div class="control-group">
+            <h3>旋臂配置</h3>
+            <div class="slider-container">
+                <label>旋臂数量 (2-8)</label>
+                <span class="value-display" id="armCountValue">4</span>
+            </div>
+            <input type="range" id="armCount" min="2" max="8" value="4" step="1">
+            
+            <div class="slider-container">
+                <label>离散程度 (0-100%)</label>
+                <span class="value-display" id="dispersionValue">50%</span>
+            </div>
+            <input type="range" id="dispersion" min="0" max="100" value="50" step="1">
+            
+            <div class="slider-container">
+                <label>星系晕强度 (0-100%)</label>
+                <span class="value-display" id="haloValue">30%</span>
+            </div>
+            <input type="range" id="halo" min="0" max="100" value="30" step="1">
+            
+            <div class="slider-container">
+                <label>悬臂扭曲程度 (0.1-1.0)</label>
+                <span class="value-display" id="armAngleValue">0.3</span>
+            </div>
+            <input type="range" id="armAngle" min="0.1" max="1.0" value="0.3" step="0.01">
+            
+            <div class="slider-container">
+                <label>尾部渐变色强度 (0-100%)</label>
+                <span class="value-display" id="armGradientValue">80%</span>
+            </div>
+            <input type="range" id="armGradient" min="0" max="100" value="80" step="1">
+        </div>
+        
+        <div class="control-group">
+            <h3>外环参数</h3>
+            <div class="slider-container">
+                <label>外环半径 (100-300%)</label>
+                <span class="value-display" id="ringRadiusValue">180%</span>
+            </div>
+            <input type="range" id="ringRadius" min="100" max="300" value="180" step="1">
+            
+            <div class="slider-container">
+                <label>外环厚度 (50-200%)</label>
+                <span class="value-display" id="ringThicknessValue">100%</span>
+            </div>
+            <input type="range" id="ringThickness" min="50" max="200" value="100" step="1">
+            
+            <div class="slider-container">
+                <label>外环密度 (10-200%)</label>
+                <span class="value-display" id="ringDensityValue">100%</span>
+            </div>
+            <input type="range" id="ringDensity" min="10" max="200" value="100" step="1">
+            
+            <div class="slider-container">
+                <label>外环亮度 (0.1-3.0)</label>
+                <span class="value-display" id="ringBrightnessValue">1.2</span>
+            </div>
+            <input type="range" id="ringBrightness" min="0.1" max="3.0" value="1.2" step="0.1">
+        </div>
+        
+        <div class="control-group">
+            <h3>时间与网格系统</h3>
+            <div class="slider-container">
+                <label>时间流速 (0.1-10.0)</label>
+                <span class="value-display" id="timeScaleValue">1.0x</span>
+            </div>
+            <input type="range" id="timeScale" min="0.1" max="10" value="1.0" step="0.1">
+            
+            <div class="slider-container">
+                <label>网格尺寸 (10-100)</label>
+                <span class="value-display" id="gridSizeValue">50</span>
+            </div>
+            <input type="range" id="gridSize" min="10" max="100" value="50" step="1">
+            
+            <div class="slider-container">
+                <label>网格细分 (1-20)</label>
+                <span class="value-display" id="gridDivisionsValue">10</span>
+            </div>
+            <input type="range" id="gridDivisions" min="1" max="20" value="10" step="1">
+            
+            <div class="buttons" style="margin-top: 15px;">
+                <button id="toggleGrid">显示基准网格: 关</button>
+                <button id="toggleTime">暂停时间</button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>球形边界</h3>
+            <div class="slider-container">
+                <label>边界半径 (150-400%)</label>
+                <span class="value-display" id="boundaryRadiusValue">250%</span>
+            </div>
+            <input type="range" id="boundaryRadius" min="150" max="400" value="250" step="1">
+            
+            <div class="slider-container">
+                <label>边界透明度 (0-100%)</label>
+                <span class="value-display" id="boundaryOpacityValue">30%</span>
+            </div>
+            <input type="range" id="boundaryOpacity" min="0" max="100" value="30" step="1">
+            
+            <div class="slider-container">
+                <label>边界细节 (1-20)</label>
+                <span class="value-display" id="boundaryDetailValue">12</span>
+            </div>
+            <input type="range" id="boundaryDetail" min="1" max="20" value="12" step="1">
+            
+            <div class="color-controls">
+                <div class="color-control">
+                    <label>边界颜色</label>
+                    <input type="color" id="boundaryColor" value="#4facfe">
+                </div>
+            </div>
+            
+            <div class="buttons" style="margin-top: 15px;">
+                <button id="switchBoundaryStyle">边界样式: 线框</button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>行星材质</h3>
+            <div class="star-preview">
+                <div class="star-option standard selected" data-type="standard"></div>
+                <div class="star-option cross" data-type="cross"></div>
+            </div>
+            <div class="slider-container">
+                <label>闪烁强度 (0-100%)</label>
+                <span class="value-display" id="twinkleValue">80%</span>
+            </div>
+            <input type="range" id="twinkle" min="0" max="100" value="80" step="1">
+        </div>
+        
+        <div class="control-group">
+            <h3>渲染精度</h3>
+            <div class="buttons">
+                <button id="lowQuality">低精度</button>
+                <button id="mediumQuality">中精度</button>
+                <button id="highQuality">高精度</button>
+                <button id="ultraQuality">超高精度</button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>颜色控制</h3>
+            <div class="color-controls">
+                <div class="color-control">
+                    <label>核心颜色</label>
+                    <input type="color" id="coreColor" value="#ffffaa">
+                </div>
+                <div class="color-control">
+                    <label>旋臂颜色</label>
+                    <input type="color" id="armColor" value="#4facfe">
+                </div>
+                <div class="color-control">
+                    <label>外环颜色</label>
+                    <input type="color" id="ringColor" value="#ff00ff">
+                </div>
+                <div class="color-control">
+                    <label>背景色</label>
+                    <input type="color" id="bgColor" value="#000518">
+                </div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button id="autoRotate">自动旋转: 开</button>
+            <button id="resetView">重置视角</button>
+            <button id="toggleStars">恒星效果: 开</button>
+            <button id="toggleBoundary">边界显示: 开</button>
+            <button id="toggleHud">显示HUD: 开</button>
+        </div>
+    </div>
+    
+    <div class="stats">
+        恒星数量: <span class="star-count">8,000</span> | 旋臂: <span id="armCountDisplay">4</span>
+    </div>
+    
+    <div class="performance">
+        帧率: <span class="fps">60</span> FPS | 状态: <span class="status-indicator"></span><span class="status">运行中</span>
+    </div>
+    
+    <div class="performance-indicator">
+        渲染精度: <span class="status" id="qualityStatus">高精度</span>
+    </div>
+    
+    <div class="scale-indicator">
+        <span class="scale-label">比例尺:</span>
+        <div class="scale-bar"></div>
+        <span class="scale-label" id="scaleValue">100,000 光年</span>
+    </div>
+    
+    <div class="time-display">
+        宇宙时间: <span class="time-value" id="universeTime">0</span> 百万年
+    </div>
+    
+    <div class="info">
+        <h3>恒星类型说明</h3>
+        <p>✓ 普通恒星: 类似太阳的稳定恒星</p>
+        <p>✓ 红巨星: 膨胀的巨大恒星，表面温度低</p>
+        <p>✓ 中子星: 超高密度，快速旋转的恒星残骸</p>
+        <p>✓ 黑洞: 具有强大引力，连光也无法逃逸</p>
+    </div>
+    
+    <div class="instructions">
+        <p>使用说明:</p>
+        <p>• 左上角可选择不同星系类型</p>
+        <p>• 所有滑块均可调整星系参数</p>
+        <p>• 时间系统可加速/暂停宇宙演化</p>
+        <p>• 基准网格帮助理解空间尺度</p>
+        <p>• 双指缩放可调整视角</p>
+        <p>• 拖拽可旋转星系视角</p>
+    </div>
+    
+    <div class="boundary-indicator">
+        当前边界样式: <span class="status" id="boundaryStatus">线框</span>
+    </div>
+    
+    <div class="galaxy-selector">
+        <select id="galaxySelector">
+            <option value="milkyway">银河系</option>
+            <option value="andromeda">仙女座星系</option>
+            <option value="triangulum">三角座星系</option>
+            <option value="sombrero">草帽星系</option>
+            <option value="pinwheel">风车星系</option>
+            <option value="crab">蟹状星系</option>
+            <option value="barred">棒状星系</option>
+            <option value="pillars">创世支柱</option>
+        </select>
+    </div>
+    
+    <script>
+        // 主场景初始化
+        let scene, camera, renderer, controls;
+        let galaxy, stars, backgroundStars, ringStars, boundarySphere, coreStar, gridHelper;
+        let autoRotate = true;
+        let showStars = true;
+        let showBoundary = true;
+        let showHud = true;
+        let animationComplete = false;
+        let startTime = 0;
+        let starMaterialType = 'standard';
+        let qualityLevel = 'high';
+        let currentScale = 0.1;
+        let starType = 'normal'; // normal, redgiant, neutron, blackhole
+        let distortionStrength = 0.5;
+        let showGrid = false;
+        let gridSize = 50;
+        let gridDivisions = 10;
+        let timeScale = 1.0;
+        let isTimePaused = false;
+        let universeTime = 0;
+        
+        // 星系参数 - 修复：使用正确的百分比初始值
+        const params = {
+            size: 1.0,
+            rotationSpeed: 0.001,
+            coreSize: 15,
+            coreBrightness: 2.0,
+            arms: 4,
+            armOffset: 0.5,
+            armAngle: 0.3,
+            armBrightness: 1.0,
+            starDensity: 1.0,
+            twinkleFactor: 0.8,
+            coreColor: "#ffffaa",
+            armColor: "#4facfe",
+            ringColor: "#ff00ff",
+            ringDensity: 1.0,
+            ringBrightness: 1.2,
+            ringRadius: 1.8, // 百分比值（180%）
+            ringThickness: 1.0, // 百分比值（100%）
+            bgColor: "#000518",
+            bgStarColor: "#ffffff",
+            dispersion: 0.5, // 百分比值（50%）
+            haloStrength: 0.3, // 百分比值（30%）
+            boundaryRadius: 2.5, // 百分比值（250%）
+            boundaryOpacity: 0.3, // 百分比值（30%）
+            boundaryColor: "#4facfe",
+            boundaryVisible: true,
+            boundaryStyle: 'wireframe',
+            boundaryDetail: 12,
+            armGradient: 0.8, // 百分比值（80%）
+            distortion: 0.5 // 百分比值（50%）
+        };
+        
+        // 星系预设
+        const galaxyPresets = {
+            milkyway: {
+                name: "银河系",
+                arms: 4,
+                coreColor: "#ffffaa",
+                armColor: "#4facfe",
+                ringColor: "#ff00ff",
+                bgColor: "#000518",
+                boundaryColor: "#4facfe",
+                ringDensity: 1.0,
+                ringRadius: 1.8,
+                ringThickness: 1.0,
+                boundaryRadius: 2.5,
+                boundaryOpacity: 0.3
+            },
+            andromeda: {
+                name: "仙女座星系",
+                arms: 2,
+                coreColor: "#ffcc00",
+                armColor: "#ff77aa",
+                ringColor: "#aa77ff",
+                bgColor: "#110033",
+                boundaryColor: "#ff77aa",
+                ringDensity: 0.8,
+                ringRadius: 2.2,
+                ringThickness: 0.8,
+                boundaryRadius: 3.0,
+                boundaryOpacity: 0.4
+            },
+            triangulum: {
+                name: "三角座星系",
+                arms: 3,
+                coreColor: "#aaffee",
+                armColor: "#77ddff",
+                ringColor: "#ff88cc",
+                bgColor: "#002244",
+                boundaryColor: "#77ddff",
+                ringDensity: 0.9,
+                ringRadius: 1.5,
+                ringThickness: 1.2,
+                boundaryRadius: 2.8,
+                boundaryOpacity: 0.35
+            },
+            sombrero: {
+                name: "草帽星系",
+                arms: 0,
+                coreColor: "#ff9966",
+                armColor: "#cc9966",
+                ringColor: "#ffcc99",
+                bgColor: "#331100",
+                boundaryColor: "#cc9966",
+                ringDensity: 1.0,
+                ringRadius: 2.0,
+                ringThickness: 0.5,
+                boundaryRadius: 3.2,
+                boundaryOpacity: 0.25
+            },
+            pinwheel: {
+                name: "风车星系",
+                arms: 6,
+                coreColor: "#ffff66",
+                armColor: "#ff66aa",
+                ringColor: "#66ffcc",
+                bgColor: "#003322",
+                boundaryColor: "#ff66aa",
+                ringDensity: 0.8,
+                ringRadius: 1.6,
+                ringThickness: 1.1,
+                boundaryRadius: 2.7,
+                boundaryOpacity: 0.4
+            },
+            crab: {
+                name: "蟹状星系",
+                arms: 0,
+                coreColor: "#ff5555",
+                armColor: "#ff9999",
+                ringColor: "#ffccff",
+                bgColor: "#220000",
+                boundaryColor: "#ff9999",
+                ringDensity: 1.2,
+                ringRadius: 1.3,
+                ringThickness: 0.7,
+                boundaryRadius: 2.6,
+                boundaryOpacity: 0.45
+            },
+            barred: {
+                name: "棒状星系",
+                arms: 2,
+                coreColor: "#ffff77",
+                armColor: "#77ff77",
+                ringColor: "#77ffff",
+                bgColor: "#002200",
+                boundaryColor: "#77ff77",
+                ringDensity: 0.9,
+                ringRadius: 1.7,
+                ringThickness: 0.9,
+                boundaryRadius: 2.9,
+                boundaryOpacity: 0.3
+            },
+            pillars: {
+                name: "创世支柱",
+                arms: 0,
+                coreColor: "#aa77ff",
+                armColor: "#ff77aa",
+                ringColor: "#77aaff",
+                bgColor: "#000022",
+                boundaryColor: "#ff77aa",
+                ringDensity: 0.6,
+                ringRadius: 1.2,
+                ringThickness: 1.5,
+                boundaryRadius: 3.1,
+                boundaryOpacity: 0.5
+            }
+        };
+        
+        // 性能监控
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 60;
+        let animationFrameId = null;
+        
+        // 显示星系名称
+        let galaxyTitleTimeout = null;
+        function showGalaxyName(name) {
+            const titleElement = document.getElementById('galaxyTitle');
+            if (!titleElement) return;
+            
+            titleElement.textContent = name;
+            titleElement.classList.add('visible');
+            
+            if (galaxyTitleTimeout) {
+                clearTimeout(galaxyTitleTimeout);
+            }
+            
+            galaxyTitleTimeout = setTimeout(() => {
+                titleElement.classList.remove('visible');
+            }, 5000);
+        }
+        
+        // 初始化Three.js场景
+        function init() {
+            try {
+                // 检查WebGL支持
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                
+                if (!gl) {
+                    showError("您的浏览器不支持WebGL。请使用最新版本的Chrome、Firefox或Edge浏览器。");
+                    return;
+                }
+                
+                // 创建场景
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(params.bgColor);
+                scene.fog = new THREE.FogExp2(params.bgColor, 0.0015);
+                
+                // 创建相机
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
+                camera.position.set(0, 0, 1500);
+                
+                // 创建渲染器
+                renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    alpha: true,
+                    powerPreference: 'high-performance'
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                const container = document.getElementById('container');
+                if (container) {
+                    container.appendChild(renderer.domElement);
+                } else {
+                    throw new Error("无法找到容器元素");
+                }
+                
+                // 创建光源
+                const ambientLight = new THREE.AmbientLight(0x333366, 1.5);
+                scene.add(ambientLight);
+                
+                const pointLight = new THREE.PointLight(0xffffaa, 2.0, 500);
+                pointLight.position.set(0, 0, 0);
+                scene.add(pointLight);
+                
+                // 创建基准网格
+                createGrid();
+                
+                // 创建背景星星
+                createBackgroundStars();
+                
+                // 创建银河系
+                createGalaxy();
+                
+                // 创建外环
+                createRing();
+                
+                // 创建球形边界
+                createBoundarySphere();
+                
+                // 添加轨道控制
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.rotateSpeed = 0.5;
+                controls.zoomSpeed = 1.0;
+                controls.panSpeed = 0.5;
+                controls.autoRotate = autoRotate;
+                controls.autoRotateSpeed = 0.5;
+                controls.enableZoom = true;
+                controls.minDistance = 100;
+                controls.maxDistance = 1000;
+                controls.enabled = false;
+                
+                // 添加事件监听器
+                setupEventListeners();
+                
+                // 初始化控制面板显示值
+                updateControlDisplays();
+                
+                // 显示初始星系名称
+                showGalaxyName('银河系');
+                
+                // 初始化按钮文本
+                updateButtonTexts();
+                
+                // 开始动画循环
+                startTime = performance.now();
+                animate();
+                
+            } catch (error) {
+                console.error("初始化错误:", error);
+                showError(`初始化过程中发生错误: ${error.message}`);
+            }
+        }
+        
+        // 更新按钮文本
+        function updateButtonTexts() {
+            const autoRotateButton = document.getElementById('autoRotate');
+            if (autoRotateButton) autoRotateButton.textContent = autoRotate ? "自动旋转: 开" : "自动旋转: 关";
+            
+            const toggleStarsButton = document.getElementById('toggleStars');
+            if (toggleStarsButton) toggleStarsButton.textContent = showStars ? "恒星效果: 开" : "恒星效果: 关";
+            
+            const toggleBoundaryButton = document.getElementById('toggleBoundary');
+            if (toggleBoundaryButton) toggleBoundaryButton.textContent = showBoundary ? "边界显示: 开" : "边界显示: 关";
+            
+            const toggleHudButton = document.getElementById('toggleHud');
+            if (toggleHudButton) toggleHudButton.textContent = showHud ? "显示HUD: 开" : "显示HUD: 关";
+            
+            const toggleGridButton = document.getElementById('toggleGrid');
+            if (toggleGridButton) toggleGridButton.textContent = showGrid ? "显示基准网格: 开" : "显示基准网格: 关";
+            
+            const toggleTimeButton = document.getElementById('toggleTime');
+            if (toggleTimeButton) toggleTimeButton.textContent = isTimePaused ? "恢复时间" : "暂停时间";
+            
+            const boundaryStyleButton = document.getElementById('switchBoundaryStyle');
+            if (boundaryStyleButton) {
+                boundaryStyleButton.textContent = `边界样式: ${params.boundaryStyle === 'wireframe' ? '线框' : '繁星'}`;
+            }
+            
+            const toggleStarTypeButton = document.getElementById('toggleStarType');
+            if (toggleStarTypeButton) {
+                const typeNames = {
+                    'normal': '普通恒星',
+                    'redgiant': '红巨星',
+                    'neutron': '中子星',
+                    'blackhole': '黑洞'
+                };
+                toggleStarTypeButton.textContent = `恒星类型: ${typeNames[starType]}`;
+            }
+        }
+        
+        // 创建基准网格 - 修复：改为水平网格
+        function createGrid() {
+            if (gridHelper) scene.remove(gridHelper);
+            
+            gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x4facfe, 0x4facfe);
+            gridHelper.rotation.x = Math.PI / 2;
+            gridHelper.visible = showGrid;
+            scene.add(gridHelper);
+        }
+        
+        // 创建中心恒星 - 修复：添加颜色更新功能
+        function createCoreStar() {
+            if (coreStar) scene.remove(coreStar);
+            
+            // 根据恒星类型使用不同的颜色设置
+            let color;
+            if (starType === 'normal') {
+                // 普通恒星使用控制面板选择的颜色
+                color = new THREE.Color(params.coreColor);
+            } else {
+                // 其他类型使用固定颜色
+                if (starType === 'redgiant') {
+                    color = new THREE.Color(0xff6633);
+                } else if (starType === 'neutron') {
+                    color = new THREE.Color(0xffffff);
+                } else if (starType === 'blackhole') {
+                    color = new THREE.Color(0x000000);
+                }
+            }
+            
+            // 红巨星效果
+            if (starType === 'redgiant') {
+                const geometry = new THREE.SphereGeometry(params.coreSize * 2.5, 32, 32);
+                const material = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: params.coreBrightness
+                });
+                
+                coreStar = new THREE.Mesh(geometry, material);
+                
+                // 红巨星光环
+                const ringGeometry = new THREE.RingGeometry(
+                    params.coreSize * 2.8, 
+                    params.coreSize * 3.5, 
+                    32
+                );
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff9966,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                
+                const halo = new THREE.Mesh(ringGeometry, ringMaterial);
+                halo.rotation.x = Math.PI / 2;
+                coreStar.add(halo);
+            } 
+            // 中子星效果
+            else if (starType === 'neutron') {
+                const geometry = new THREE.SphereGeometry(params.coreSize * 0.3, 32, 32);
+                const material = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 1.0
+                });
+                
+                coreStar = new THREE.Mesh(geometry, material);
+                
+                // 中子星光束 - 修正位置
+                const beamGeometry = new THREE.CylinderGeometry(0.5, 2, 40, 8);
+                const beamMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x4facfe,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                // 创建两道光束（在中心交叉）
+                const beam1 = new THREE.Mesh(beamGeometry, beamMaterial);
+                beam1.rotation.x = Math.PI / 2;
+                
+                const beam2 = new THREE.Mesh(beamGeometry, beamMaterial);
+                beam2.rotation.z = Math.PI / 2;
+                
+                coreStar.add(beam1);
+                coreStar.add(beam2);
+            }
+            // 黑洞效果
+            else if (starType === 'blackhole') {
+                const geometry = new THREE.SphereGeometry(params.coreSize * 0.5, 32, 32);
+                const material = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.95
+                });
+                
+                coreStar = new THREE.Mesh(geometry, material);
+                
+                // 黑洞吸积盘
+                const ringGeometry = new THREE.RingGeometry(
+                    params.coreSize * 0.6, 
+                    params.coreSize * 1.5, 
+                    32
+                );
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xaa00ff,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const accretionDisk = new THREE.Mesh(ringGeometry, ringMaterial);
+                accretionDisk.rotation.x = Math.PI / 2;
+                coreStar.add(accretionDisk);
+            } 
+            // 普通恒星
+            else {
+                const geometry = new THREE.SphereGeometry(params.coreSize, 32, 32);
+                const material = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: params.coreBrightness
+                });
+                
+                coreStar = new THREE.Mesh(geometry, material);
+            }
+            
+            scene.add(coreStar);
+        }
+        
+        // 创建螺旋臂（带尾部渐变色）
+        function createSpiralArms() {
+            if (!galaxy) return;
+            if (stars) galaxy.remove(stars);
+            
+            const baseStarCount = qualityLevel === 'low' ? 4000 : 
+                                qualityLevel === 'medium' ? 6000 : 
+                                qualityLevel === 'high' ? 8000 : 12000;
+            
+            const starCount = Math.floor(baseStarCount * params.starDensity);
+            
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 4); // 使用RGBA
+            const sizes = new Float32Array(starCount);
+            const alphas = new Float32Array(starCount);
+            
+            const colorInner = new THREE.Color(params.coreColor);
+            const colorOuter = new THREE.Color(params.armColor);
+            
+            // 尾部渐变色
+            const gradientColor = new THREE.Color(0xff00ff);
+            
+            const haloStarsCount = Math.floor(starCount * params.haloStrength);
+            const armStarsCount = starCount - haloStarsCount;
+            
+            for (let i = 0; i < starCount; i++) {
+                let x, y, z;
+                let isHaloStar = i >= armStarsCount;
+                
+                if (isHaloStar) {
+                    const distance = 100 + Math.random() * 250;
+                    const phi = Math.acos(-1 + Math.random() * 2);
+                    const theta = Math.random() * Math.PI * 2;
+                    
+                    x = Math.sin(phi) * Math.cos(theta) * distance;
+                    y = Math.sin(phi) * Math.sin(theta) * distance * 0.2;
+                    z = Math.cos(phi) * distance;
+                } else {
+                    const arm = Math.floor(Math.random() * params.arms);
+                    const distance = 20 + Math.random() * 180;
+                    
+                    // 使用可调的悬臂扭曲程度参数
+                    const angle = arm * (Math.PI * 2 / params.arms) + 
+                                 params.armAngle * Math.log(distance / 10) + 
+                                 Math.random() * 0.2;
+                    
+                    const dispersion = params.dispersion * 40;
+                    const offsetX = (Math.random() - 0.5) * dispersion;
+                    const offsetZ = (Math.random() - 0.5) * dispersion;
+                    
+                    x = Math.cos(angle) * distance + offsetX;
+                    y = (Math.random() - 0.5) * 15;
+                    z = Math.sin(angle) * distance + offsetZ;
+                }
+                
+                const posIdx = i * 3;
+                positions[posIdx] = x;
+                positions[posIdx + 1] = y;
+                positions[posIdx + 2] = z;
+                
+                const distanceFromCenter = Math.sqrt(x*x + y*y + z*z);
+                const colorFactor = Math.min(distanceFromCenter / 200, 1);
+                
+                // 应用尾部渐变色
+                let color;
+                if (distanceFromCenter > 150 && Math.random() < params.armGradient) {
+                    const gradientFactor = Math.min((distanceFromCenter - 150) / 50, 1);
+                    color = new THREE.Color().lerpColors(colorOuter, gradientColor, gradientFactor);
+                } else {
+                    color = new THREE.Color().lerpColors(colorInner, colorOuter, colorFactor);
+                }
+                
+                // 使用RGBA颜色数组
+                const colIdx = i * 4;
+                colors[colIdx] = color.r * params.armBrightness;
+                colors[colIdx + 1] = color.g * params.armBrightness;
+                colors[colIdx + 2] = color.b * params.armBrightness;
+                
+                sizes[i] = isHaloStar ? 
+                    (0.5 + Math.random() * 1.0) : 
+                    (1.0 + Math.random() * 1.5);
+                
+                alphas[i] = isHaloStar ? 
+                    (0.3 + Math.random() * 0.4) : 
+                    (0.6 + Math.random() * 0.3);
+                
+                // 设置alpha值
+                colors[colIdx + 3] = alphas[i];
+            }
+            
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 4)); // 4个为一组（RGBA）
+            starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            
+            let starMaterial;
+            
+            if (starMaterialType === 'standard') {
+                starMaterial = new THREE.PointsMaterial({
+                    size: 1.8,
+                    sizeAttenuation: true,
+                    vertexColors: true, // 使用顶点颜色
+                    transparent: true, // 启用透明
+                    opacity: 1.0, // 全局透明度（会被每个顶点的alpha影响）
+                    blending: THREE.AdditiveBlending
+                });
+            } else {
+                // 十字闪闪发光材质
+                starMaterial = new THREE.PointsMaterial({
+                    size: 2.2,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 1.0,
+                    blending: THREE.AdditiveBlending,
+                    map: createCrossTexture()
+                });
+            }
+            
+            stars = new THREE.Points(starGeometry, starMaterial);
+            galaxy.add(stars);
+            
+            const starCountElement = document.querySelector('.star-count');
+            if (starCountElement) {
+                starCountElement.textContent = starCount.toLocaleString();
+            }
+            
+            const armCountDisplay = document.getElementById('armCountDisplay');
+            if (armCountDisplay) {
+                armCountDisplay.textContent = params.arms;
+            }
+        }
+        
+        // 创建银河系
+        function createGalaxy() {
+            if (galaxy) scene.remove(galaxy);
+            
+            galaxy = new THREE.Group();
+            galaxy.scale.set(currentScale, currentScale, currentScale);
+            scene.add(galaxy);
+            
+            // 创建中心恒星
+            createCoreStar();
+            
+            // 创建旋臂中的恒星
+            createSpiralArms();
+        }
+        
+        // 创建背景星星
+        function createBackgroundStars() {
+            const starCount = qualityLevel === 'low' ? 2000 : 
+                             qualityLevel === 'medium' ? 3500 :
+                             qualityLevel === 'high' ? 5000 : 8000;
+            
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 4); // 使用RGBA
+            const sizes = new Float32Array(starCount);
+            
+            const bgColor = new THREE.Color(params.bgStarColor);
+            
+            for (let i = 0; i < starCount; i++) {
+                const posIdx = i * 3;
+                positions[posIdx] = THREE.MathUtils.randFloatSpread(3000);
+                positions[posIdx + 1] = THREE.MathUtils.randFloatSpread(3000);
+                positions[posIdx + 2] = THREE.MathUtils.randFloatSpread(3000);
+                
+                const colIdx = i * 4;
+                colors[colIdx] = bgColor.r;
+                colors[colIdx + 1] = bgColor.g;
+                colors[colIdx + 2] = bgColor.b;
+                colors[colIdx + 3] = 0.8; // 固定透明度
+                
+                sizes[i] = 0.5 + Math.random() * 1.5;
+            }
+            
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 4)); // 4个为一组（RGBA）
+            starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            
+            let starMaterial;
+            
+            if (starMaterialType === 'standard') {
+                starMaterial = new THREE.PointsMaterial({
+                    size: 1.2,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 1.0,
+                    blending: THREE.AdditiveBlending
+                });
+            } else {
+                // 十字闪闪发光材质
+                starMaterial = new THREE.PointsMaterial({
+                    size: 1.8,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 1.0,
+                    blending: THREE.AdditiveBlending,
+                    map: createCrossTexture()
+                });
+            }
+            
+            backgroundStars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(backgroundStars);
+        }
+        
+        // 创建外环 - 修复：使用正确的初始大小参数
+        function createRing() {
+            if (ringStars) scene.remove(ringStars);
+            
+            const ringStarCount = Math.floor(
+                (qualityLevel === 'low' ? 1500 : 
+                 qualityLevel === 'medium' ? 2500 : 
+                 qualityLevel === 'high' ? 3500 : 5000) * params.ringDensity
+            );
+            
+            const positions = new Float32Array(ringStarCount * 3);
+            const colors = new Float32Array(ringStarCount * 4); // 使用RGBA
+            const sizes = new Float32Array(ringStarCount);
+            
+            const ringColor = new THREE.Color(params.ringColor);
+            const ringRadius = 250 * params.ringRadius; // 使用正确的参数
+            const ringThickness = 30 * params.ringThickness; // 使用正确的参数
+            
+            for (let i = 0; i < ringStarCount; i++) {
+                const posIdx = i * 3;
+                // 在圆环上分布星星
+                const angle = Math.random() * Math.PI * 2;
+                const radius = ringRadius + (Math.random() - 0.5) * 50;
+                const height = (Math.random() - 0.5) * ringThickness;
+                
+                positions[posIdx] = Math.cos(angle) * radius;
+                positions[posIdx + 1] = height;
+                positions[posIdx + 2] = Math.sin(angle) * radius;
+                
+                // 使用RGBA颜色数组
+                const colIdx = i * 4;
+                colors[colIdx] = ringColor.r * params.ringBrightness;
+                colors[colIdx + 1] = ringColor.g * params.ringBrightness;
+                colors[colIdx + 2] = ringColor.b * params.ringBrightness;
+                colors[colIdx + 3] = 0.7; // 固定透明度
+                
+                sizes[i] = 1.0 + Math.random() * 1.5;
+            }
+            
+            const ringGeometry = new THREE.BufferGeometry();
+            ringGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            ringGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 4)); // 4个分量
+            ringGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            
+            let ringMaterial;
+            
+            if (starMaterialType === 'standard') {
+                ringMaterial = new THREE.PointsMaterial({
+                    size: 1.5,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 1.0,
+                    blending: THREE.AdditiveBlending
+                });
+            } else {
+                // 十字闪闪发光材质
+                ringMaterial = new THREE.PointsMaterial({
+                    size: 1.8,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 1.0,
+                    blending: THREE.AdditiveBlending,
+                    map: createCrossTexture()
+                });
+            }
+            
+            ringStars = new THREE.Points(ringGeometry, ringMaterial);
+            scene.add(ringStars);
+        }
+        
+        // 创建球形边界 - 修复：使用正确的初始大小参数
+        function createBoundarySphere() {
+            if (boundarySphere) scene.remove(boundarySphere);
+            
+            const radius = 300 * params.boundaryRadius; // 使用正确的参数
+            const detail = Math.floor(params.boundaryDetail);
+            
+            if (params.boundaryStyle === 'wireframe') {
+                // 线框样式
+                const segments = detail * 2;
+                const rings = detail;
+                const geometry = new THREE.SphereGeometry(radius, segments, rings);
+                const material = new THREE.MeshBasicMaterial({
+                    color: params.boundaryColor,
+                    transparent: true,
+                    opacity: params.boundaryOpacity,
+                    wireframe: true,
+                    wireframeLinewidth: 1,
+                    blending: THREE.AdditiveBlending
+                });
+                boundarySphere = new THREE.Mesh(geometry, material);
+            } else {
+                // 繁星点点样式
+                const starCount = 2000;
+                const positions = new Float32Array(starCount * 3);
+                const colors = new Float32Array(starCount * 4); // 使用RGBA
+                const sizes = new Float32Array(starCount);
+                
+                const boundaryColor = new THREE.Color(params.boundaryColor);
+                
+                for (let i = 0; i < starCount; i++) {
+                    const posIdx = i * 3;
+                    const phi = Math.acos(-1 + Math.random() * 2);
+                    const theta = Math.random() * Math.PI * 2;
+                    
+                    positions[posIdx] = Math.sin(phi) * Math.cos(theta) * radius;
+                    positions[posIdx + 1] = Math.sin(phi) * Math.sin(theta) * radius;
+                    positions[posIdx + 2] = Math.cos(phi) * radius;
+                    
+                    const colIdx = i * 4;
+                    colors[colIdx] = boundaryColor.r;
+                    colors[colIdx + 1] = boundaryColor.g;
+                    colors[colIdx + 2] = boundaryColor.b;
+                    colors[colIdx + 3] = 0.5; // 固定透明度
+                    
+                    sizes[i] = 1.0 + Math.random() * 1.5;
+                }
+                
+                const starGeometry = new THREE.BufferGeometry();
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 4)); // 4个分量
+                starGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+                
+                const starMaterial = new THREE.PointsMaterial({
+                    size: 1.5,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: params.boundaryOpacity,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                boundarySphere = new THREE.Points(starGeometry, starMaterial);
+            }
+            
+            scene.add(boundarySphere);
+            const boundaryStatus = document.getElementById('boundaryStatus');
+            if (boundaryStatus) {
+                boundaryStatus.textContent = params.boundaryStyle === 'wireframe' ? '线框' : '繁星';
+            }
+        }
+        
+        // 创建十字纹理
+        function createCrossTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const context = canvas.getContext('2d');
+            
+            context.fillStyle = '#000000';
+            context.fillRect(0, 0, 64, 64);
+            
+            // 绘制十字
+            context.fillStyle = '#ffffff';
+            context.fillRect(28, 0, 8, 64); // 垂直条
+            context.fillRect(0, 28, 64, 8); // 水平条
+            
+            // 绘制发光效果
+            const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+            gradient.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+            gradient.addColorStop(1, 'rgba(255,255,255,0)');
+            
+            context.fillStyle = gradient;
+            context.beginPath();
+            context.arc(32, 32, 32, 0, Math.PI * 2);
+            context.fill();
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }
+        
+        // 更新控制面板显示值
+        function updateControlDisplays() {
+            // 核心恒星参数
+            setValueDisplay('starSizeValue', params.coreSize);
+            setValue('starSize', params.coreSize);
+            
+            setValueDisplay('starBrightnessValue', params.coreBrightness.toFixed(1));
+            setValue('starBrightness', params.coreBrightness);
+            
+            setValueDisplay('distortionValue', Math.round(params.distortion * 100) + '%');
+            setValue('distortion', params.distortion * 100);
+            
+            // 悬臂尾部渐变色
+            setValueDisplay('armGradientValue', Math.round(params.armGradient * 100) + '%');
+            setValue('armGradient', params.armGradient * 100);
+            
+            // 星系参数
+            setValueDisplay('sizeValue', Math.round(params.size * 100) + '%');
+            setValue('size', params.size * 100);
+            
+            setValueDisplay('speedValue', (params.rotationSpeed * 1000).toFixed(1) + 'x');
+            setValue('speed', params.rotationSpeed * 1000);
+            
+            setValueDisplay('densityValue', Math.round(params.starDensity * 100) + '%');
+            setValue('density', params.starDensity * 100);
+            
+            // 旋臂配置
+            setValueDisplay('armCountValue', params.arms);
+            setValue('armCount', params.arms);
+            
+            setValueDisplay('dispersionValue', Math.round(params.dispersion * 100) + '%');
+            setValue('dispersion', params.dispersion * 100);
+            
+            setValueDisplay('haloValue', Math.round(params.haloStrength * 100) + '%');
+            setValue('halo', params.haloStrength * 100);
+            
+            setValueDisplay('armAngleValue', params.armAngle.toFixed(2));
+            setValue('armAngle', params.armAngle);
+            
+            // 外环参数 - 修复：使用正确的初始值
+            setValueDisplay('ringRadiusValue', Math.round(params.ringRadius * 100) + '%');
+            setValue('ringRadius', params.ringRadius * 100);
+            
+            setValueDisplay('ringThicknessValue', Math.round(params.ringThickness * 100) + '%');
+            setValue('ringThickness', params.ringThickness * 100);
+            
+            setValueDisplay('ringDensityValue', Math.round(params.ringDensity * 100) + '%');
+            setValue('ringDensity', params.ringDensity * 100);
+            
+            setValueDisplay('ringBrightnessValue', params.ringBrightness.toFixed(1));
+            setValue('ringBrightness', params.ringBrightness);
+            
+            // 边界参数 - 修复：使用正确的初始值
+            setValueDisplay('boundaryRadiusValue', Math.round(params.boundaryRadius * 100) + '%');
+            setValue('boundaryRadius', params.boundaryRadius * 100);
+            
+            setValueDisplay('boundaryOpacityValue', Math.round(params.boundaryOpacity * 100) + '%');
+            setValue('boundaryOpacity', params.boundaryOpacity * 100);
+            
+            setValueDisplay('boundaryDetailValue', params.boundaryDetail);
+            setValue('boundaryDetail', params.boundaryDetail);
+            
+            setValue('boundaryColor', params.boundaryColor);
+            
+            // 网格参数
+            setValueDisplay('gridSizeValue', gridSize);
+            setValue('gridSize', gridSize);
+            
+            setValueDisplay('gridDivisionsValue', gridDivisions);
+            setValue('gridDivisions', gridDivisions);
+            
+            setValueDisplay('timeScaleValue', timeScale.toFixed(1) + 'x');
+            setValue('timeScale', timeScale);
+            
+            // 闪烁控制
+            setValueDisplay('twinkleValue', Math.round(params.twinkleFactor * 100) + '%');
+            setValue('twinkle', params.twinkleFactor * 100);
+            
+            // 颜色参数
+            setValue('coreColor', params.coreColor);
+            setValue('armColor', params.armColor);
+            setValue('ringColor', params.ringColor);
+            setValue('bgColor', params.bgColor);
+            
+            // 边界样式按钮文本
+            const boundaryStyleButton = document.getElementById('switchBoundaryStyle');
+            if (boundaryStyleButton) {
+                boundaryStyleButton.textContent = 
+                    `边界样式: ${params.boundaryStyle === 'wireframe' ? '线框' : '繁星'}`;
+            }
+        }
+        
+        // 辅助函数：设置元素值
+        function setValue(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.value = value;
+        }
+        
+        // 辅助函数：设置显示值
+        function setValueDisplay(id, text) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = text;
+        }
+        
+        // 设置事件监听器 - 修复：核心恒星颜色更新
+        function setupEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+            
+            // 星系选择器
+            const galaxySelector = document.getElementById('galaxySelector');
+            if (galaxySelector) {
+                galaxySelector.addEventListener('change', function() {
+                    handleGalaxyChange(this.value);
+                });
+            }
+            
+            const galaxyType = document.getElementById('galaxyType');
+            if (galaxyType) {
+                galaxyType.addEventListener('change', function() {
+                    handleGalaxyChange(this.value);
+                });
+            }
+            
+            function handleGalaxyChange(value) {
+                const preset = galaxyPresets[value];
+                if (preset) {
+                    params.arms = preset.arms;
+                    params.coreColor = preset.coreColor;
+                    params.armColor = preset.armColor;
+                    params.ringColor = preset.ringColor;
+                    params.bgColor = preset.bgColor;
+                    params.boundaryColor = preset.boundaryColor;
+                    params.ringDensity = preset.ringDensity;
+                    params.ringRadius = preset.ringRadius;
+                    params.ringThickness = preset.ringThickness;
+                    params.boundaryRadius = preset.boundaryRadius;
+                    params.boundaryOpacity = preset.boundaryOpacity;
+                    
+                    if (galaxySelector) galaxySelector.value = value;
+                    if (galaxyType) galaxyType.value = value;
+                    
+                    showGalaxyName(preset.name);
+                    
+                    scene.background = new THREE.Color(params.bgColor);
+                    scene.fog = new THREE.FogExp2(params.bgColor, 0.0015);
+                    
+                    currentScale = galaxy ? galaxy.scale.x : 0.1;
+                    
+                    createGalaxy();
+                    createRing();
+                    createBoundarySphere();
+                    
+                    updateControlDisplays();
+                }
+            }
+            
+            // 核心恒星控制
+            addSliderListener('starSize', function(value) {
+                params.coreSize = parseInt(value);
+                setValueDisplay('starSizeValue', value);
+                createCoreStar();
+            });
+            
+            addSliderListener('starBrightness', function(value) {
+                params.coreBrightness = parseFloat(value);
+                setValueDisplay('starBrightnessValue', value);
+                if (coreStar) {
+                    coreStar.material.opacity = params.coreBrightness;
+                }
+            });
+            
+            addSliderListener('distortion', function(value) {
+                params.distortion = value / 100;
+                setValueDisplay('distortionValue', value + '%');
+            });
+            
+            const toggleStarType = document.getElementById('toggleStarType');
+            if (toggleStarType) {
+                toggleStarType.addEventListener('click', function() {
+                    const types = ['normal', 'redgiant', 'neutron', 'blackhole'];
+                    const currentIndex = types.indexOf(starType);
+                    const nextIndex = (currentIndex + 1) % types.length;
+                    starType = types[nextIndex];
+                    
+                    const typeNames = {
+                        'normal': '普通恒星',
+                        'redgiant': '红巨星',
+                        'neutron': '中子星',
+                        'blackhole': '黑洞'
+                    };
+                    
+                    this.textContent = `恒星类型: ${typeNames[starType]}`;
+                    createCoreStar();
+                });
+            }
+            
+            // 悬臂尾部渐变色
+            addSliderListener('armGradient', function(value) {
+                params.armGradient = value / 100;
+                setValueDisplay('armGradientValue', value + '%');
+                createSpiralArms();
+            });
+            
+            // 星系参数控制
+            addSliderListener('size', function(value) {
+                params.size = value / 100;
+                setValueDisplay('sizeValue', value + '%');
+                if (galaxy) {
+                    galaxy.scale.set(params.size, params.size, params.size);
+                    currentScale = params.size;
+                }
+            });
+            
+            addSliderListener('speed', function(value) {
+                params.rotationSpeed = value * 0.001;
+                setValueDisplay('speedValue', value + 'x');
+                if (controls) {
+                    controls.autoRotateSpeed = params.rotationSpeed * 500;
+                }
+            });
+            
+            addSliderListener('density', function(value) {
+                params.starDensity = parseFloat(value) / 100;
+                setValueDisplay('densityValue', value + '%');
+                createSpiralArms();
+            });
+            
+            // 旋臂配置控制
+            addSliderListener('armCount', function(value) {
+                params.arms = parseInt(value);
+                setValueDisplay('armCountValue', value);
+                setValueDisplay('armCountDisplay', value);
+                createSpiralArms();
+            });
+            
+            addSliderListener('dispersion', function(value) {
+                params.dispersion = value / 100;
+                setValueDisplay('dispersionValue', value + '%');
+                createSpiralArms();
+            });
+            
+            addSliderListener('halo', function(value) {
+                params.haloStrength = value / 100;
+                setValueDisplay('haloValue', value + '%');
+                createSpiralArms();
+            });
+            
+            addSliderListener('armAngle', function(value) {
+                params.armAngle = parseFloat(value);
+                setValueDisplay('armAngleValue', value);
+                createSpiralArms();
+            });
+            
+            // 外环控制 - 修复：参数转换
+            addSliderListener('ringRadius', function(value) {
+                params.ringRadius = parseFloat(value) / 100;
+                setValueDisplay('ringRadiusValue', value + '%');
+                createRing();
+            });
+            
+            addSliderListener('ringThickness', function(value) {
+                params.ringThickness = parseFloat(value) / 100;
+                setValueDisplay('ringThicknessValue', value + '%');
+                createRing();
+            });
+            
+            addSliderListener('ringDensity', function(value) {
+                params.ringDensity = parseFloat(value) / 100;
+                setValueDisplay('ringDensityValue', value + '%');
+                createRing();
+            });
+            
+            addSliderListener('ringBrightness', function(value) {
+                params.ringBrightness = parseFloat(value);
+                setValueDisplay('ringBrightnessValue', value);
+                createRing();
+            });
+            
+            // 边界控制 - 修复：参数转换
+            addSliderListener('boundaryRadius', function(value) {
+                params.boundaryRadius = parseFloat(value) / 100;
+                setValueDisplay('boundaryRadiusValue', value + '%');
+                createBoundarySphere();
+            });
+            
+            addSliderListener('boundaryOpacity', function(value) {
+                params.boundaryOpacity = value / 100;
+                setValueDisplay('boundaryOpacityValue', value + '%');
+                if (boundarySphere) {
+                    boundarySphere.material.opacity = params.boundaryOpacity;
+                }
+            });
+            
+            addSliderListener('boundaryDetail', function(value) {
+                params.boundaryDetail = parseInt(value);
+                setValueDisplay('boundaryDetailValue', value);
+                createBoundarySphere();
+            });
+            
+            const boundaryColor = document.getElementById('boundaryColor');
+            if (boundaryColor) {
+                boundaryColor.addEventListener('input', function() {
+                    params.boundaryColor = this.value;
+                    if (boundarySphere) {
+                        boundarySphere.material.color.set(params.boundaryColor);
+                    }
+                });
+            }
+            
+            // 边界样式切换
+            const switchBoundaryStyle = document.getElementById('switchBoundaryStyle');
+            if (switchBoundaryStyle) {
+                switchBoundaryStyle.addEventListener('click', function() {
+                    params.boundaryStyle = params.boundaryStyle === 'wireframe' ? 'stars' : 'wireframe';
+                    this.textContent = `边界样式: ${params.boundaryStyle === 'wireframe' ? '线框' : '繁星'}`;
+                    createBoundarySphere();
+                });
+            }
+            
+            // 行星材质选择
+            document.querySelectorAll('.star-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.star-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    starMaterialType = this.dataset.type;
+                    createBackgroundStars();
+                    createSpiralArms();
+                    createRing();
+                });
+            });
+            
+            // 闪烁控制
+            addSliderListener('twinkle', function(value) {
+                params.twinkleFactor = value / 100;
+                setValueDisplay('twinkleValue', value + '%');
+            });
+            
+            // 渲染精度控制
+            addButtonListener('lowQuality', function() {
+                qualityLevel = 'low';
+                updateQuality();
+            });
+            
+            addButtonListener('mediumQuality', function() {
+                qualityLevel = 'medium';
+                updateQuality();
+            });
+            
+            addButtonListener('highQuality', function() {
+                qualityLevel = 'high';
+                updateQuality();
+            });
+            
+            addButtonListener('ultraQuality', function() {
+                qualityLevel = 'ultra';
+                updateQuality();
+            });
+            
+            // 网格控制
+            addSliderListener('gridSize', function(value) {
+                gridSize = parseInt(value);
+                setValueDisplay('gridSizeValue', value);
+                createGrid();
+            });
+            
+            addSliderListener('gridDivisions', function(value) {
+                gridDivisions = parseInt(value);
+                setValueDisplay('gridDivisionsValue', value);
+                createGrid();
+            });
+            
+            const toggleGrid = document.getElementById('toggleGrid');
+            if (toggleGrid) {
+                toggleGrid.addEventListener('click', function() {
+                    showGrid = !showGrid;
+                    if (gridHelper) {
+                        gridHelper.visible = showGrid;
+                    }
+                    this.textContent = showGrid ? "显示基准网格: 开" : "显示基准网格: 关";
+                });
+            }
+            
+            // 时间控制
+            addSliderListener('timeScale', function(value) {
+                timeScale = parseFloat(value);
+                setValueDisplay('timeScaleValue', value + 'x');
+            });
+            
+            const toggleTime = document.getElementById('toggleTime');
+            if (toggleTime) {
+                toggleTime.addEventListener('click', function() {
+                    isTimePaused = !isTimePaused;
+                    this.textContent = isTimePaused ? "恢复时间" : "暂停时间";
+                });
+            }
+            
+            // 更新渲染质量
+            function updateQuality() {
+                const qualityStatus = document.getElementById('qualityStatus');
+                if (qualityStatus) {
+                    qualityStatus.textContent = 
+                        qualityLevel === 'low' ? '低精度' : 
+                        qualityLevel === 'medium' ? '中精度' : 
+                        qualityLevel === 'high' ? '高精度' : '超高精度';
+                }
+                
+                createBackgroundStars();
+                createGalaxy();
+                createRing();
+                createBoundarySphere();
+            }
+            
+            // 颜色控制 - 修复：核心恒星颜色更新
+            const coreColor = document.getElementById('coreColor');
+            if (coreColor) {
+                coreColor.addEventListener('input', function() {
+                    params.coreColor = this.value;
+                    // 更新核心恒星颜色
+                    if (coreStar) {
+                        coreStar.material.color.set(params.coreColor);
+                    }
+                    createSpiralArms();
+                });
+            }
+            
+            const armColor = document.getElementById('armColor');
+            if (armColor) {
+                armColor.addEventListener('input', function() {
+                    params.armColor = this.value;
+                    createSpiralArms();
+                });
+            }
+            
+            const ringColor = document.getElementById('ringColor');
+            if (ringColor) {
+                ringColor.addEventListener('input', function() {
+                    params.ringColor = this.value;
+                    createRing();
+                });
+            }
+            
+            const bgColor = document.getElementById('bgColor');
+            if (bgColor) {
+                bgColor.addEventListener('input', function() {
+                    params.bgColor = this.value;
+                    scene.background = new THREE.Color(params.bgColor);
+                    scene.fog = new THREE.FogExp2(params.bgColor, 0.0015);
+                });
+            }
+            
+            // 按钮控制
+            addButtonListener('autoRotate', function() {
+                autoRotate = !autoRotate;
+                if (controls) {
+                    controls.autoRotate = autoRotate;
+                }
+                this.textContent = autoRotate ? "自动旋转: 开" : "自动旋转: 关";
+            });
+            
+            addButtonListener('resetView', function() {
+                if (camera && controls) {
+                    camera.position.set(0, 150, 300);
+                    camera.lookAt(0, 0, 0);
+                    controls.reset();
+                }
+            });
+            
+            addButtonListener('toggleStars', function() {
+                showStars = !showStars;
+                if (stars) {
+                    stars.visible = showStars;
+                }
+                this.textContent = showStars ? "恒星效果: 开" : "恒星效果: 关";
+            });
+            
+            addButtonListener('toggleBoundary', function() {
+                showBoundary = !showBoundary;
+                if (boundarySphere) {
+                    boundarySphere.visible = showBoundary;
+                }
+                this.textContent = showBoundary ? "边界显示: 开" : "边界显示: 关";
+                const boundaryStatus = document.getElementById('boundaryStatus');
+                if (boundaryStatus) {
+                    boundaryStatus.textContent = 
+                        showBoundary ? (params.boundaryStyle === 'wireframe' ? '线框' : '繁星') : '已隐藏';
+                }
+            });
+            
+            addButtonListener('toggleHud', function() {
+                showHud = !showHud;
+                const hudElements = [
+                    '.stats', '.performance', '.info', '.instructions',
+                    '.boundary-indicator', '.galaxy-selector', 
+                    '.performance-indicator', '.scale-indicator', '.time-display',
+                    '.header'
+                ];
+                
+                hudElements.forEach(selector => {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        element.style.display = showHud ? 'block' : 'none';
+                    }
+                });
+                
+                // 特殊处理比例指示器
+                const scaleIndicator = document.querySelector('.scale-indicator');
+                if (scaleIndicator) {
+                    scaleIndicator.style.display = showHud ? 'flex' : 'none';
+                }
+                
+                // 特殊处理标题
+                const header = document.querySelector('.header');
+                if (header) {
+                    header.style.display = showHud ? 'block' : 'none';
+                }
+                
+                this.textContent = showHud ? "显示HUD: 开" : "显示HUD: 关";
+            });
+            
+            // 控制面板切换
+            const toggleControl = document.getElementById('toggleControl');
+            if (toggleControl) {
+                toggleControl.addEventListener('click', function() {
+                    const controlPanel = document.getElementById('controlPanel');
+                    if (controlPanel) {
+                        controlPanel.classList.toggle('hidden');
+                    }
+                });
+            }
+            
+            const closeControl = document.getElementById('closeControl');
+            if (closeControl) {
+                closeControl.addEventListener('click', function() {
+                    const controlPanel = document.getElementById('controlPanel');
+                    if (controlPanel) {
+                        controlPanel.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // 重新加载按钮
+            const reloadButton = document.getElementById('reloadButton');
+            if (reloadButton) {
+                reloadButton.addEventListener('click', function() {
+                    location.reload();
+                });
+            }
+        }
+        
+        // 辅助函数：添加滑块监听器
+        function addSliderListener(id, callback) {
+            const slider = document.getElementById(id);
+            if (slider) {
+                slider.addEventListener('input', function() {
+                    callback(this.value);
+                });
+            }
+        }
+        
+        // 辅助函数：添加按钮监听器
+        function addButtonListener(id, callback) {
+            const button = document.getElementById(id);
+            if (button) {
+                button.addEventListener('click', callback);
+            }
+        }
+        
+        // 窗口大小调整
+        function onWindowResize() {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+        
+        // 动画循环
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+            
+            const currentTime = performance.now();
+            const elapsed = currentTime - startTime;
+            const duration = 3500; // 3.5秒动画
+            
+            // 处理入场动画
+            if (!animationComplete) {
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // 使用缓动函数
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                // 相机移动：从起始位置到目标位置
+                const startCamPos = new THREE.Vector3(0, 0, 1500);
+                const targetCamPos = new THREE.Vector3(0, 150, 300);
+                camera.position.lerpVectors(startCamPos, targetCamPos, easeProgress);
+                
+                // 星系缩放：从0.1到1
+                const scale = 0.1 + easeProgress * 0.9;
+                if (galaxy) {
+                    galaxy.scale.set(scale, scale, scale);
+                    currentScale = scale;
+                }
+                
+                // 确保相机始终朝向星系中心
+                camera.lookAt(0, 0, 0);
+                
+                if (progress >= 1) {
+                    // 动画完成后启用控制
+                    if (controls) {
+                        controls.enabled = true;
+                    }
+                    animationComplete = true;
+                }
+            } else {
+                // 更新轨道控制
+                if (controls) {
+                    controls.update();
+                }
+            }
+            
+            // 时间系统更新
+            if (!isTimePaused) {
+                const deltaTime = 0.016 * timeScale;
+                universeTime += deltaTime;
+                const universeTimeElement = document.getElementById('universeTime');
+                if (universeTimeElement) {
+                    universeTimeElement.textContent = (universeTime / 100).toFixed(2);
+                }
+                
+                // 旋转星系 - 只在自动旋转开启时旋转
+                if (galaxy && autoRotate) {
+                    galaxy.rotation.y += params.rotationSpeed * deltaTime * 60;
+                }
+                
+                // 旋转外环
+                if (ringStars && autoRotate) {
+                    ringStars.rotation.y += params.rotationSpeed * 0.5 * deltaTime * 60;
+                }
+                
+                // 旋转背景星星
+                if (backgroundStars) {
+                    backgroundStars.rotation.y += 0.0001 * deltaTime * 60;
+                }
+                
+                // 更新恒星闪烁效果
+                if (stars && params.twinkleFactor > 0) {
+                    const sizes = stars.geometry.attributes.size;
+                    const originalSizes = stars.geometry.attributes.originalSize;
+                    
+                    if (!originalSizes) {
+                        const origSizes = new Float32Array(sizes.array.length);
+                        for (let i = 0; i < sizes.array.length; i++) {
+                            origSizes[i] = sizes.array[i];
+                        }
+                        stars.geometry.setAttribute('originalSize', new THREE.BufferAttribute(origSizes, 1));
+                    } else {
+                        for (let i = 0; i < sizes.array.length; i++) {
+                            const scale = 1 + Math.sin(universeTime * (0.5 + Math.random())) * 
+                                        0.3 * params.twinkleFactor;
+                            sizes.array[i] = originalSizes.array[i] * scale;
+                        }
+                        sizes.needsUpdate = true;
+                    }
+                }
+            }
+            
+            // 更新比例尺
+            const scaleValueElement = document.getElementById('scaleValue');
+            if (scaleValueElement && galaxy) {
+                const scaleValue = Math.round(100000 * galaxy.scale.x);
+                scaleValueElement.textContent = `${scaleValue.toLocaleString()} 光年`;
+            }
+            
+            // 渲染场景
+            renderer.render(scene, camera);
+            
+            // 更新FPS计数
+            frameCount++;
+            if (currentTime >= lastTime + 1000) {
+                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                lastTime = currentTime;
+                frameCount = 0;
+                
+                const fpsElement = document.querySelector('.fps');
+                if (fpsElement) {
+                    fpsElement.textContent = fps;
+                }
+            }
+        }
+        
+        // 初始化应用
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const loadingFill = document.getElementById('loadingFill');
+            const loadingPercentage = document.getElementById('loadingPercentage');
+            
+            // 检查Three.js是否加载成功
+            if (typeof THREE === 'undefined') {
+                showError("Three.js库加载失败。请检查网络连接并刷新页面。");
+                return;
+            }
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                if (loadingFill) loadingFill.style.width = progress + '%';
+                if (loadingPercentage) loadingPercentage.textContent = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    if (loadingScreen) {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            init();
+                        }, 500);
+                    }
+                }
+            }, 30);
+        });
+        
+        // 显示错误信息
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorContent = document.getElementById('errorContent');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            if (errorMessage) errorMessage.style.display = 'block';
+            if (errorContent) errorContent.innerHTML = message;
+            if (loadingScreen) loadingScreen.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

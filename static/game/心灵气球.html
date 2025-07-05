@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心灵气球 - 减压放松小游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Ma Shan Zheng', cursive, sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #bbdefb, #e1bee7);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #5d4037;
+            overflow: hidden;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffcdd2 0%, transparent 70%);
+            opacity: 0.3;
+            z-index: 0;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            color: #5e35b1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            color: #7e57c2;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #game-container {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            border-radius: 15px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            border: 3px solid #bbdefb;
+        }
+        
+        #balloon {
+            position: absolute;
+            bottom: 100px;
+            left: 100px;
+            width: 60px;
+            height: 80px;
+            transition: transform 0.1s ease;
+            z-index: 10;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: float 4s infinite ease-in-out;
+        }
+        
+        .positive {
+            background: radial-gradient(circle, #ffeb3b, transparent 70%);
+            box-shadow: 0 0 15px #ffeb3b;
+        }
+        
+        .cloud {
+            position: absolute;
+            background: rgba(200, 200, 200, 0.8);
+            border-radius: 50px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #7e57c2, #5e35b1);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Ma Shan Zheng', cursive;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(to bottom, #9575cd, #7e57c2);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            background: rgba(187, 222, 251, 0.3);
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .message {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #5d4037;
+            border: 2px dashed #bbdefb;
+        }
+        
+        .inspiration {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            background: rgba(255, 245, 157, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #ffd54f;
+        }
+        
+        .inspiration p {
+            margin: 10px 0;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-10px) translateX(5px); }
+            50% { transform: translateY(-5px) translateX(-5px); }
+            75% { transform: translateY(-8px) translateX(3px); }
+        }
+        
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        #balloon {
+            animation: breathe 3s infinite ease-in-out;
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .subtitle { font-size: 1.1rem; }
+            #game-container { height: 300px; }
+            .stats { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>心灵气球</h1>
+        <div class="subtitle">放松心情，让烦恼随风飘散</div>
+        
+        <div class="message" id="message">
+            点击开始，用鼠标或手指引导气球收集正能量泡泡
+        </div>
+        
+        <div id="game-container">
+            <div id="balloon">
+                <svg viewBox="0 0 60 80">
+                    <ellipse cx="30" cy="30" rx="25" ry="30" fill="#e91e63" />
+                    <polygon points="25,50 35,50 30,70" fill="#4CAF50" />
+                    <path d="M25 50 Q30 55 35 50" stroke="#4CAF50" stroke-width="2" fill="none" />
+                </svg>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div>正能量: <span id="score">0</span></div>
+            <div>收集泡泡: <span id="bubbles">0</span></div>
+            <div>放松时间: <span id="timer">00:00</span></div>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn">开始游戏</button>
+            <button id="pause-btn">暂停</button>
+            <button id="reset-btn">重新开始</button>
+            <button id="music-btn">🎵 音乐: 开</button>
+        </div>
+        
+        <div class="inspiration">
+            <p>🌼 亲爱的朋友，乌云只是暂时的，阳光终将穿透阴霾</p>
+            <p>💖 你并不孤单，每一步前进都值得骄傲</p>
+            <p>🌈 每一次呼吸都是新的开始，你比自己想象的更坚强</p>
+        </div>
+    </div>
+    
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 游戏元素
+            const gameContainer = document.getElementById('game-container');
+            const balloon = document.getElementById('balloon');
+            const scoreDisplay = document.getElementById('score');
+            const bubblesDisplay = document.getElementById('bubbles');
+            const timerDisplay = document.getElementById('timer');
+            const messageDisplay = document.getElementById('message');
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const musicBtn = document.getElementById('music-btn');
+            const bgMusic = document.getElementById('bgMusic');
+            
+            // 游戏状态
+            let gameActive = false;
+            let score = 0;
+            let bubblesCollected = 0;
+            let seconds = 0;
+            let musicOn = true;
+            let animationFrame;
+            
+            // 气球位置
+            let balloonX = 100;
+            let balloonY = 300;
+            
+            // 气泡数组
+            let bubbles = [];
+            let clouds = [];
+            
+            // 设置气球位置
+            balloon.style.left = balloonX + 'px';
+            balloon.style.top = balloonY + 'px';
+            
+            // 开始游戏
+            startBtn.addEventListener('click', startGame);
+            
+            // 暂停游戏
+            pauseBtn.addEventListener('click', function() {
+                gameActive = !gameActive;
+                pauseBtn.textContent = gameActive ? '暂停' : '继续';
+                messageDisplay.textContent = gameActive ? '继续收集正能量泡泡吧！' : '游戏已暂停';
+                
+                if (gameActive) {
+                    gameLoop();
+                } else {
+                    cancelAnimationFrame(animationFrame);
+                }
+            });
+            
+            // 重置游戏
+            resetBtn.addEventListener('click', resetGame);
+            
+            // 音乐控制
+            musicBtn.addEventListener('click', function() {
+                musicOn = !musicOn;
+                musicBtn.textContent = '🎵 音乐: ' + (musicOn ? '开' : '关');
+                
+                if (musicOn) {
+                    bgMusic.play().catch(e => console.log("自动播放被阻止，请手动点击开始"));
+                } else {
+                    bgMusic.pause();
+                }
+            });
+            
+            // 气球控制
+            gameContainer.addEventListener('mousemove', moveBalloon);
+            gameContainer.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = gameContainer.getBoundingClientRect();
+                moveBalloon({
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    target: gameContainer
+                }, rect);
+            });
+            
+            function moveBalloon(e, rect = null) {
+                if (!gameActive) return;
+                
+                if (!rect) {
+                    rect = gameContainer.getBoundingClientRect();
+                }
+                
+                const containerX = rect.left;
+                const containerY = rect.top;
+                
+                // 计算气球位置
+                balloonX = e.clientX - containerX - 30;
+                balloonY = e.clientY - containerY - 40;
+                
+                // 边界检查
+                balloonX = Math.max(20, Math.min(balloonX, gameContainer.offsetWidth - 80));
+                balloonY = Math.max(20, Math.min(balloonY, gameContainer.offsetHeight - 100));
+                
+                balloon.style.left = balloonX + 'px';
+                balloon.style.top = balloonY + 'px';
+            }
+            
+            // 开始游戏
+            function startGame() {
+                if (gameActive) return;
+                
+                gameActive = true;
+                startBtn.disabled = true;
+                pauseBtn.textContent = '暂停';
+                messageDisplay.textContent = '收集彩色泡泡，避开灰色乌云';
+                
+                // 重置状态
+                score = 0;
+                bubblesCollected = 0;
+                seconds = 0;
+                updateDisplays();
+                
+                // 清除现有元素
+                bubbles = [];
+                clouds = [];
+                document.querySelectorAll('.bubble, .cloud').forEach(el => el.remove());
+                
+                // 开始游戏循环
+                gameLoop();
+                
+                // 开始计时器
+                startTimer();
+                
+                // 开始生成元素
+                generateElements();
+                
+                // 播放音乐
+                if (musicOn) {
+                    bgMusic.play().catch(e => console.log("自动播放被阻止，请手动点击开始"));
+                }
+            }
+            
+            // 重置游戏
+            function resetGame() {
+                gameActive = false;
+                cancelAnimationFrame(animationFrame);
+                clearInterval(timerInterval);
+                startBtn.disabled = false;
+                pauseBtn.textContent = '暂停';
+                
+                // 清除现有元素
+                bubbles = [];
+                clouds = [];
+                document.querySelectorAll('.bubble, .cloud').forEach(el => el.remove());
+                
+                // 重置气球位置
+                balloonX = 100;
+                balloonY = 300;
+                balloon.style.left = balloonX + 'px';
+                balloon.style.top = balloonY + 'px';
+                
+                messageDisplay.textContent = '点击开始，用鼠标或手指引导气球收集正能量泡泡';
+            }
+            
+            // 生成气泡和云朵
+            function generateElements() {
+                if (!gameActive) return;
+                
+                // 生成正能量泡泡
+                if (Math.random() < 0.3) {
+                    createBubble();
+                }
+                
+                // 偶尔生成乌云
+                if (Math.random() < 0.1) {
+                    createCloud();
+                }
+                
+                // 每1.5秒尝试生成新元素
+                setTimeout(generateElements, 1500);
+            }
+            
+            // 创建正能量泡泡
+            function createBubble() {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble positive';
+                
+                // 随机大小和位置
+                const size = Math.random() * 30 + 20;
+                const posX = Math.random() * (gameContainer.offsetWidth - size);
+                
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = posX + 'px';
+                bubble.style.top = '0px';
+                
+                gameContainer.appendChild(bubble);
+                
+                // 存储气泡信息
+                bubbles.push({
+                    element: bubble,
+                    x: posX,
+                    y: 0,
+                    size: size,
+                    speed: Math.random() * 2 + 1
+                });
+            }
+            
+            // 创建乌云
+            function createCloud() {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                
+                const width = Math.random() * 80 + 40;
+                const height = width * 0.6;
+                const posX = Math.random() * (gameContainer.offsetWidth - width);
+                
+                cloud.style.width = width + 'px';
+                cloud.style.height = height + 'px';
+                cloud.style.left = posX + 'px';
+                cloud.style.top = '0px';
+                
+                gameContainer.appendChild(cloud);
+                
+                // 存储云朵信息
+                clouds.push({
+                    element: cloud,
+                    x: posX,
+                    y: 0,
+                    width: width,
+                    height: height,
+                    speed: Math.random() * 1.5 + 0.5
+                });
+            }
+            
+            // 游戏主循环
+            function gameLoop() {
+                if (!gameActive) return;
+                
+                // 更新气泡位置
+                for (let i = bubbles.length - 1; i >= 0; i--) {
+                    const bubble = bubbles[i];
+                    bubble.y += bubble.speed;
+                    bubble.element.style.top = bubble.y + 'px';
+                    
+                    // 检测碰撞
+                    if (detectCollision(balloonX, balloonY, 30, 40, bubble.x, bubble.y, bubble.size, bubble.size)) {
+                        // 收集泡泡
+                        bubble.element.remove();
+                        bubbles.splice(i, 1);
+                        bubblesCollected++;
+                        score += 10;
+                        
+                        // 显示正能量消息
+                        showPositiveMessage();
+                        updateDisplays();
+                    }
+                    // 移除超出屏幕的泡泡
+                    else if (bubble.y > gameContainer.offsetHeight) {
+                        bubble.element.remove();
+                        bubbles.splice(i, 1);
+                    }
+                }
+                
+                // 更新云朵位置
+                for (let i = clouds.length - 1; i >= 0; i--) {
+                    const cloud = clouds[i];
+                    cloud.y += cloud.speed;
+                    cloud.element.style.top = cloud.y + 'px';
+                    
+                    // 检测碰撞
+                    if (detectCollision(balloonX, balloonY, 30, 40, cloud.x, cloud.y, cloud.width, cloud.height)) {
+                        // 碰到乌云，显示鼓励信息
+                        messageDisplay.textContent = '碰到乌云了，没关系！继续前进吧！';
+                        setTimeout(() => {
+                            if (gameActive) messageDisplay.textContent = '收集彩色泡泡，避开灰色乌云';
+                        }, 2000);
+                        
+                        // 移除云朵
+                        cloud.element.remove();
+                        clouds.splice(i, 1);
+                    }
+                    // 移除超出屏幕的云朵
+                    else if (cloud.y > gameContainer.offsetHeight) {
+                        cloud.element.remove();
+                        clouds.splice(i, 1);
+                    }
+                }
+                
+                animationFrame = requestAnimationFrame(gameLoop);
+            }
+            
+            // 碰撞检测
+            function detectCollision(obj1X, obj1Y, obj1W, obj1H, obj2X, obj2Y, obj2W, obj2H) {
+                return obj1X < obj2X + obj2W &&
+                       obj1X + obj1W > obj2X &&
+                       obj1Y < obj2Y + obj2H &&
+                       obj1Y + obj1H > obj2Y;
+            }
+            
+            // 显示随机正能量消息
+            function showPositiveMessage() {
+                const messages = [
+                    "做得好！你正在进步！",
+                    "每一步都值得庆祝！",
+                    "你真棒！继续加油！",
+                    "你的努力正在改变一切！",
+                    "你比自己想象的更强大！",
+                    "乌云终将散去，阳光属于你！",
+                    "你的价值无可替代！",
+                    "每一次呼吸都是新的开始！"
+                ];
+                
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                messageDisplay.textContent = randomMsg;
+                
+                // 3秒后恢复默认消息
+                setTimeout(() => {
+                    if (gameActive) messageDisplay.textContent = '收集彩色泡泡，避开灰色乌云';
+                }, 3000);
+            }
+            
+            // 更新显示
+            function updateDisplays() {
+                scoreDisplay.textContent = score;
+                bubblesDisplay.textContent = bubblesCollected;
+            }
+            
+            // 计时器
+            let timerInterval;
+            function startTimer() {
+                clearInterval(timerInterval);
+                seconds = 0;
+                updateTimer();
+                
+                timerInterval = setInterval(() => {
+                    if (gameActive) {
+                        seconds++;
+                        updateTimer();
+                    }
+                }, 1000);
+            }
+            
+            function updateTimer() {
+                const minutes = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // 初始音乐按钮状态
+            musicBtn.textContent = '🎵 音乐: 开';
+        });
+    </script>
+</body>
+</html>

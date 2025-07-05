@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>代码雨</title>
+<style>
+body {
+background: black;
+margin: 0;
+overflow: hidden;
+}
+canvas {
+display: block;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const letters = Array(256).join(1).split('');
+const fontSize = 10;
+
+function draw() {
+ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = '#0F0';
+letters.map((y_pos, index) => {
+const text = String.fromCharCode(3e4 + Math.random() * 33);
+const x_pos = index * fontSize;
+ctx.fillText(text, x_pos, y_pos);
+letters[index] = y_pos > canvas.height ? 0 : y_pos + fontSize;
+});
+}
+
+setInterval(draw, 33);
+</script>
+</body>
+</html>

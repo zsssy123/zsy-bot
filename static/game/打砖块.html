@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打砖块游戏终极版 - 完全修复版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            flex-wrap: wrap;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .version-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #4CAF50;
+            color: white;
+            padding: 3px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 2.8rem;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+            font-weight: 800;
+        }
+        
+        .screen {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .active-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #mainMenu {
+            margin-top: 20px;
+        }
+        
+        .game-logo {
+            font-size: 6rem;
+            margin: 30px 0;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+            color: #FFD700;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: 30px 0;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            padding: 16px 30px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 94, 98, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 94, 98, 0.6);
+        }
+        
+        .menu-btn:active {
+            transform: translateY(2px);
+        }
+        
+        .menu-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 40px;
+            height: 200%;
+            background: rgba(255,255,255,0.3);
+            transform: rotate(25deg);
+            transition: all 0.6s;
+        }
+        
+        .menu-btn:hover::after {
+            left: 120%;
+        }
+        
+        .game-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+        
+        .info-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .info-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255,204,0,0.5);
+        }
+        
+        .game-area {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        #gameCanvas {
+            background: #111;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            width: 700px;
+            height: 500px;
+            display: block;
+        }
+        
+        .side-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 25px;
+            width: 320px;
+            text-align: left;
+            max-height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        button {
+            background: linear-gradient(to right, #ff9966, #ff5e62);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 94, 98, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 94, 98, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #ffcc00;
+            text-align: center;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .brick-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .brick-type {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .brick-type:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .brick-color {
+            width: 100%;
+            height: 30px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 20;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 40px rgba(255,94,98,0.5);
+            animation: popIn 0.5s;
+        }
+        
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .game-over h2 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #ff5e62;
+            text-shadow: 0 0 10px rgba(255,94,98,0.5);
+        }
+        
+        .final-score {
+            font-size: 2.8rem;
+            color: #ffcc00;
+            margin: 25px 0;
+            text-shadow: 0 0 10px rgba(255,204,0,0.5);
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .version {
+            position: absolute;
+            bottom: 8px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #ffcc00;
+        }
+        
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 800px;
+            margin: 30px 0;
+        }
+        
+        .level-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .level-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .level-card i {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .level-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+            max-width: 300px;
+        }
+        
+        .active-powerups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .powerup-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        .leaderboard {
+            width: 100%;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .leaderboard h2 {
+            margin-bottom: 15px;
+            color: #ffcc00;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .leaderboard-list {
+            list-style-type: none;
+        }
+        
+        .leaderboard-list li {
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            transition: transform 0.3s;
+        }
+        
+        .leaderboard-list li:hover {
+            transform: translateX(5px);
+        }
+        
+        .leaderboard-list li:nth-child(1) {
+            background: linear-gradient(to right, #FFD700, #FFA500);
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .leaderboard-list li:nth-child(2) {
+            background: linear-gradient(to right, #C0C0C0, #A9A9A9);
+            color: #000;
+        }
+        
+        .leaderboard-list li:nth-child(3) {
+            background: linear-gradient(to right, #CD7F32, #A67C00);
+            color: #000;
+        }
+        
+        .player-name-input {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 14px 20px;
+            color: white;
+            font-size: 1.2rem;
+            width: 100%;
+            margin: 15px 0;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .player-name-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+        
+        .mode-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mode-btn.active {
+            background: #ff5e62;
+            box-shadow: 0 0 15px rgba(255, 94, 98, 0.6);
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid #ff5e62;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .refresh-btn {
+            background: transparent;
+            border: none;
+            color: #ffcc00;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .empty-leaderboard {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 1100px) {
+            .game-area {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .side-panel {
+                width: 100%;
+                max-width: 700px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 1.9rem;
+            }
+            
+            .game-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            #gameCanvas {
+                width: 100%;
+                height: 400px;
+            }
+            
+            .game-logo {
+                font-size: 4rem;
+            }
+            
+            .menu-btn {
+                font-size: 1.3rem;
+                padding: 14px 20px;
+            }
+            
+            .brick-types {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            #gameCanvas {
+                height: 300px;
+            }
+            
+            .menu-btn {
+                font-size: 1.1rem;
+            }
+            
+            .level-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="version-badge">完全修复版</div>
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <h1>打砖块游戏终极版</h1>
+            </div>
+            <div class="sound-control">
+                <button id="soundToggle">
+                    <i class="fas fa-volume-up"></i> 音效: 开
+                </button>
+            </div>
+        </header>
+        
+        <!-- 主菜单界面 -->
+        <div id="mainMenu" class="screen active-screen">
+            <div class="game-logo">
+                <i class="fas fa-bolt"></i>
+            </div>
+            
+            <div class="menu-buttons">
+                <button class="menu-btn" id="startGameBtn">
+                    <i class="fas fa-play"></i>开始游戏
+                </button>
+                <button class="menu-btn" id="levelSelectBtn">
+                    <i class="fas fa-list"></i>关卡选择
+                </button>
+                <button class="menu-btn" id="endlessModeBtn">
+                    <i class="fas fa-infinity"></i>无尽模式
+                </button>
+                <button class="menu-btn" id="leaderboardBtn">
+                    <i class="fas fa-trophy"></i>排行榜
+                </button>
+            </div>
+            
+            <div class="instructions">
+                <h2>游戏说明</h2>
+                <ul>
+                    <li>使用 <strong>← →</strong> 箭头键移动挡板</li>
+                    <li>击碎砖块获得分数和道具</li>
+                    <li>每1000分获得额外生命</li>
+                    <li>连续击中有连击奖励</li>
+                    <li>8种特殊道具增强游戏体验</li>
+                    <li>5个精心设计的关卡和无尽模式</li>
+                </ul>
+            </div>
+            
+            <div class="brick-types">
+                <div class="brick-type">
+                    <div class="brick-color" style="background: #FF5252;"></div>
+                    <h3>普通砖块</h3>
+                    <p>1次击破，得10分</p>
+                </div>
+                <div class="brick-type">
+                    <div class="brick-color" style="background: #4CAF50;"></div>
+                    <h3>坚固砖块</h3>
+                    <p>需要2次击破，得20分</p>
+                </div>
+                <div class="brick-type">
+                    <div class="brick-color" style="background: #2196F3;"></div>
+                    <h3>移动砖块</h3>
+                    <p>左右移动，得15分</p>
+                </div>
+                <div class="brick-type">
+                    <div class="brick-color" style="background: #FFD700;"></div>
+                    <h3>爆炸砖块</h3>
+                    <p>爆炸破坏周围砖块</p>
+                </div>
+                <div class="brick-type">
+                    <div class="brick-color" style="background: #9C27B0;"></div>
+                    <h3>隐形砖块</h3>
+                    <p>击中后才会显示</p>
+                </div>
+                <div class="brick-type">
+                    <div class="brick-color" style="background: #FF9800;"></div>
+                    <h3>道具砖块</h3>
+                    <p>掉落特殊道具</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 关卡选择界面 -->
+        <div id="levelSelect" class="screen">
+            <h2>选择关卡</h2>
+            <div class="level-grid">
+                <div class="level-card" data-level="1">
+                    <i class="fas fa-star" style="color: #4CAF50;"></i>
+                    <h3>关卡 1</h3>
+                    <p>新手入门</p>
+                    <p>难度: ★☆☆☆☆</p>
+                </div>
+                <div class="level-card" data-level="2">
+                    <i class="fas fa-star" style="color: #FFD700;"></i>
+                    <i class="fas fa-star" style="color: #FFD700;"></i>
+                    <h3>关卡 2</h3>
+                    <p>简单挑战</p>
+                    <p>难度: ★★☆☆☆</p>
+                </div>
+                <div class="level-card" data-level="3">
+                    <i class="fas fa-star" style="color: #FFD700;"></i>
+                    <i class="fas fa-star" style="color: #FFD700;"></i>
+                    <i class="fas fa-star" style="color: #FFD700;"></i>
+                    <h3>关卡 3</h3>
+                    <p>中等难度</p>
+                    <p>难度: ★★★☆☆</p>
+                </div>
+                <div class="level-card" data-level="4">
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <h3>关卡 4</h3>
+                    <p>高手挑战</p>
+                    <p>难度: ★★★★☆</p>
+                </div>
+                <div class="level-card" data-level="5">
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <i class="fas fa-star" style="color: #FF5252;"></i>
+                    <h3>关卡 5</h3>
+                    <p>终极考验</p>
+                    <p>难度: ★★★★★</p>
+                </div>
+            </div>
+            
+            <button class="menu-btn back-btn" id="backToMenuBtn">
+                <i class="fas fa-arrow-left"></i>返回主菜单
+            </button>
+        </div>
+        
+        <!-- 排行榜界面 -->
+        <div id="leaderboardScreen" class="screen">
+            <h2><i class="fas fa-trophy"></i> 全球排行榜</h2>
+            
+            <div class="mode-toggle">
+                <div class="mode-btn active" data-mode="level">关卡模式</div>
+                <div class="mode-btn" data-mode="endless">无尽模式</div>
+            </div>
+            
+            <div class="leaderboard-header">
+                <h3>全球排名</h3>
+                <button class="refresh-btn" id="refreshLeaderboard">
+                    <i class="fas fa-sync-alt"></i> 刷新
+                </button>
+            </div>
+            
+            <div class="leaderboard">
+                <div class="loading" id="leaderboardLoading">
+                    <div class="loading-spinner"></div>
+                    <p>正在加载排行榜数据...</p>
+                </div>
+                <ul class="leaderboard-list" id="leaderboardList">
+                    <!-- 排行榜数据将通过JS动态加载 -->
+                </ul>
+                <div class="empty-leaderboard" id="emptyLeaderboard" style="display: none;">
+                    <i class="fas fa-trophy" style="font-size: 3rem; margin-bottom: 15px; color: #FFD700;"></i>
+                    <p>暂无排行榜数据</p>
+                    <p>成为第一个上榜的玩家吧！</p>
+                </div>
+            </div>
+            
+            <button class="menu-btn back-btn" id="backToMenuBtn2">
+                <i class="fas fa-arrow-left"></i>返回主菜单
+            </button>
+        </div>
+        
+        <!-- 游戏界面 -->
+        <div id="gameScreen" class="screen">
+            <div class="game-info">
+                <div class="info-item">
+                    <div>分数</div>
+                    <div id="score" class="info-value">0</div>
+                </div>
+                <div class="info-item">
+                    <div>生命</div>
+                    <div id="lives" class="info-value">3</div>
+                </div>
+                <div class="info-item">
+                    <div>关卡</div>
+                    <div id="level" class="info-value">1</div>
+                </div>
+                <div class="info-item">
+                    <div>连击</div>
+                    <div id="combo" class="info-value">0</div>
+                </div>
+            </div>
+            
+            <div class="game-area">
+                <canvas id="gameCanvas"></canvas>
+                
+                <div class="side-panel">
+                    <h2><i class="fas fa-cog"></i> 游戏控制</h2>
+                    <div class="controls">
+                        <button id="startBtn">
+                            <i class="fas fa-play"></i>开始
+                        </button>
+                        <button id="pauseBtn">
+                            <i class="fas fa-pause"></i>暂停
+                        </button>
+                        <button id="menuBtn">
+                            <i class="fas fa-home"></i>菜单
+                        </button>
+                        <button id="resetBtn">
+                            <i class="fas fa-redo"></i>重置
+                        </button>
+                    </div>
+                    
+                    <h2><i class="fas fa-bolt"></i> 激活的道具</h2>
+                    <div class="active-powerups" id="activePowerups">
+                        <!-- 道具将通过JS动态添加 -->
+                    </div>
+                    
+                    <h2><i class="fas fa-info-circle"></i> 操作说明</h2>
+                    <ul class="instructions">
+                        <li>使用 <strong>← →</strong> 箭头键移动挡板</li>
+                        <li>或 <strong>触摸/滑动</strong> 屏幕控制挡板</li>
+                        <li>击碎砖块获得分数和道具</li>
+                        <li>穿透球：可以穿透砖块</li>
+                        <li>磁力挡板：自动吸引球</li>
+                        <li>激光枪：按空格键发射激光</li>
+                        <li>每1000分获得额外生命</li>
+                        <li>连续击中有连击奖励</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameOver" class="game-over">
+            <h2 id="gameOverTitle">游戏结束</h2>
+            <div class="final-score">最终分数: <span id="finalScore">0</span></div>
+            
+            <div id="leaderboardForm" style="margin: 20px 0;">
+                <input type="text" class="player-name-input" id="playerName" placeholder="输入你的名字" maxlength="15">
+                <button id="saveScoreBtn">
+                    <i class="fas fa-save"></i>保存分数
+                </button>
+            </div>
+            
+            <div class="controls">
+                <button id="restartBtn">
+                    <i class="fas fa-redo"></i>再玩一次
+                </button>
+                <button id="menuBtn2">
+                    <i class="fas fa-home"></i>返回菜单
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        HTML5 Canvas 打砖块游戏终极版 | 完全修复版 | 无尽模式 | 5种砖块 | 8种道具 | 全球排行榜
+        <div class="version">版本: 修复所有按钮问题</div>
+    </footer>
+    
+    <script>
+        // 确保DOM完全加载后再绑定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            // 游戏状态
+            const gameState = {
+                score: 0,
+                lives: 3,
+                level: 1,
+                combo: 0,
+                gameRunning: false,
+                gamePaused: false,
+                gameOver: false,
+                mode: 'level', // 默认模式为关卡模式
+                animationFrameId: null,
+                activePowerups: [],
+                lastHitTime: 0,
+                comboMultiplier: 1
+            };
+            
+            // 获取Canvas元素和上下文
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置Canvas尺寸
+            function resizeCanvas() {
+                const maxWidth = Math.min(window.innerWidth - 40, 1000);
+                canvas.width = maxWidth > 700 ? 700 : maxWidth;
+                canvas.height = 500;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 挡板属性
+            const paddle = {
+                x: canvas.width / 2 - 50,
+                y: canvas.height - 30,
+                width: 100,
+                height: 15,
+                speed: 10,
+                dx: 0,
+                originalWidth: 100,
+                isMagnetic: false,
+                isLaser: false
+            };
+            
+            // 球属性
+            const ball = {
+                x: canvas.width / 2,
+                y: canvas.height - 50,
+                radius: 10,
+                speed: 5,
+                dx: 5 * (Math.random() > 0.5 ? 1 : -1),
+                dy: -5,
+                originalSpeed: 5,
+                isPenetrating: false,
+                isLaser: false
+            };
+            
+            // 道具属性
+            const powerups = {
+                types: [
+                    { name: 'extraLife', color: '#FF5252', icon: 'fa-heart', duration: 0, effect: '增加一条生命' },
+                    { name: 'expandPaddle', color: '#4CAF50', icon: 'fa-arrows-alt-h', duration: 10000, effect: '挡板变宽' },
+                    { name: 'shrinkPaddle', color: '#9C27B0', icon: 'fa-compress-alt', duration: 10000, effect: '挡板变窄' },
+                    { name: 'speedUp', color: '#2196F3', icon: 'fa-tachometer-alt', duration: 10000, effect: '球速加快' },
+                    { name: 'slowDown', color: '#FF9800', icon: 'fa-tachometer-alt', duration: 10000, effect: '球速减慢' },
+                    { name: 'penetratingBall', color: '#FFD700', icon: 'fa-basketball-ball', duration: 15000, effect: '穿透球' },
+                    { name: 'magneticPaddle', color: '#00BCD4', icon: 'fa-magnet', duration: 15000, effect: '磁力挡板' },
+                    { name: 'laserPaddle', color: '#E91E63', icon: 'fa-bolt', duration: 20000, effect: '激光枪' }
+                ],
+                width: 30,
+                height: 15,
+                speed: 2,
+                list: []
+            };
+            
+            // 激光属性
+            const lasers = {
+                width: 4,
+                height: 20,
+                speed: 8,
+                list: []
+            };
+            
+            // 砖块配置
+            const brickConfig = {
+                row: 3,
+                column: 5,
+                width: 70,
+                height: 25,
+                padding: 15,
+                offsetTop: 50,
+                offsetLeft: 35
+            };
+            
+            // 关卡设计
+            const levelDesigns = [
+                // 关卡1 - 简单
+                {
+                    rows: 3,
+                    cols: 5,
+                    brickTypes: ['normal', 'normal', 'normal', 'normal', 'powerup'],
+                    colors: ['#FF5252', '#4CAF50', '#2196F3'],
+                    speed: 5,
+                    paddleWidth: 100
+                },
+                // 关卡2 - 中等
+                {
+                    rows: 4,
+                    cols: 6,
+                    brickTypes: ['normal', 'strong', 'normal', 'strong', 'normal', 'powerup'],
+                    colors: ['#FF5252', '#4CAF50', '#2196F3', '#FFD700'],
+                    speed: 6,
+                    paddleWidth: 90
+                },
+                // 关卡3 - 困难
+                {
+                    rows: 5,
+                    cols: 7,
+                    brickTypes: ['strong', 'moving', 'strong', 'moving', 'strong', 'powerup', 'explosive'],
+                    colors: ['#FF5252', '#4CAF50', '#2196F3', '#FFD700', '#9C27B0'],
+                    speed: 7,
+                    paddleWidth: 80
+                },
+                // 关卡4 - 专家
+                {
+                    rows: 6,
+                    cols: 8,
+                    brickTypes: ['strong', 'moving', 'invisible', 'strong', 'moving', 'powerup', 'explosive', 'invisible'],
+                    colors: ['#FF5252', '#4CAF50', '#2196F3', '#FFD700', '#9C27B0', '#FF9800'],
+                    speed: 8,
+                    paddleWidth: 70
+                },
+                // 关卡5 - 终极
+                {
+                    rows: 7,
+                    cols: 9,
+                    brickTypes: ['strong', 'moving', 'invisible', 'strong', 'moving', 'powerup', 'explosive', 'invisible', 'explosive'],
+                    colors: ['#FF5252', '#4CAF50', '#2196F3', '#FFD700', '#9C27B0', '#FF9800', '#00BCD4'],
+                    speed: 9,
+                    paddleWidth: 60
+                }
+            ];
+            
+            // 初始化砖块
+            function initBricks(level) {
+                const bricks = [];
+                const design = levelDesigns[level - 1] || levelDesigns[0];
+                
+                for (let r = 0; r < design.rows; r++) {
+                    bricks[r] = [];
+                    for (let c = 0; c < design.cols; c++) {
+                        const brickX = c * (brickConfig.width + brickConfig.padding) + brickConfig.offsetLeft;
+                        const brickY = r * (brickConfig.height + brickConfig.padding) + brickConfig.offsetTop;
+                        
+                        // 随机选择砖块类型
+                        const brickType = design.brickTypes[Math.floor(Math.random() * design.brickTypes.length)];
+                        const color = design.colors[Math.floor(Math.random() * design.colors.length)];
+                        
+                        let hitsRequired = 1;
+                        let scoreValue = 10;
+                        let isMoving = false;
+                        let isExplosive = false;
+                        let isInvisible = false;
+                        let isPowerup = false;
+                        
+                        switch(brickType) {
+                            case 'strong':
+                                hitsRequired = 2;
+                                scoreValue = 20;
+                                break;
+                            case 'moving':
+                                isMoving = true;
+                                scoreValue = 15;
+                                break;
+                            case 'explosive':
+                                isExplosive = true;
+                                scoreValue = 25;
+                                break;
+                            case 'invisible':
+                                isInvisible = true;
+                                scoreValue = 30;
+                                break;
+                            case 'powerup':
+                                isPowerup = true;
+                                scoreValue = 15;
+                                break;
+                        }
+                        
+                        bricks[r][c] = {
+                            x: brickX,
+                            y: brickY,
+                            width: brickConfig.width,
+                            height: brickConfig.height,
+                            color: color,
+                            hits: 0,
+                            hitsRequired: hitsRequired,
+                            scoreValue: scoreValue,
+                            isMoving: isMoving,
+                            isExplosive: isExplosive,
+                            isInvisible: isInvisible,
+                            isPowerup: isPowerup,
+                            dx: isMoving ? (Math.random() > 0.5 ? 1 : -1) : 0,
+                            visible: !isInvisible,
+                            status: true
+                        };
+                    }
+                }
+                
+                // 调整挡板宽度
+                paddle.width = design.paddleWidth;
+                paddle.originalWidth = design.paddleWidth;
+                
+                // 调整球速
+                ball.speed = design.speed;
+                ball.originalSpeed = design.speed;
+                
+                return bricks;
+            }
+            
+            let bricks = initBricks(1);
+            
+            // 绘制挡板
+            function drawPaddle() {
+                ctx.beginPath();
+                ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
+                ctx.fillStyle = paddle.isLaser ? '#E91E63' : '#29B6F6';
+                ctx.fill();
+                ctx.closePath();
+                
+                // 添加高光效果
+                ctx.beginPath();
+                ctx.moveTo(paddle.x, paddle.y);
+                ctx.lineTo(paddle.x + paddle.width, paddle.y);
+                ctx.lineTo(paddle.x + paddle.width - 10, paddle.y + 3);
+                ctx.lineTo(paddle.x + 10, paddle.y + 3);
+                ctx.closePath();
+                ctx.fillStyle = paddle.isLaser ? '#FF80AB' : '#B3E5FC';
+                ctx.fill();
+                
+                // 如果是激光挡板，绘制激光发射器
+                if (paddle.isLaser) {
+                    ctx.beginPath();
+                    ctx.rect(paddle.x + paddle.width/2 - 10, paddle.y - 10, 20, 10);
+                    ctx.fillStyle = '#FFEB3B';
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+            
+            // 绘制球
+            function drawBall() {
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fillStyle = ball.isPenetrating ? '#FFD700' : '#FFEB3B';
+                ctx.fill();
+                ctx.closePath();
+                
+                // 添加高光效果
+                ctx.beginPath();
+                ctx.arc(ball.x - ball.radius/3, ball.y - ball.radius/3, ball.radius/3, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.closePath();
+            }
+            
+            // 绘制砖块
+            function drawBricks() {
+                bricks.forEach(row => {
+                    row.forEach(brick => {
+                        if (brick.status && brick.visible) {
+                            ctx.beginPath();
+                            ctx.rect(brick.x, brick.y, brick.width, brick.height);
+                            
+                            // 根据砖块状态设置颜色
+                            if (brick.isExplosive) {
+                                ctx.fillStyle = '#FFD700';
+                            } else if (brick.isPowerup) {
+                                ctx.fillStyle = '#FF9800';
+                            } else {
+                                ctx.fillStyle = brick.color;
+                            }
+                            
+                            ctx.fill();
+                            ctx.closePath();
+                            
+                            // 绘制边框
+                            ctx.strokeStyle = '#000';
+                            ctx.lineWidth = 1;
+                            ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
+                            
+                            // 如果是坚固砖块，显示剩余击打次数
+                            if (brick.hitsRequired > 1) {
+                                ctx.fillStyle = '#000';
+                                ctx.font = 'bold 12px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(
+                                    (brick.hitsRequired - brick.hits).toString(), 
+                                    brick.x + brick.width/2, 
+                                    brick.y + brick.height/2
+                                );
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // 绘制道具
+            function drawPowerups() {
+                powerups.list.forEach(powerup => {
+                    ctx.beginPath();
+                    ctx.rect(powerup.x, powerup.y, powerup.width, powerup.height);
+                    
+                    // 找到道具类型对应的颜色
+                    const type = powerups.types.find(t => t.name === powerup.type);
+                    ctx.fillStyle = type ? type.color : '#FF5252';
+                    
+                    ctx.fill();
+                    ctx.closePath();
+                    
+                    // 绘制边框
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(powerup.x, powerup.y, powerup.width, powerup.height);
+                });
+            }
+            
+            // 绘制激光
+            function drawLasers() {
+                lasers.list.forEach(laser => {
+                    ctx.beginPath();
+                    ctx.rect(laser.x, laser.y, laser.width, laser.height);
+                    ctx.fillStyle = '#FF5252';
+                    ctx.fill();
+                    ctx.closePath();
+                });
+            }
+            
+            // 绘制分数和生命值
+            function drawGameInfo() {
+                document.getElementById('score').textContent = gameState.score;
+                document.getElementById('lives').textContent = gameState.lives;
+                document.getElementById('level').textContent = gameState.level;
+                document.getElementById('combo').textContent = gameState.combo;
+                
+                // 更新激活的道具显示
+                const powerupsContainer = document.getElementById('activePowerups');
+                powerupsContainer.innerHTML = '';
+                
+                gameState.activePowerups.forEach(powerup => {
+                    const type = powerups.types.find(t => t.name === powerup.type);
+                    if (type) {
+                        const badge = document.createElement('div');
+                        badge.className = 'powerup-badge';
+                        badge.innerHTML = `
+                            <i class="fas ${type.icon}"></i> ${type.effect}
+                            <span class="time-left">(${Math.ceil(powerup.timeLeft/1000)}s)</span>
+                        `;
+                        powerupsContainer.appendChild(badge);
+                    }
+                });
+            }
+            
+            // 移动挡板
+            function movePaddle() {
+                paddle.x += paddle.dx;
+                
+                // 边界检测
+                if (paddle.x < 0) {
+                    paddle.x = 0;
+                }
+                
+                if (paddle.x + paddle.width > canvas.width) {
+                    paddle.x = canvas.width - paddle.width;
+                }
+                
+                // 磁力效果
+                if (paddle.isMagnetic) {
+                    const distanceX = ball.x - (paddle.x + paddle.width/2);
+                    const distanceY = ball.y - (paddle.y - ball.radius);
+                    
+                    if (Math.abs(distanceX) < 200 && distanceY > 0 && distanceY < 300) {
+                        ball.x -= distanceX * 0.05;
+                    }
+                }
+            }
+            
+            // 移动砖块
+            function moveBricks() {
+                bricks.forEach(row => {
+                    row.forEach(brick => {
+                        if (brick.status && brick.isMoving) {
+                            brick.x += brick.dx;
+                            
+                            // 边界检测
+                            if (brick.x < 0 || brick.x + brick.width > canvas.width) {
+                                brick.dx = -brick.dx;
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // 移动球
+            function moveBall() {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+                
+                // 左右边界碰撞
+                if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                    ball.dx = -ball.dx;
+                }
+                
+                // 上边界碰撞
+                if (ball.y - ball.radius < 0) {
+                    ball.dy = -ball.dy;
+                }
+                
+                // 下边界碰撞（失去生命）
+                if (ball.y + ball.radius > canvas.height) {
+                    gameState.lives--;
+                    
+                    if (gameState.lives <= 0) {
+                        endGame(false);
+                    } else {
+                        resetBall();
+                    }
+                }
+                
+                // 挡板碰撞
+                if (
+                    ball.x + ball.radius > paddle.x &&
+                    ball.x - ball.radius < paddle.x + paddle.width &&
+                    ball.y + ball.radius > paddle.y &&
+                    ball.y - ball.radius < paddle.y + paddle.height
+                ) {
+                    // 根据击中挡板的位置改变反弹角度
+                    const hitPosition = (ball.x - (paddle.x + paddle.width/2)) / (paddle.width/2);
+                    ball.dx = hitPosition * 7;
+                    ball.dy = -Math.abs(ball.dy); // 确保向上反弹
+                    
+                    // 如果是激光挡板，发射激光
+                    if (paddle.isLaser) {
+                        lasers.list.push({
+                            x: paddle.x + paddle.width/2 - lasers.width/2,
+                            y: paddle.y - lasers.height,
+                            active: true
+                        });
+                    }
+                }
+            }
+            
+            // 移动道具
+            function movePowerups() {
+                for (let i = powerups.list.length - 1; i >= 0; i--) {
+                    const powerup = powerups.list[i];
+                    powerup.y += powerups.speed;
+                    
+                    // 检测道具是否碰到挡板
+                    if (
+                        powerup.y + powerups.height > paddle.y &&
+                        powerup.x + powerups.width > paddle.x &&
+                        powerup.x < paddle.x + paddle.width
+                    ) {
+                        activatePowerup(powerup.type);
+                        powerups.list.splice(i, 1);
+                    }
+                    
+                    // 检测道具是否超出屏幕
+                    else if (powerup.y > canvas.height) {
+                        powerups.list.splice(i, 1);
+                    }
+                }
+            }
+            
+            // 移动激光
+            function moveLasers() {
+                for (let i = lasers.list.length - 1; i >= 0; i--) {
+                    const laser = lasers.list[i];
+                    laser.y -= lasers.speed;
+                    
+                    // 检测激光是否超出屏幕
+                    if (laser.y + lasers.height < 0) {
+                        lasers.list.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // 检测激光是否击中砖块
+                    bricks.forEach(row => {
+                        row.forEach(brick => {
+                            if (brick.status && (
+                                laser.x + lasers.width > brick.x &&
+                                laser.x < brick.x + brick.width &&
+                                laser.y + lasers.height > brick.y &&
+                                laser.y < brick.y + brick.height
+                            )) {
+                                hitBrick(brick);
+                                laser.active = false;
+                            }
+                        });
+                    });
+                    
+                    // 移除无效的激光
+                    if (!laser.active) {
+                        lasers.list.splice(i, 1);
+                    }
+                }
+            }
+            
+            // 激活道具
+            function activatePowerup(type) {
+                // 检查是否已经有相同类型的道具
+                const existingIndex = gameState.activePowerups.findIndex(p => p.type === type);
+                
+                if (existingIndex >= 0) {
+                    // 如果已经有相同类型的道具，重置时间
+                    gameState.activePowerups[existingIndex].timeLeft = 
+                        powerups.types.find(t => t.name === type).duration;
+                } else {
+                    // 添加新道具
+                    gameState.activePowerups.push({
+                        type: type,
+                        timeLeft: powerups.types.find(t => t.name === type).duration
+                    });
+                    
+                    // 应用道具效果
+                    applyPowerupEffect(type);
+                }
+                
+                // 更新道具显示
+                drawGameInfo();
+            }
+            
+            // 应用道具效果
+            function applyPowerupEffect(type) {
+                switch(type) {
+                    case 'extraLife':
+                        gameState.lives++;
+                        // 这个道具立即生效，不需要计时
+                        gameState.activePowerups = gameState.activePowerups.filter(p => p.type !== type);
+                        break;
+                    case 'expandPaddle':
+                        paddle.width = paddle.originalWidth * 1.5;
+                        break;
+                    case 'shrinkPaddle':
+                        paddle.width = paddle.originalWidth * 0.7;
+                        break;
+                    case 'speedUp':
+                        ball.speed = ball.originalSpeed * 1.5;
+                        ball.dx = ball.dx > 0 ? Math.abs(ball.speed) : -Math.abs(ball.speed);
+                        ball.dy = ball.dy > 0 ? Math.abs(ball.speed) : -Math.abs(ball.speed);
+                        break;
+                    case 'slowDown':
+                        ball.speed = ball.originalSpeed * 0.7;
+                        ball.dx = ball.dx > 0 ? Math.abs(ball.speed) : -Math.abs(ball.speed);
+                        ball.dy = ball.dy > 0 ? Math.abs(ball.speed) : -Math.abs(ball.speed);
+                        break;
+                    case 'penetratingBall':
+                        ball.isPenetrating = true;
+                        break;
+                    case 'magneticPaddle':
+                        paddle.isMagnetic = true;
+                        break;
+                    case 'laserPaddle':
+                        paddle.isLaser = true;
+                        break;
+                }
+            }
+            
+            // 移除道具效果
+            function removePowerupEffect(type) {
+                switch(type) {
+                    case 'expandPaddle':
+                    case 'shrinkPaddle':
+                        paddle.width = paddle.originalWidth;
+                        break;
+                    case 'speedUp':
+                    case 'slowDown':
+                        ball.speed = ball.originalSpeed;
+                        ball.dx = ball.dx > 0 ? Math.abs(ball.speed) : -Math.abs(ball.speed);
+                        ball.dy = ball.dy > 0 ? Math.abs(ball.speed) : -Math.abs(ball.speed);
+                        break;
+                    case 'penetratingBall':
+                        ball.isPenetrating = false;
+                        break;
+                    case 'magneticPaddle':
+                        paddle.isMagnetic = false;
+                        break;
+                    case 'laserPaddle':
+                        paddle.isLaser = false;
+                        break;
+                }
+            }
+            
+            // 更新道具计时器
+            function updatePowerups() {
+                for (let i = gameState.activePowerups.length - 1; i >= 0; i--) {
+                    const powerup = gameState.activePowerups[i];
+                    
+                    // 跳过不需要计时的道具（如extraLife）
+                    if (powerups.types.find(t => t.name === powerup.type).duration > 0) {
+                        powerup.timeLeft -= 16; // 假设60fps，每帧约16ms
+                        
+                        if (powerup.timeLeft <= 0) {
+                            removePowerupEffect(powerup.type);
+                            gameState.activePowerups.splice(i, 1);
+                        }
+                    }
+                }
+            }
+            
+            // 击中砖块
+            function hitBrick(brick) {
+                // 如果是隐形砖块，先使其可见
+                if (brick.isInvisible && !brick.visible) {
+                    brick.visible = true;
+                    return;
+                }
+                
+                brick.hits++;
+                
+                // 检查砖块是否被击破
+                if (brick.hits >= brick.hitsRequired) {
+                    // 计算连击
+                    const now = Date.now();
+                    if (now - gameState.lastHitTime < 500) { // 500ms内连续击中
+                        gameState.combo++;
+                        gameState.comboMultiplier = 1 + Math.min(gameState.combo * 0.1, 2); // 最大3倍
+                    } else {
+                        gameState.combo = 0;
+                        gameState.comboMultiplier = 1;
+                    }
+                    gameState.lastHitTime = now;
+                    
+                    // 计算分数
+                    const score = Math.floor(brick.scoreValue * gameState.comboMultiplier);
+                    gameState.score += score;
+                    
+                    // 每1000分奖励一条生命
+                    if (gameState.score % 1000 === 0) {
+                        gameState.lives++;
+                    }
+                    
+                    // 如果是道具砖块，掉落道具
+                    if (brick.isPowerup) {
+                        const randomType = Math.floor(Math.random() * powerups.types.length);
+                        powerups.list.push({
+                            x: brick.x + brick.width/2 - powerups.width/2,
+                            y: brick.y + brick.height,
+                            type: powerups.types[randomType].name
+                        });
+                    }
+                    
+                    // 如果是爆炸砖块，炸毁周围的砖块
+                    if (brick.isExplosive) {
+                        const explosionRadius = 100;
+                        bricks.forEach(row => {
+                            row.forEach(otherBrick => {
+                                if (otherBrick.status && otherBrick !== brick) {
+                                    const distance = Math.sqrt(
+                                        Math.pow(otherBrick.x + otherBrick.width/2 - (brick.x + brick.width/2), 2) + 
+                                        Math.pow(otherBrick.y + otherBrick.height/2 - (brick.y + brick.height/2), 2)
+                                    );
+                                    
+                                    if (distance < explosionRadius) {
+                                        hitBrick(otherBrick);
+                                    }
+                                }
+                            });
+                        });
+                    }
+                    
+                    brick.status = false;
+                    
+                    // 检查是否过关
+                    const bricksLeft = bricks.flat().filter(b => b.status).length;
+                    if (bricksLeft === 0) {
+                        nextLevel();
+                    }
+                }
+                
+                // 如果不是穿透球，反弹
+                if (!ball.isPenetrating) {
+                    ball.dy = -ball.dy;
+                }
+            }
+            
+            // 检测碰撞
+            function detectCollisions() {
+                bricks.forEach(row => {
+                    row.forEach(brick => {
+                        if (brick.status && brick.visible) {
+                            if (
+                                ball.x + ball.radius > brick.x &&
+                                ball.x - ball.radius < brick.x + brick.width &&
+                                ball.y + ball.radius > brick.y &&
+                                ball.y - ball.radius < brick.y + brick.height
+                            ) {
+                                hitBrick(brick);
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // 重置球位置
+            function resetBall() {
+                ball.x = canvas.width / 2;
+                ball.y = canvas.height - 50;
+                ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1);
+                ball.dy = -ball.speed;
+                gameState.combo = 0;
+                gameState.comboMultiplier = 1;
+            }
+            
+            // 游戏主循环
+            function gameLoop() {
+                if (gameState.gamePaused || gameState.gameOver) {
+                    return;
+                }
+                
+                // 清除画布
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 移动游戏元素
+                movePaddle();
+                moveBricks();
+                moveBall();
+                movePowerups();
+                moveLasers();
+                
+                // 检测碰撞
+                detectCollisions();
+                
+                // 更新道具计时器
+                updatePowerups();
+                
+                // 绘制游戏元素
+                drawBricks();
+                drawPowerups();
+                drawLasers();
+                drawPaddle();
+                drawBall();
+                
+                // 更新游戏信息
+                drawGameInfo();
+                
+                // 继续游戏循环
+                if (gameState.gameRunning) {
+                    gameState.animationFrameId = requestAnimationFrame(gameLoop);
+                }
+            }
+            
+            // 开始游戏
+            function startGame() {
+                if (!gameState.gameRunning) {
+                    gameState.gameRunning = true;
+                    gameState.gamePaused = false;
+                    gameState.gameOver = false;
+                    document.getElementById('gameOver').style.display = 'none';
+                    gameLoop();
+                } else if (gameState.gamePaused) {
+                    gameState.gamePaused = false;
+                    gameLoop();
+                }
+            }
+            
+            // 暂停游戏
+            function pauseGame() {
+                gameState.gamePaused = true;
+                if (gameState.animationFrameId) {
+                    cancelAnimationFrame(gameState.animationFrameId);
+                    gameState.animationFrameId = null;
+                }
+            }
+            
+            // 重置游戏
+            function resetGame() {
+                gameState.score = 0;
+                gameState.lives = 3;
+                gameState.level = 1;
+                gameState.combo = 0;
+                gameState.comboMultiplier = 1;
+                gameState.gameRunning = false;
+                gameState.gamePaused = false;
+                gameState.gameOver = false;
+                gameState.activePowerups = [];
+                gameState.lastHitTime = 0;
+                
+                paddle.x = canvas.width / 2 - 50;
+                paddle.width = paddle.originalWidth;
+                paddle.isMagnetic = false;
+                paddle.isLaser = false;
+                
+                resetBall();
+                bricks = initBricks(gameState.level);
+                powerups.list = [];
+                lasers.list = [];
+                
+                document.getElementById('gameOver').style.display = 'none';
+                drawGameInfo();
+                
+                // 清除画布
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawBricks();
+                drawPaddle();
+                drawBall();
+            }
+            
+            // 进入下一关
+            function nextLevel() {
+                if (gameState.level < 5) {
+                    gameState.level++;
+                    resetBall();
+                    bricks = initBricks(gameState.level);
+                    powerups.list = [];
+                    lasers.list = [];
+                    
+                    // 保留当前激活的道具
+                    gameState.activePowerups.forEach(powerup => {
+                        applyPowerupEffect(powerup.type);
+                    });
+                } else {
+                    endGame(true);
+                }
+            }
+            
+            // 结束游戏
+            function endGame(isWin) {
+                gameState.gameRunning = false;
+                gameState.gameOver = true;
+                
+                if (gameState.animationFrameId) {
+                    cancelAnimationFrame(gameState.animationFrameId);
+                    gameState.animationFrameId = null;
+                }
+                
+                const gameOverScreen = document.getElementById('gameOver');
+                const gameOverTitle = document.getElementById('gameOverTitle');
+                const finalScore = document.getElementById('finalScore');
+                
+                gameOverTitle.textContent = isWin ? '恭喜通关！' : '游戏结束';
+                gameOverTitle.style.color = isWin ? '#4CAF50' : '#FF5252';
+                finalScore.textContent = gameState.score;
+                
+                gameOverScreen.style.display = 'block';
+            }
+            
+            // 键盘控制
+            function keyDownHandler(e) {
+                if (e.key === 'Right' || e.key === 'ArrowRight') {
+                    paddle.dx = paddle.speed;
+                } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+                    paddle.dx = -paddle.speed;
+                } else if (e.key === ' ' && paddle.isLaser) {
+                    // 空格键发射激光
+                    lasers.list.push({
+                        x: paddle.x + paddle.width/2 - lasers.width/2,
+                        y: paddle.y - lasers.height,
+                        active: true
+                    });
+                }
+            }
+            
+            function keyUpHandler(e) {
+                if (e.key === 'Right' || e.key === 'ArrowRight' || e.key === 'Left' || e.key === 'ArrowLeft') {
+                    paddle.dx = 0;
+                }
+            }
+            
+            // 切换屏幕
+            function showScreen(screenId) {
+                // 如果切换到菜单界面，暂停游戏
+                if (screenId === 'mainMenu' && gameState.gameRunning && !gameState.gamePaused) {
+                    pauseGame();
+                }
+                
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.style.display = 'none';
+                });
+                document.getElementById(screenId).style.display = 'flex';
+            }
+            
+            // 模拟API调用获取排行榜数据
+            function fetchLeaderboard(mode = 'level') {
+                // 显示加载状态
+                document.getElementById('leaderboardList').style.display = 'none';
+                document.getElementById('emptyLeaderboard').style.display = 'none';
+                document.getElementById('leaderboardLoading').style.display = 'flex';
+                
+                // 模拟网络延迟
+                setTimeout(() => {
+                    // 在实际应用中，这里应该是从服务器获取数据
+                    const leaderboardData = JSON.parse(localStorage.getItem(`brickBreakerLeaderboard_${mode}`)) || [];
+                    
+                    const leaderboardList = document.getElementById('leaderboardList');
+                    
+                    // 清空现有列表
+                    leaderboardList.innerHTML = '';
+                    
+                    if (leaderboardData.length > 0) {
+                        // 生成新的排行榜
+                        leaderboardData.forEach((player, index) => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                                <div>
+                                    <span class="rank">${index + 1}.</span>
+                                    <span class="name">${player.name}</span>
+                                </div>
+                                <div>
+                                    <span class="score">${player.score}</span>
+                                    <span class="date">${player.date}</span>
+                                </div>
+                            `;
+                            
+                            // 为前三名添加特殊样式
+                            if (index === 0) {
+                                li.style.background = 'linear-gradient(to right, #FFD700, #FFA500)';
+                                li.style.color = '#000';
+                                li.style.fontWeight = 'bold';
+                            } else if (index === 1) {
+                                li.style.background = 'linear-gradient(to right, #C0C0C0, #A9A9A9)';
+                                li.style.color = '#000';
+                            } else if (index === 2) {
+                                li.style.background = 'linear-gradient(to right, #CD7F32, #A67C00)';
+                                li.style.color = '#000';
+                            }
+                            
+                            leaderboardList.appendChild(li);
+                        });
+                        
+                        document.getElementById('leaderboardLoading').style.display = 'none';
+                        leaderboardList.style.display = 'block';
+                    } else {
+                        document.getElementById('leaderboardLoading').style.display = 'none';
+                        document.getElementById('emptyLeaderboard').style.display = 'block';
+                    }
+                }, 1000); // 模拟1秒网络延迟
+            }
+            
+            // 保存分数到排行榜
+            function saveScoreToLeaderboard(playerName, score, mode) {
+                // 获取现有排行榜数据
+                const leaderboardData = JSON.parse(localStorage.getItem(`brickBreakerLeaderboard_${mode}`)) || [];
+                
+                // 添加新分数
+                leaderboardData.push({
+                    name: playerName,
+                    score: score,
+                    date: new Date().toISOString().split('T')[0] // YYYY-MM-DD格式
+                });
+                
+                // 按分数排序
+                leaderboardData.sort((a, b) => b.score - a.score);
+                
+                // 只保留前10名
+                if (leaderboardData.length > 10) {
+                    leaderboardData.length = 10;
+                }
+                
+                // 保存到本地存储
+                localStorage.setItem(`brickBreakerLeaderboard_${mode}`, JSON.stringify(leaderboardData));
+                
+                // 显示成功消息
+                alert(`恭喜 ${playerName}！你的分数 ${score} 已保存到${mode === 'level' ? '关卡' : '无尽'}模式排行榜！`);
+                
+                // 刷新排行榜
+                fetchLeaderboard(mode);
+            }
+            
+            // 绑定事件监听器
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
+            
+            // 游戏控制按钮
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+            document.getElementById('resetBtn').addEventListener('click', resetGame);
+            document.getElementById('restartBtn').addEventListener('click', function() {
+                resetGame();
+                startGame();
+            });
+            
+            // 菜单按钮
+            document.getElementById('startGameBtn').addEventListener('click', function() {
+                gameState.mode = 'level';
+                showScreen('gameScreen');
+                resetGame();
+                startGame();
+            });
+            
+            document.getElementById('endlessModeBtn').addEventListener('click', function() {
+                gameState.mode = 'endless';
+                showScreen('gameScreen');
+                resetGame();
+                startGame();
+            });
+            
+            document.getElementById('levelSelectBtn').addEventListener('click', function() {
+                showScreen('levelSelect');
+            });
+            
+            document.getElementById('leaderboardBtn').addEventListener('click', function() {
+                showScreen('leaderboardScreen');
+                fetchLeaderboard('level');
+            });
+            
+            document.getElementById('menuBtn').addEventListener('click', function() {
+                showScreen('mainMenu');
+            });
+            
+            document.getElementById('menuBtn2').addEventListener('click', function() {
+                showScreen('mainMenu');
+            });
+            
+            document.getElementById('backToMenuBtn').addEventListener('click', function() {
+                showScreen('mainMenu');
+            });
+            
+            document.getElementById('backToMenuBtn2').addEventListener('click', function() {
+                showScreen('mainMenu');
+            });
+            
+            // 关卡选择
+            document.querySelectorAll('.level-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    gameState.level = parseInt(this.dataset.level);
+                    gameState.mode = 'level';
+                    showScreen('gameScreen');
+                    resetGame();
+                    startGame();
+                });
+            });
+            
+            // 音效控制
+            document.getElementById('soundToggle').addEventListener('click', function() {
+                const icon = document.querySelector('#soundToggle i');
+                const text = document.querySelector('#soundToggle');
+                
+                if (icon.classList.contains('fa-volume-up')) {
+                    icon.className = 'fas fa-volume-mute';
+                    text.innerHTML = '<i class="fas fa-volume-mute"></i> 音效: 关';
+                } else {
+                    icon.className = 'fas fa-volume-up';
+                    text.innerHTML = '<i class="fas fa-volume-up"></i> 音效: 开';
+                }
+            });
+            
+            // 保存分数
+            document.getElementById('saveScoreBtn').addEventListener('click', function() {
+                const playerName = document.getElementById('playerName').value.trim();
+                if (playerName) {
+                    saveScoreToLeaderboard(playerName, gameState.score, gameState.mode);
+                    showScreen('leaderboardScreen');
+                } else {
+                    alert('请输入你的名字');
+                }
+            });
+            
+            // 排行榜模式切换
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const mode = this.dataset.mode;
+                    
+                    document.querySelectorAll('.mode-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    fetchLeaderboard(mode);
+                });
+            });
+            
+            // 刷新排行榜
+            document.getElementById('refreshLeaderboard').addEventListener('click', function() {
+                const activeMode = document.querySelector('.mode-btn.active').dataset.mode;
+                fetchLeaderboard(activeMode);
+            });
+            
+            // 初始绘制
+            drawBricks();
+            drawPaddle();
+            drawBall();
+            drawGameInfo();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synth Studio Pro - 高级电子合成器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0e1a, #1a1c2d);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #6a5acd;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            background: linear-gradient(45deg, #6a5acd, #9370db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(106, 90, 205, 0.4);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            color: #aaaaaa;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+        
+        .control-bar {
+            display: flex;
+            gap: 12px;
+            background: rgba(30, 33, 46, 0.8);
+            border-radius: 8px;
+            padding: 8px 15px;
+            align-items: center;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: rgba(20, 23, 36, 0.85);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(106, 90, 205, 0.2);
+            backdrop-filter: blur(4px);
+        }
+        
+        .panel-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #9370db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(147, 112, 219, 0.3);
+        }
+        
+        /* 音序器样式 */
+        .sequencer-grid {
+            display: grid;
+            grid-template-columns: 100px repeat(16, 1fr);
+            gap: 4px;
+            margin-top: 15px;
+            overflow-x: auto;
+        }
+        
+        .track-header {
+            background: linear-gradient(to right, #483d8b, #6a5acd);
+            color: #fff;
+            text-align: center;
+            padding: 12px 8px;
+            font-weight: bold;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .step-cell {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 70px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .step-cell.active {
+            background: linear-gradient(135deg, #6a5acd, #9370db);
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(106, 90, 205, 0.5);
+        }
+        
+        .step-cell.current {
+            box-shadow: inset 0 0 0 3px #ffdb70;
+        }
+        
+        .note-label {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        
+        .pitch-control {
+            width: 80%;
+            height: 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            margin-top: 5px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .pitch-knob {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #ffdb70;
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 5px rgba(255, 219, 112, 0.8);
+        }
+        
+        /* 键盘样式 */
+        .keyboard-container {
+            overflow-x: auto;
+            padding: 15px;
+            background: rgba(15, 17, 26, 0.7);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+        
+        .keyboard {
+            display: flex;
+            height: 160px;
+            position: relative;
+            user-select: none;
+            min-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .key {
+            position: relative;
+            border: 1px solid #333;
+            border-radius: 0 0 6px 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.1s ease;
+            z-index: 1;
+            font-size: 0.8rem;
+        }
+        
+        .white-key {
+            width: 28px;
+            height: 100%;
+            margin-right: -1px;
+            background: linear-gradient(to bottom, #f9f9f9, #eaeaea);
+            color: #333;
+        }
+        
+        .black-key {
+            background: linear-gradient(to bottom, #222, #000);
+            width: 16px;
+            height: 100px;
+            position: absolute;
+            top: 0;
+            z-index: 10;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        
+        .key:active, .key.active {
+            background: linear-gradient(to bottom, #9370db, #6a5acd);
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        }
+        
+        .black-key:active, .black-key.active {
+            background: linear-gradient(to bottom, #6a5acd, #483d8b);
+        }
+        
+        /* 控制面板样式 */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .control-group {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(106, 90, 205, 0.1);
+        }
+        
+        .control-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #9370db;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            margin: 12px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #9370db;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(147, 112, 219, 0.8);
+        }
+        
+        select, button {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #6a5acd;
+            border-radius: 6px;
+            color: #e6e6e6;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button.control-btn {
+            padding: 10px 15px;
+            background: linear-gradient(45deg, #483d8b, #6a5acd);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button.control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(106, 90, 205, 0.4);
+        }
+        
+        button.control-btn:active {
+            transform: translateY(1px);
+        }
+        
+        button.play {
+            background: linear-gradient(45deg, #2a7a5a, #00ffaa);
+        }
+        
+        button.stop {
+            background: linear-gradient(45deg, #7a2a3a, #ff6b6b);
+        }
+        
+        button.record {
+            background: linear-gradient(45deg, #7a2a2a, #ff0000);
+        }
+        
+        .visualizer {
+            width: 100%;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(106, 90, 205, 0.1);
+        }
+        
+        .oscilloscope {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .key-label {
+            font-size: 0.7rem;
+            color: #666;
+            position: absolute;
+            bottom: 5px;
+            pointer-events: none;
+        }
+        
+        .black-key .key-label {
+            color: #aaa;
+        }
+        
+        .octave-marker {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.7rem;
+            color: #888;
+            left: 5px;
+            pointer-events: none;
+            font-weight: bold;
+        }
+        
+        .keyboard-info {
+            display: flex;
+            justify-content: space-between;
+            color: #777;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            padding: 0 15px;
+        }
+        
+        .presets {
+            margin-top: 20px;
+        }
+        
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        .preset-btn {
+            background: rgba(106, 90, 205, 0.1);
+            border: 1px solid rgba(106, 90, 205, 0.3);
+            color: #9370db;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(106, 90, 205, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .status-bar {
+            background: rgba(20, 23, 36, 0.85);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff6b6b;
+        }
+        
+        .status-led.active {
+            background: #00ffaa;
+            box-shadow: 0 0 10px #00ffaa;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px;
+            color: #888;
+            border-top: 1px solid #6a5acd;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-synth fa-2x" style="color: #9370db;"></i>
+                <div>
+                    <h1>SYNTH STUDIO PRO</h1>
+                    <p class="subtitle">高级电子合成器音序器</p>
+                </div>
+            </div>
+            
+            <div class="control-bar">
+                <button class="control-btn play" id="play-btn">
+                    <i class="fas fa-play"></i> 播放
+                </button>
+                <button class="control-btn stop" id="stop-btn">
+                    <i class="fas fa-stop"></i> 停止
+                </button>
+                <div class="slider-container" style="min-width: 180px;">
+                    <label for="bpm">BPM: <span id="bpm-value">128</span></label>
+                    <input type="range" id="bpm" min="60" max="200" value="128">
+                </div>
+                <div class="slider-container" style="min-width: 180px;">
+                    <label for="master-volume">主音量: <span id="volume-value">85</span>%</label>
+                    <input type="range" id="master-volume" min="0" max="100" value="85">
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2 class="panel-title"><i class="fas fa-sliders-h"></i> 合成器控制</h2>
+                
+                <div class="keyboard-container">
+                    <div class="keyboard" id="keyboard">
+                        <!-- 键盘将通过JS生成 -->
+                    </div>
+                    <div class="keyboard-info">
+                        <span>C3</span>
+                        <span>C5</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-title"><i class="fas fa-wave-square"></i> 振荡器</div>
+                        <div class="slider-container">
+                            <label for="osc1-type">振荡器波形</label>
+                            <select id="osc1-type">
+                                <option value="sine">正弦波</option>
+                                <option value="square">方波</option>
+                                <option value="sawtooth" selected>锯齿波</option>
+                                <option value="triangle">三角波</option>
+                            </select>
+                        </div>
+                        <div class="slider-container">
+                            <label for="osc1-detune">失谐: <span id="detune-value">0</span> cents</label>
+                            <input type="range" id="osc1-detune" min="-50" max="50" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-title"><i class="fas fa-project-diagram"></i> 滤波器</div>
+                        <div class="slider-container">
+                            <label for="filter-type">类型</label>
+                            <select id="filter-type">
+                                <option value="lowpass" selected>低通</option>
+                                <option value="highpass">高通</option>
+                                <option value="bandpass">带通</option>
+                            </select>
+                        </div>
+                        <div class="slider-container">
+                            <label for="filter-freq">截止频率: <span id="freq-value">2000</span> Hz</label>
+                            <input type="range" id="filter-freq" min="50" max="5000" value="2000">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-title"><i class="fas fa-waveform"></i> ADSR包络</div>
+                        <div class="slider-container">
+                            <label for="attack">起音: <span id="attack-value">0.1</span>s</label>
+                            <input type="range" id="attack" min="0" max="1" step="0.01" value="0.1">
+                        </div>
+                        <div class="slider-container">
+                            <label for="release">释音: <span id="release-value">0.5</span>s</label>
+                            <input type="range" id="release" min="0" max="2" step="0.01" value="0.5">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="visualizer" id="visualizer">
+                    <canvas class="oscilloscope" id="oscilloscope"></canvas>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title"><i class="fas fa-step-forward"></i> 音序器</h2>
+                
+                <div class="sequencer-grid" id="sequencer">
+                    <!-- 音序器将通过JS生成 -->
+                </div>
+                
+                <div class="buttons">
+                    <button class="control-btn play" id="seq-play-btn">
+                        <i class="fas fa-play-circle"></i> 播放序列
+                    </button>
+                    <button class="control-btn" id="clear-btn">
+                        <i class="fas fa-eraser"></i> 清除
+                    </button>
+                    <button class="control-btn" id="random-btn">
+                        <i class="fas fa-random"></i> 随机生成
+                    </button>
+                </div>
+                
+                <div class="presets">
+                    <h2 class="panel-title"><i class="fas fa-folder-open"></i> 预设</h2>
+                    <div class="preset-grid">
+                        <div class="preset-btn">Techno</div>
+                        <div class="preset-btn">Ambient</div>
+                        <div class="preset-btn">Bassline</div>
+                        <div class="preset-btn">Arpeggio</div>
+                        <div class="preset-btn">Drum & Bass</div>
+                        <div class="preset-btn">Trance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-led" id="status-led"></div>
+                <span>状态: <span id="status-text">就绪</span></span>
+            </div>
+            <div id="current-note">当前音符: 无</div>
+            <div id="current-step">当前步进: 0</div>
+        </div>
+        
+        <footer>
+            <p>Synth Studio Pro &copy; 2023 | 高级电子合成器音序器 | 基于HTML5 Web Audio API</p>
+        </footer>
+    </div>
+
+    <script>
+        // 确保音频上下文在用户交互后创建
+        let audioContext;
+        let isAudioContextStarted = false;
+        
+        // 全局变量
+        let oscillators = {};
+        let currentStep = 0;
+        let sequencerInterval;
+        let isPlaying = false;
+        let analyser;
+        let dataArray;
+        let visualizationRequest;
+        
+        // 键盘音符映射
+        const notes = [
+            'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
+            'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
+            'C5'
+        ];
+        
+        // 音序器轨道
+        const tracks = [
+            { name: '主音', note: 'C4', pattern: [] },
+            { name: '贝斯', note: 'C3', pattern: [] },
+            { name: '和弦', note: 'E4', pattern: [] },
+            { name: '旋律', note: 'G4', pattern: [] }
+        ];
+        
+        // 初始化键盘
+        function initKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            
+            notes.forEach((note, index) => {
+                const isBlackKey = note.includes('#');
+                const key = document.createElement('div');
+                key.className = `key ${isBlackKey ? 'black-key' : 'white-key'}`;
+                key.textContent = note;
+                key.dataset.note = note;
+                
+                // 添加八度标记
+                if (note === 'C3' || note === 'C4' || note === 'C5') {
+                    const octave = note.charAt(1);
+                    const marker = document.createElement('div');
+                    marker.className = 'octave-marker';
+                    marker.textContent = `C${octave}`;
+                    key.appendChild(marker);
+                }
+                
+                // 鼠标事件
+                key.addEventListener('mousedown', () => playNote(note));
+                key.addEventListener('mouseup', () => stopNote(note));
+                key.addEventListener('mouseleave', () => stopNote(note));
+                
+                keyboard.appendChild(key);
+            });
+        }
+        
+        // 初始化音序器
+        function initSequencer() {
+            const sequencer = document.getElementById('sequencer');
+            sequencer.innerHTML = '';
+            
+            // 添加轨道表头
+            tracks.forEach((track, trackIndex) => {
+                const trackHeader = document.createElement('div');
+                trackHeader.className = 'track-header';
+                trackHeader.innerHTML = `
+                    <div>${track.name}</div>
+                    <div>${track.note}</div>
+                `;
+                sequencer.appendChild(trackHeader);
+                
+                // 初始化模式
+                track.pattern = [];
+                
+                // 添加步进单元格
+                for (let step = 0; step < 16; step++) {
+                    const stepCell = document.createElement('div');
+                    stepCell.className = 'step-cell';
+                    stepCell.dataset.track = trackIndex;
+                    stepCell.dataset.step = step;
+                    
+                    // 随机激活一些步进
+                    const isActive = Math.random() > 0.7;
+                    if (isActive) {
+                        stepCell.classList.add('active');
+                        // 随机音高偏移 (-6到+6半音)
+                        const pitchOffset = Math.floor(Math.random() * 13) - 6;
+                        stepCell.dataset.pitch = pitchOffset;
+                        stepCell.innerHTML = `
+                            <div class="note-label">${getNoteWithOffset(track.note, pitchOffset)}</div>
+                            <div class="pitch-control">
+                                <div class="pitch-knob" style="left: ${50 + pitchOffset * 8}%"></div>
+                            </div>
+                        `;
+                    } else {
+                        stepCell.innerHTML = `<div>${step + 1}</div>`;
+                    }
+                    
+                    stepCell.addEventListener('click', (e) => {
+                        // 确保不是点击在音高控制上
+                        if (!e.target.classList.contains('pitch-control') && 
+                            !e.target.classList.contains('pitch-knob')) {
+                            
+                            // 切换激活状态
+                            stepCell.classList.toggle('active');
+                            
+                            if (stepCell.classList.contains('active')) {
+                                // 激活单元格
+                                const pitchOffset = 0;
+                                stepCell.dataset.pitch = pitchOffset;
+                                stepCell.innerHTML = `
+                                    <div class="note-label">${tracks[trackIndex].note}</div>
+                                    <div class="pitch-control">
+                                        <div class="pitch-knob" style="left: 50%"></div>
+                                    </div>
+                                `;
+                                
+                                // 添加音高控制事件
+                                addPitchControlEvents(stepCell, trackIndex);
+                            } else {
+                                // 取消激活
+                                stepCell.innerHTML = `<div>${step + 1}</div>`;
+                            }
+                        }
+                    });
+                    
+                    // 为已激活的单元格添加音高控制
+                    if (stepCell.classList.contains('active')) {
+                        addPitchControlEvents(stepCell, trackIndex);
+                    }
+                    
+                    sequencer.appendChild(stepCell);
+                }
+            });
+        }
+        
+        // 添加音高控制事件
+        function addPitchControlEvents(stepCell, trackIndex) {
+            const pitchControl = stepCell.querySelector('.pitch-control');
+            pitchControl.addEventListener('click', (e) => {
+                const rect = pitchControl.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const percent = Math.min(Math.max(offsetX / rect.width * 100, 0), 100);
+                const pitchOffset = Math.round((percent - 50) / 8);
+                
+                stepCell.dataset.pitch = pitchOffset;
+                const noteLabel = stepCell.querySelector('.note-label');
+                const newNote = getNoteWithOffset(tracks[trackIndex].note, pitchOffset);
+                noteLabel.textContent = newNote;
+                
+                const pitchKnob = stepCell.querySelector('.pitch-knob');
+                pitchKnob.style.left = `${50 + pitchOffset * 8}%`;
+                
+                // 预览音符
+                playNote(newNote, 0.2);
+            });
+        }
+        
+        // 获取带偏移的音符
+        function getNoteWithOffset(baseNote, offset) {
+            const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            
+            // 提取基础音符和八度
+            let notePart = baseNote.replace(/\d/, '');
+            let octave = parseInt(baseNote.replace(/\D/g, ''));
+            
+            // 查找基础音符索引
+            let baseIndex = noteNames.indexOf(notePart);
+            if (baseIndex === -1) return baseNote;
+            
+            // 计算新音符索引
+            let newIndex = baseIndex + offset;
+            
+            // 调整八度
+            while (newIndex < 0) {
+                newIndex += 12;
+                octave--;
+            }
+            
+            while (newIndex >= 12) {
+                newIndex -= 12;
+                octave++;
+            }
+            
+            // 确保八度在合理范围内
+            octave = Math.max(3, Math.min(5, octave));
+            
+            return noteNames[newIndex] + octave;
+        }
+        
+        // 初始化可视化
+        function initVisualizer() {
+            const canvas = document.getElementById('oscilloscope');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置canvas尺寸
+            function resizeCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 创建分析器
+            if (audioContext) {
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+            }
+            
+            // 开始可视化
+            updateVisualization();
+        }
+        
+        // 更新可视化
+        function updateVisualization() {
+            const canvas = document.getElementById('oscilloscope');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // 清除画布
+            ctx.clearRect(0, 0, width, height);
+            
+            if (analyser && dataArray) {
+                // 获取波形数据
+                analyser.getByteTimeDomainData(dataArray);
+                
+                // 绘制网格
+                ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)';
+                ctx.lineWidth = 1;
+                
+                // 水平网格
+                for (let y = 0; y < height; y += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+                
+                // 垂直网格
+                for (let x = 0; x < width; x += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+                
+                // 绘制波形
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#9370db';
+                ctx.beginPath();
+                
+                const sliceWidth = width / analyser.frequencyBinCount;
+                let x = 0;
+                
+                for (let i = 0; i < analyser.frequencyBinCount; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = v * height / 2;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    
+                    x += sliceWidth;
+                }
+                
+                ctx.stroke();
+            } else {
+                // 没有音频时的占位图形
+                ctx.fillStyle = 'rgba(147, 112, 219, 0.1)';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('点击播放按钮开始音频', width/2, height/2);
+            }
+            
+            // 继续动画
+            visualizationRequest = requestAnimationFrame(updateVisualization);
+        }
+        
+        // 播放音符
+        function playNote(note, duration = 0.5) {
+            if (!audioContext) return;
+            
+            // 停止相同音符的现有振荡器
+            if (oscillators[note]) {
+                stopNote(note);
+            }
+            
+            updateStatus(`播放: ${note}`);
+            document.getElementById('current-note').textContent = `当前音符: ${note}`;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            // 获取参数值
+            const waveform = document.getElementById('osc1-type').value;
+            const filterType = document.getElementById('filter-type').value;
+            const filterFreq = parseFloat(document.getElementById('filter-freq').value);
+            const attack = parseFloat(document.getElementById('attack').value);
+            const release = parseFloat(document.getElementById('release').value);
+            
+            // 设置波形
+            oscillator.type = waveform;
+            oscillator.frequency.value = noteToFrequency(note);
+            
+            // 创建滤波器
+            const filter = audioContext.createBiquadFilter();
+            filter.type = filterType;
+            filter.frequency.value = filterFreq;
+            
+            // 设置ADSR包络
+            const now = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.8, now + attack);
+            gainNode.gain.linearRampToValueAtTime(0.8, now + attack + duration * 0.5);
+            gainNode.gain.linearRampToValueAtTime(0, now + attack + duration * 0.5 + release);
+            
+            // 连接节点
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (analyser) {
+                gainNode.connect(analyser);
+            }
+            
+            // 启动振荡器
+            oscillator.start();
+            oscillator.stop(now + attack + duration + release + 0.1);
+            
+            // 存储振荡器引用
+            oscillators[note] = { oscillator, gainNode, filter };
+            
+            // 高亮显示键盘
+            highlightKeyboard(note, true);
+            
+            // 自动停止
+            setTimeout(() => {
+                stopNote(note);
+            }, (attack + duration + release) * 1000);
+        }
+        
+        // 停止音符
+        function stopNote(note) {
+            if (!oscillators[note]) return;
+            
+            const release = parseFloat(document.getElementById('release').value);
+            const now = audioContext.currentTime;
+            
+            oscillators[note].gainNode.gain.cancelScheduledValues(now);
+            oscillators[note].gainNode.gain.setValueAtTime(oscillators[note].gainNode.gain.value, now);
+            oscillators[note].gainNode.gain.linearRampToValueAtTime(0, now + release);
+            
+            setTimeout(() => {
+                if (oscillators[note]) {
+                    oscillators[note].oscillator.stop();
+                    oscillators[note].oscillator.disconnect();
+                    delete oscillators[note];
+                }
+            }, release * 1000);
+            
+            // 移除键盘高亮
+            highlightKeyboard(note, false);
+            
+            // 清除当前音符显示
+            document.getElementById('current-note').textContent = `当前音符: 无`;
+        }
+        
+        // 高亮键盘
+        function highlightKeyboard(note, active) {
+            const key = document.querySelector(`.key[data-note="${note}"]`);
+            if (key) {
+                if (active) {
+                    key.classList.add('active');
+                } else {
+                    key.classList.remove('active');
+                }
+            }
+        }
+        
+        // 音符转频率
+        function noteToFrequency(note) {
+            const A4 = 440;
+            let octave, key;
+            
+            if (note.length === 2) {
+                key = note.charAt(0);
+                octave = note.charAt(1);
+            } else {
+                key = note.substring(0, 2);
+                octave = note.charAt(2);
+            }
+            
+            const keyNumber = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(key);
+            if (keyNumber === -1) return 0;
+            
+            // 计算半音距离
+            const semitones = keyNumber - 9 + (octave - 4) * 12;
+            return A4 * Math.pow(2, semitones / 12);
+        }
+        
+        // 播放音序器
+        function playSequencer() {
+            if (isPlaying) return;
+            isPlaying = true;
+            
+            updateStatus("播放序列中...");
+            document.getElementById('status-led').classList.add('active');
+            
+            const bpm = parseInt(document.getElementById('bpm').value);
+            const stepDuration = 60 / bpm / 4; // 每个步进的持续时间（秒）
+            
+            // 清除当前步进高亮
+            document.querySelectorAll('.step-cell.current').forEach(step => {
+                step.classList.remove('current');
+            });
+            
+            currentStep = 0;
+            
+            sequencerInterval = setInterval(() => {
+                // 更新当前步进
+                document.querySelectorAll('.step-cell.current').forEach(step => {
+                    step.classList.remove('current');
+                });
+                
+                // 更新状态
+                document.getElementById('current-step').textContent = `当前步进: ${currentStep + 1}`;
+                
+                // 播放当前步进的所有音符
+                tracks.forEach((track, trackIndex) => {
+                    const stepCell = document.querySelector(`.step-cell[data-track="${trackIndex}"][data-step="${currentStep}"]`);
+                    
+                    if (stepCell && stepCell.classList.contains('active')) {
+                        const pitchOffset = parseInt(stepCell.dataset.pitch) || 0;
+                        const note = getNoteWithOffset(track.note, pitchOffset);
+                        playNote(note, stepDuration * 0.8);
+                        stepCell.classList.add('current');
+                    }
+                });
+                
+                // 移动到下一步
+                currentStep = (currentStep + 1) % 16;
+            }, stepDuration * 1000);
+        }
+        
+        // 停止音序器
+        function stopSequencer() {
+            if (!isPlaying) return;
+            
+            clearInterval(sequencerInterval);
+            isPlaying = false;
+            
+            updateStatus("已停止");
+            document.getElementById('status-led').classList.remove('active');
+            document.getElementById('current-step').textContent = `当前步进: 0`;
+            
+            // 清除当前步进高亮
+            document.querySelectorAll('.step-cell.current').forEach(step => {
+                step.classList.remove('current');
+            });
+            
+            // 停止所有音符
+            for (const note in oscillators) {
+                stopNote(note);
+            }
+        }
+        
+        // 更新状态
+        function updateStatus(text) {
+            document.getElementById('status-text').textContent = text;
+        }
+        
+        // 初始化事件监听器
+        function initEventListeners() {
+            // 播放/停止按钮
+            document.getElementById('play-btn').addEventListener('click', () => {
+                if (!isAudioContextStarted) {
+                    // 首次用户交互时启动音频上下文
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    isAudioContextStarted = true;
+                    updateStatus("音频已激活");
+                    
+                    // 播放测试音符
+                    playNote('C4', 0.2);
+                }
+                playSequencer();
+            });
+            
+            document.getElementById('stop-btn').addEventListener('click', stopSequencer);
+            document.getElementById('seq-play-btn').addEventListener('click', () => {
+                if (!isAudioContextStarted) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    isAudioContextStarted = true;
+                    updateStatus("音频已激活");
+                }
+                playSequencer();
+            });
+            
+            // 清除按钮
+            document.getElementById('clear-btn').addEventListener('click', () => {
+                document.querySelectorAll('.step-cell.active').forEach(cell => {
+                    cell.classList.remove('active');
+                    cell.innerHTML = `<div>${parseInt(cell.dataset.step) + 1}</div>`;
+                });
+                updateStatus("已清除序列");
+            });
+            
+            // 随机按钮
+            document.getElementById('random-btn').addEventListener('click', () => {
+                document.querySelectorAll('.step-cell').forEach(cell => {
+                    // 50%几率激活
+                    const activate = Math.random() > 0.5;
+                    const trackIndex = parseInt(cell.dataset.track);
+                    
+                    if (activate) {
+                        cell.classList.add('active');
+                        const pitchOffset = Math.floor(Math.random() * 13) - 6;
+                        cell.dataset.pitch = pitchOffset;
+                        cell.innerHTML = `
+                            <div class="note-label">${getNoteWithOffset(tracks[trackIndex].note, pitchOffset)}</div>
+                            <div class="pitch-control">
+                                <div class="pitch-knob" style="left: ${50 + pitchOffset * 8}%"></div>
+                            </div>
+                        `;
+                        
+                        // 添加音高控制事件
+                        addPitchControlEvents(cell, trackIndex);
+                    } else {
+                        cell.classList.remove('active');
+                        cell.innerHTML = `<div>${parseInt(cell.dataset.step) + 1}</div>`;
+                    }
+                });
+                updateStatus("随机序列已生成");
+            });
+            
+            // 滑块事件
+            ['bpm', 'master-volume', 'osc1-detune', 'filter-freq', 'attack', 'release'].forEach(id => {
+                const slider = document.getElementById(id);
+                const valueDisplay = document.getElementById(`${id}-value`);
+                
+                if (slider && valueDisplay) {
+                    slider.addEventListener('input', () => {
+                        valueDisplay.textContent = slider.value;
+                    });
+                }
+            });
+            
+            // 预设按钮
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    updateStatus(`已加载预设: ${this.textContent}`);
+                });
+            });
+        }
+        
+        // 初始化应用
+        function initApp() {
+            initKeyboard();
+            initSequencer();
+            initVisualizer();
+            initEventListeners();
+            updateStatus("就绪 - 点击播放开始");
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>

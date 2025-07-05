@@ -1,0 +1,2756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>皇室战争复刻版 - 终极优化版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0d1b3a, #1a2a6c, #b21f1f);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 204, 0, 0.05) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 780px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            border: 5px solid #ffcc00;
+            z-index: 10;
+        }
+        
+        /* 初始界面 - 增强设计 */
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 42, 108, 0.9), rgba(178, 31, 31, 0.9));
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .start-screen.hidden {
+            display: none;
+        }
+        
+        .game-title {
+            color: #ffcc00;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.9);
+            margin: 20px 0 10px;
+            letter-spacing: 2px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 40px;
+            border-radius: 20px;
+            border: 3px solid #ff9900;
+        }
+        
+        .game-subtitle {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            max-width: 90%;
+            line-height: 1.6;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 20px;
+            border-radius: 15px;
+        }
+        
+        .mode-selection {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            background: linear-gradient(to bottom, #4a86e8, #2a5298);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            border: 2px solid #2a5298;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(74, 134, 232, 0.6);
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            color: #5d2906;
+            border-color: #ff9900;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+        }
+        
+        .start-btn {
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            border: none;
+            padding: 15px 50px;
+            border-radius: 40px;
+            color: #5d2906;
+            font-weight: bold;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            border: 3px solid #ff9900;
+            margin: 25px 0;
+            position: relative;
+            overflow: hidden;
+            min-width: 220px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.8);
+        }
+        
+        .start-btn::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,0.3), rgba(255,255,255,0));
+            transform: rotate(30deg);
+            transition: all 0.6s;
+        }
+        
+        .start-btn:hover::after {
+            transform: translateX(100%) rotate(30deg);
+        }
+        
+        .tutorial {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 18px;
+            padding: 18px;
+            width: 90%;
+            margin: 15px 0;
+            border: 2px solid #ffcc00;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .tutorial h3 {
+            color: #ffcc00;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 20px;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+        }
+        
+        .tutorial ul {
+            color: #fff;
+            padding-left: 30px;
+            font-size: 16px;
+            line-height: 1.7;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .tutorial li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .tutorial li::before {
+            content: "•";
+            color: #ffcc00;
+            position: absolute;
+            left: -20px;
+            font-size: 24px;
+        }
+        
+        /* 卡片选择 */
+        .card-selection-container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 18px;
+            padding: 18px;
+            margin: 15px 0;
+            border: 2px solid #ffcc00;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .selection-title {
+            color: #ffcc00;
+            font-size: 20px;
+            margin: 12px 0;
+            text-align: center;
+            width: 100%;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+        }
+        
+        .selected-cards-info {
+            color: #ffcc00;
+            font-size: 18px;
+            margin: 8px 0;
+            text-align: center;
+            width: 100%;
+            font-weight: bold;
+        }
+        
+        .card-selection {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+            max-width: 100%;
+        }
+        
+        .selectable-card {
+            width: 140px;
+            height: 170px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid #5d2906;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .selectable-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.6);
+            border-color: #ffcc00;
+        }
+        
+        .selectable-card.selected {
+            border: 3px solid #ffcc00;
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.9);
+            transform: translateY(-5px);
+        }
+        
+        .selectable-card.selected::after {
+            content: "✓";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 35px;
+            height: 35px;
+            background: #ffcc00;
+            border-radius: 50%;
+            color: #5d2906;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            z-index: 2;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-cost {
+            background: linear-gradient(135deg, #8a2be2, #4b0082);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.9);
+        }
+        
+        .card-name {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+            text-align: center;
+            flex: 1;
+        }
+        
+        .card-bottom {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .card-stats {
+            color: white;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+        }
+        
+        .card-stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 游戏界面头部 */
+        .header {
+            height: 80px;
+            background: linear-gradient(to bottom, #8b4513, #5d2906);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 35px;
+            border-bottom: 5px solid #ffcc00;
+        }
+        
+        .logo {
+            color: #ffcc00;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 0 12px rgba(255, 204, 0, 0.8);
+            letter-spacing: 1.5px;
+        }
+        
+        .player-info {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .elixir-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 25px;
+            padding: 6px 18px;
+            border: 3px solid #5d2906;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+        
+        .elixir-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #8a2be2, #4b0082);
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 0 8px #8a2be2;
+            font-size: 16px;
+        }
+        
+        .elixir-count {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            min-width: 35px;
+            text-align: center;
+        }
+        
+        .crown-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffcc00;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .crown-icon {
+            color: #ffcc00;
+            font-size: 28px;
+            filter: drop-shadow(0 0 3px gold);
+        }
+        
+        /* 游戏区域 */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 80px);
+        }
+        
+        .battle-field {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(to bottom, #2d7045, #1e4a2d);
+            overflow: hidden;
+        }
+        
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 卡片区域 - 底部排列 */
+        .card-area {
+            height: 160px;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            border-top: 4px solid #5d2906;
+            box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card-area h3 {
+            color: #ffcc00;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 20px;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+        }
+        
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            height: 100%;
+        }
+        
+        .card {
+            width: 110px;
+            height: 130px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid #ffcc00;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.6);
+        }
+        
+        .card.selected {
+            border: 4px solid #ff3300;
+            box-shadow: 0 0 25px rgba(255, 51, 0, 0.9);
+            transform: translateY(-5px);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            color: #5d2906;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 3px solid #ff9900;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(255, 153, 0, 0.7);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* 游戏元素 */
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #ffcc00;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            z-index: 200;
+            border: 4px solid #ffcc00;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.8);
+            display: none;
+            text-align: center;
+            min-width: 300px;
+        }
+        
+        .river {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to right, #1e90ff, #00bfff, #1e90ff);
+            transform: translateY(-50%);
+            z-index: 5;
+        }
+        
+        .arena-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%);
+            z-index: 4;
+        }
+        
+        .player-tower, .ai-tower {
+            position: absolute;
+            width: 65px;
+            height: 85px;
+            background: linear-gradient(to bottom, #a9a9a9, #696969);
+            border: 4px solid #ffcc00;
+            border-radius: 10px;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+        }
+        
+        .health-bar {
+            position: absolute;
+            width: 80px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            z-index: 11;
+            border: 1px solid #000;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: #00ff00;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        
+        .player-tower .health-bar {
+            bottom: -15px;
+            left: -7px;
+        }
+        
+        .ai-tower .health-bar {
+            top: -15px;
+            left: -7px;
+        }
+        
+        .unit-info {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 20;
+            pointer-events: none;
+            max-width: 200px;
+            border: 3px solid #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+        }
+        
+        .projectile {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            z-index: 15;
+        }
+        
+        .pause-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid #ffcc00;
+            color: #ffcc00;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 50;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .pause-btn:hover {
+            background: rgba(255, 204, 0, 0.3);
+            transform: scale(1.15);
+        }
+        
+        .pause-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 4px solid #ffcc00;
+            border-radius: 20px;
+            padding: 30px;
+            z-index: 100;
+            display: none;
+            text-align: center;
+            width: 320px;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.7);
+        }
+        
+        .pause-title {
+            color: #ffcc00;
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+        }
+        
+        .pause-btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .pause-btn-item {
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            border: none;
+            padding: 15px;
+            border-radius: 30px;
+            color: #5d2906;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid #ff9900;
+        }
+        
+        .pause-btn-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.7);
+        }
+        
+        /* 效果区域 */
+        .effect-area {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 9;
+            pointer-events: none;
+        }
+        
+        .meteor-effect {
+            background: radial-gradient(circle, rgba(255,100,0,0.6) 0%, rgba(200,0,0,0.8) 100%);
+            box-shadow: 0 0 50px rgba(255, 100, 0, 0.8);
+        }
+        
+        .ice-effect {
+            background: radial-gradient(circle, rgba(100,200,255,0.4) 0%, rgba(50,100,255,0.6) 100%);
+            box-shadow: 0 0 50px rgba(100, 200, 255, 0.6);
+        }
+        
+        .heal-effect {
+            background: radial-gradient(circle, rgba(100,255,100,0.4) 0%, rgba(0,200,0,0.6) 100%);
+            box-shadow: 0 0 50px rgba(100, 255, 100, 0.6);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1000px) {
+            .game-container {
+                height: 700px;
+            }
+            
+            .card {
+                height: 120px;
+            }
+            
+            .game-title {
+                font-size: 40px;
+            }
+            
+            .game-subtitle {
+                font-size: 18px;
+            }
+            
+            .selectable-card {
+                width: 130px;
+                height: 160px;
+            }
+            
+            .start-btn {
+                padding: 12px 45px;
+                font-size: 20px;
+            }
+            
+            .card-area {
+                height: 150px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                height: 650px;
+            }
+            
+            .game-title {
+                font-size: 36px;
+            }
+            
+            .selectable-card {
+                width: 120px;
+                height: 150px;
+            }
+            
+            .card-stats span {
+                font-size: 12px;
+            }
+            
+            .card-area {
+                height: 140px;
+            }
+            
+            .card {
+                width: 100px;
+                height: 110px;
+            }
+            
+            .tutorial ul {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card-selection {
+                gap: 12px;
+            }
+            
+            .selectable-card {
+                width: 110px;
+                height: 140px;
+            }
+            
+            .header {
+                padding: 0 20px;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .player-info {
+                gap: 12px;
+            }
+            
+            .elixir-bar {
+                padding: 5px 12px;
+            }
+            
+            .elixir-count {
+                font-size: 22px;
+            }
+            
+            .crown-count {
+                font-size: 22px;
+            }
+            
+            .mode-btn {
+                padding: 10px 15px;
+                min-width: 140px;
+                font-size: 14px;
+            }
+        }
+        
+        /* 联机状态指示器 */
+        .online-status {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 60;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid #3498db;
+        }
+        
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+        
+        .online-text {
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        /* 连接面板 */
+        .connect-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 4px solid #3498db;
+            border-radius: 20px;
+            padding: 30px;
+            z-index: 110;
+            display: none;
+            text-align: center;
+            width: 350px;
+            box-shadow: 0 0 40px rgba(52, 152, 219, 0.7);
+        }
+        
+        .connect-title {
+            color: #3498db;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.8);
+        }
+        
+        .connect-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border: 2px solid #3498db;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 16px;
+        }
+        
+        .connect-btn {
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            border: none;
+            padding: 15px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid #2980b9;
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .connect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 初始界面 -->
+        <div class="start-screen" id="start-screen">
+            <h1 class="game-title">皇室战争终极版</h1>
+            <p class="game-subtitle">指挥强大的卡牌军队，使用支援技能，挑战不同难度AI或在线玩家！摧毁敌方所有防御塔赢取胜利！</p>
+            
+            <div class="mode-selection">
+                <button class="mode-btn active" data-mode="ai">
+                    <i class="fas fa-robot"></i> 人机对战
+                </button>
+                <button class="mode-btn" data-mode="online">
+                    <i class="fas fa-globe"></i> 联机对战
+                </button>
+            </div>
+            
+            <div class="tutorial">
+                <h3>游戏指南</h3>
+                <ul>
+                    <li>选择6种卡牌开始游戏，在游戏过程中这些卡牌会循环出现</li>
+                    <li>选择卡牌后点击战场部署单位（只能在己方半场）</li>
+                    <li>单位会自动攻击敌方单位和防御塔</li>
+                    <li>摧毁敌方所有防御塔获胜，防御塔会自动攻击敌人</li>
+                    <li>法力值随时间恢复，合理使用你的法力</li>
+                    <li>支援技能卡：陨石（伤害）、寒冰（减速）、治疗（回复）</li>
+                    <li>联机模式需要输入对方房间号或创建新房间</li>
+                    <li>成功连接后，双方可以实时看到对方的操作</li>
+                </ul>
+            </div>
+            
+            <div class="card-selection-container">
+                <h3 class="selection-title">选择你的卡组（选择6种卡牌）</h3>
+                <div class="selected-cards-info" id="selected-cards-info">已选择 0/6 种卡牌</div>
+                <div class="card-selection" id="card-selection">
+                    <div class="selectable-card" data-unit="knight">
+                        <div class="card-top">
+                            <div class="card-cost">3</div>
+                            <div class="card-name">骑士</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 100 攻击</span>
+                                <span>❤️ 500 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="archer">
+                        <div class="card-top">
+                            <div class="card-cost">4</div>
+                            <div class="card-name">弓箭手</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 80 攻击</span>
+                                <span>❤️ 300 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="giant">
+                        <div class="card-top">
+                            <div class="card-cost">5</div>
+                            <div class="card-name">巨人</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 150 攻击</span>
+                                <span>❤️ 1500 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="goblin">
+                        <div class="card-top">
+                            <div class="card-cost">2</div>
+                            <div class="card-name">哥布林</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 50 攻击</span>
+                                <span>❤️ 150 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="wizard">
+                        <div class="card-top">
+                            <div class="card-cost">5</div>
+                            <div class="card-name">法师</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 120 攻击</span>
+                                <span>❤️ 400 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="dragon">
+                        <div class="card-top">
+                            <div class="card-cost">6</div>
+                            <div class="card-name">飞龙</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 100 攻击</span>
+                                <span>❤️ 800 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="miner">
+                        <div class="card-top">
+                            <div class="card-cost">3</div>
+                            <div class="card-name">矿工</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 70 攻击</span>
+                                <span>❤️ 600 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="valkyrie">
+                        <div class="card-top">
+                            <div class="card-cost">4</div>
+                            <div class="card-name">女武神</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>⚔️ 130 攻击</span>
+                                <span>❤️ 700 生命</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 支援技能卡 -->
+                    <div class="selectable-card" data-unit="meteor">
+                        <div class="card-top">
+                            <div class="card-cost">6</div>
+                            <div class="card-name">陨石</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>🔥 范围伤害</span>
+                                <span>🔄 冷却20秒</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="ice">
+                        <div class="card-top">
+                            <div class="card-cost">4</div>
+                            <div class="card-name">寒冰领域</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>❄️ 减速敌人</span>
+                                <span>🔄 冷却15秒</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="selectable-card" data-unit="heal">
+                        <div class="card-top">
+                            <div class="card-cost">5</div>
+                            <div class="card-name">治疗领域</div>
+                        </div>
+                        <div class="card-bottom">
+                            <div class="card-stats">
+                                <span>❤️ 回复生命</span>
+                                <span>🔄 冷却18秒</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="start-btn" id="start-btn">开始游戏</button>
+        </div>
+        
+        <!-- 连接面板 -->
+        <div class="connect-panel" id="connect-panel">
+            <div class="connect-title">联机对战</div>
+            <input type="text" class="connect-input" id="room-id" placeholder="输入房间号">
+            <button class="connect-btn" id="create-room-btn">
+                <i class="fas fa-plus-circle"></i> 创建房间
+            </button>
+            <button class="connect-btn" id="join-room-btn">
+                <i class="fas fa-sign-in-alt"></i> 加入房间
+            </button>
+            <button class="connect-btn" id="cancel-connect-btn" style="background: linear-gradient(to bottom, #e74c3c, #c0392b); border-color: #c0392b;">
+                <i class="fas fa-times"></i> 取消
+            </button>
+        </div>
+        
+        <div class="header">
+            <div class="logo">皇室战争终极版</div>
+            <div class="player-info">
+                <div class="elixir-bar">
+                    <div class="elixir-icon">E</div>
+                    <div class="elixir-count">10</div>
+                </div>
+                <div class="crown-count">
+                    <span class="crown-icon">👑</span>
+                    <span>0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="battle-field">
+                <canvas id="game-canvas"></canvas>
+                <div class="river"></div>
+                <div class="arena-line"></div>
+                
+                <!-- 玩家防御塔 -->
+                <div class="player-tower" id="player-main-tower">
+                    <div class="health-bar">
+                        <div class="health-fill" id="player-main-tower-health"></div>
+                    </div>
+                </div>
+                <div class="player-tower" id="player-left-tower" style="left: 30%;">
+                    <div class="health-bar">
+                        <div class="health-fill" id="player-left-tower-health"></div>
+                    </div>
+                </div>
+                <div class="player-tower" id="player-right-tower" style="left: 70%;">
+                    <div class="health-bar">
+                        <div class="health-fill" id="player-right-tower-health"></div>
+                    </div>
+                </div>
+                
+                <!-- AI防御塔 -->
+                <div class="ai-tower" id="ai-main-tower">
+                    <div class="health-bar">
+                        <div class="health-fill" id="ai-main-tower-health"></div>
+                    </div>
+                </div>
+                <div class="ai-tower" id="ai-left-tower" style="left: 30%;">
+                    <div class="health-bar">
+                        <div class="health-fill" id="ai-left-tower-health"></div>
+                    </div>
+                </div>
+                <div class="ai-tower" id="ai-right-tower" style="left: 70%;">
+                    <div class="health-bar">
+                        <div class="health-fill" id="ai-right-tower-health"></div>
+                    </div>
+                </div>
+                
+                <div class="game-message" id="game-message">游戏开始！</div>
+                <div class="unit-info" id="unit-info"></div>
+                
+                <!-- 暂停按钮 -->
+                <div class="pause-btn" id="pause-btn">⏸️</div>
+                
+                <!-- 暂停菜单 -->
+                <div class="pause-menu" id="pause-menu">
+                    <div class="pause-title">游戏暂停</div>
+                    <div class="pause-btn-container">
+                        <button class="pause-btn-item" id="resume-btn">继续游戏</button>
+                        <button class="pause-btn-item" id="restart-btn">重新开始</button>
+                        <button class="pause-btn-item" id="main-menu-btn">返回主菜单</button>
+                    </div>
+                </div>
+                
+                <!-- 联机状态 -->
+                <div class="online-status" id="online-status" style="display: none;">
+                    <div class="online-indicator"></div>
+                    <div class="online-text">已连接: 房间1234</div>
+                </div>
+            </div>
+            
+            <div class="card-area">
+                <h3>你的卡组</h3>
+                <div class="cards-container" id="player-cards-container">
+                    <!-- 玩家选择的卡牌将动态添加到这里 -->
+                </div>
+                
+                <div class="controls">
+                    <button class="btn" id="new-game">新游戏</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            player: {
+                elixir: 10,
+                maxElixir: 10,
+                elixirRate: 0.02,
+                crowns: 0,
+                selectedCard: null,
+                units: [],
+                towers: {
+                    main: { 
+                        health: 3000, 
+                        maxHealth: 3000, 
+                        x: 0, y: 0, 
+                        alive: true,
+                        range: 250,
+                        damage: 80,
+                        attackSpeed: 1.2,
+                        attackCooldown: 0
+                    },
+                    left: { 
+                        health: 2000, 
+                        maxHealth: 2000, 
+                        x: 0, y: 0, 
+                        alive: true,
+                        range: 250,
+                        damage: 80,
+                        attackSpeed: 1.2,
+                        attackCooldown: 0
+                    },
+                    right: { 
+                        health: 2000, 
+                        maxHealth: 2000, 
+                        x: 0, y: 0, 
+                        alive: true,
+                        range: 250,
+                        damage: 80,
+                        attackSpeed: 1.2,
+                        attackCooldown: 0
+                    }
+                },
+                skillCooldowns: {
+                    meteor: 0,
+                    ice: 0,
+                    heal: 0
+                }
+            },
+            ai: {
+                elixir: 10,
+                maxElixir: 10,
+                elixirRate: 0.015,
+                crowns: 0,
+                units: [],
+                towers: {
+                    main: { 
+                        health: 3000, 
+                        maxHealth: 3000, 
+                        x: 0, y: 0, 
+                        alive: true,
+                        range: 250,
+                        damage: 80,
+                        attackSpeed: 1.2,
+                        attackCooldown: 0
+                    },
+                    left: { 
+                        health: 2000, 
+                        maxHealth: 2000, 
+                        x: 0, y: 0, 
+                        alive: true,
+                        range: 250,
+                        damage: 80,
+                        attackSpeed: 1.2,
+                        attackCooldown: 0
+                    },
+                    right: { 
+                        health: 2000, 
+                        maxHealth: 2000, 
+                        x: 0, y: 0, 
+                        alive: true,
+                        range: 250,
+                        damage: 80,
+                        attackSpeed: 1.2,
+                        attackCooldown: 0
+                    }
+                },
+                lastDeploy: 0,
+                deployCooldown: 5,
+                difficulty: "medium" // 默认中等难度
+            },
+            gameOver: false,
+            gameStartTime: 0,
+            lastTime: 0,
+            projectiles: [],
+            effects: [], // 存储技能效果
+            paused: false,
+            selectedCardTypes: [], // 玩家选择的6种卡牌类型
+            deck: [], // 游戏中的卡组（循环使用）
+            hand: [], // 当前手牌（4张）
+            gameMode: "ai", // ai 或 online
+            onlineStatus: false
+        };
+
+        // 单位类型
+        const unitTypes = {
+            knight: { 
+                name: "骑士", cost: 3, damage: 100, health: 500, speed: 2, 
+                range: 40, attackSpeed: 1.5, color: "#3498db", targetType: "ground",
+                projectile: { color: "#3498db", size: 8, speed: 15 },
+                type: "unit"
+            },
+            archer: { 
+                name: "弓箭手", cost: 4, damage: 80, health: 300, speed: 1.5, 
+                range: 150, attackSpeed: 1.0, color: "#2ecc71", targetType: "air",
+                projectile: { color: "#2ecc71", size: 6, speed: 20 },
+                type: "unit"
+            },
+            giant: { 
+                name: "巨人", cost: 5, damage: 150, health: 1500, speed: 1, 
+                range: 40, attackSpeed: 2.0, color: "#e74c3c", targetType: "ground",
+                projectile: { color: "#e74c3c", size: 10, speed: 12 },
+                type: "unit"
+            },
+            goblin: { 
+                name: "哥布林", cost: 2, damage: 50, health: 150, speed: 3, 
+                range: 30, attackSpeed: 0.8, color: "#f39c12", targetType: "ground",
+                projectile: { color: "#f39c12", size: 5, speed: 18 },
+                type: "unit"
+            },
+            wizard: { 
+                name: "法师", cost: 5, damage: 120, health: 400, speed: 1.2, 
+                range: 180, attackSpeed: 1.8, color: "#9b59b6", targetType: "air",
+                projectile: { color: "#9b59b6", size: 7, speed: 18 },
+                type: "unit"
+            },
+            dragon: { 
+                name: "飞龙", cost: 6, damage: 100, health: 800, speed: 1.8, 
+                range: 120, attackSpeed: 1.5, color: "#e67e22", targetType: "air",
+                projectile: { color: "#e67e22", size: 9, speed: 16 },
+                type: "unit"
+            },
+            miner: { 
+                name: "矿工", cost: 3, damage: 70, health: 600, speed: 2.5, 
+                range: 30, attackSpeed: 1.0, color: "#34495e", targetType: "ground",
+                projectile: { color: "#34495e", size: 6, speed: 20 },
+                type: "unit"
+            },
+            valkyrie: { 
+                name: "女武神", cost: 4, damage: 130, health: 700, speed: 1.5, 
+                range: 50, attackSpeed: 1.2, color: "#e74c3c", targetType: "ground",
+                projectile: { color: "#e74c3c", size: 8, speed: 14 },
+                type: "unit"
+            },
+            meteor: {
+                name: "陨石", cost: 6, color: "#ff5500", type: "skill",
+                cooldown: 20, effect: "damage", radius: 120
+            },
+            ice: {
+                name: "寒冰领域", cost: 4, color: "#55aaff", type: "skill",
+                cooldown: 15, effect: "slow", radius: 120
+            },
+            heal: {
+                name: "治疗领域", cost: 5, color: "#55ff55", type: "skill",
+                cooldown: 18, effect: "heal", radius: 120
+            }
+        };
+
+        // 初始化Canvas
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const unitInfo = document.getElementById('unit-info');
+        const startScreen = document.getElementById('start-screen');
+        const cardSelection = document.getElementById('card-selection');
+        const playerCardsContainer = document.getElementById('player-cards-container');
+        const selectedCardsInfo = document.getElementById('selected-cards-info');
+        const connectPanel = document.getElementById('connect-panel');
+        const onlineStatus = document.getElementById('online-status');
+        
+        function initCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            
+            // 更新塔的位置
+            updateTowerPositions();
+        }
+
+        function updateTowerPositions() {
+            // 玩家塔位置
+            gameState.player.towers.main.x = canvas.width / 2;
+            gameState.player.towers.main.y = canvas.height - 70;
+            
+            gameState.player.towers.left.x = canvas.width * 0.3;
+            gameState.player.towers.left.y = canvas.height - 70;
+            
+            gameState.player.towers.right.x = canvas.width * 0.7;
+            gameState.player.towers.right.y = canvas.height - 70;
+            
+            // AI塔位置
+            gameState.ai.towers.main.x = canvas.width / 2;
+            gameState.ai.towers.main.y = 70;
+            
+            gameState.ai.towers.left.x = canvas.width * 0.3;
+            gameState.ai.towers.left.y = 70;
+            
+            gameState.ai.towers.right.x = canvas.width * 0.7;
+            gameState.ai.towers.right.y = 70;
+        }
+
+        // 绘制游戏
+        function drawGame() {
+            if (gameState.paused || gameState.gameOver) return;
+            
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            drawBackground();
+            
+            // 绘制技能效果
+            drawEffects();
+            
+            // 绘制单位
+            drawUnits();
+            
+            // 绘制弹道
+            drawProjectiles();
+            
+            // 绘制塔
+            drawTowers();
+            
+            // 如果游戏结束，显示消息
+            if (gameState.gameOver) {
+                document.getElementById('game-message').style.display = 'block';
+            }
+        }
+
+        function drawBackground() {
+            // 绘制玩家区域
+            ctx.fillStyle = '#2d7045';
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+            
+            // 绘制AI区域
+            ctx.fillStyle = '#1e4a2d';
+            ctx.fillRect(0, 0, canvas.width, canvas.height / 2);
+            
+            // 绘制河流
+            ctx.fillStyle = '#1e90ff';
+            ctx.fillRect(0, canvas.height / 2 - 15, canvas.width, 30);
+            
+            // 绘制中线
+            ctx.beginPath();
+            ctx.setLineDash([10, 10]);
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawTowers() {
+            // 绘制玩家塔
+            if (gameState.player.towers.main.alive) drawTower(gameState.player.towers.main, true);
+            if (gameState.player.towers.left.alive) drawTower(gameState.player.towers.left, true);
+            if (gameState.player.towers.right.alive) drawTower(gameState.player.towers.right, true);
+            
+            // 绘制AI塔
+            if (gameState.ai.towers.main.alive) drawTower(gameState.ai.towers.main, false);
+            if (gameState.ai.towers.left.alive) drawTower(gameState.ai.towers.left, false);
+            if (gameState.ai.towers.right.alive) drawTower(gameState.ai.towers.right, false);
+            
+            // 更新血条显示
+            updateTowerHealthBars();
+        }
+
+        function drawTower(tower, isPlayer) {
+            const y = isPlayer ? canvas.height - 70 : 70;
+            ctx.fillStyle = '#a9a9a9';
+            ctx.fillRect(tower.x - 35, y - 45, 70, 90);
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(tower.x - 35, y - 45, 70, 90);
+            
+            // 绘制塔顶
+            ctx.fillStyle = '#8b4513';
+            ctx.beginPath();
+            ctx.moveTo(tower.x - 30, y - 45);
+            ctx.lineTo(tower.x + 30, y - 45);
+            ctx.lineTo(tower.x, y - 70);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 绘制塔的血量文本
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            const healthText = `${Math.max(0, Math.ceil(tower.health))}/${tower.maxHealth}`;
+            ctx.fillText(healthText, tower.x, isPlayer ? y - 80 : y + 110);
+        }
+
+        function updateTowerHealthBars() {
+            // 玩家塔血条
+            updateSingleTowerHealth('player-main-tower-health', gameState.player.towers.main);
+            updateSingleTowerHealth('player-left-tower-health', gameState.player.towers.left);
+            updateSingleTowerHealth('player-right-tower-health', gameState.player.towers.right);
+            
+            // AI塔血条
+            updateSingleTowerHealth('ai-main-tower-health', gameState.ai.towers.main);
+            updateSingleTowerHealth('ai-left-tower-health', gameState.ai.towers.left);
+            updateSingleTowerHealth('ai-right-tower-health', gameState.ai.towers.right);
+        }
+
+        function updateSingleTowerHealth(elementId, tower) {
+            const healthFill = document.getElementById(elementId);
+            if (!healthFill) return;
+            
+            if (tower.alive) {
+                const healthPercent = (Math.max(0, tower.health) / tower.maxHealth) * 100;
+                healthFill.style.width = `${healthPercent}%`;
+                
+                // 根据血量改变颜色
+                if (healthPercent > 70) {
+                    healthFill.style.background = '#00ff00';
+                } else if (healthPercent > 30) {
+                    healthFill.style.background = '#ffcc00';
+                } else {
+                    healthFill.style.background = '#ff3300';
+                }
+            } else {
+                healthFill.style.width = '0%';
+            }
+        }
+
+        function drawUnits() {
+            // 绘制玩家单位
+            gameState.player.units.forEach(unit => {
+                ctx.fillStyle = unit.color;
+                ctx.beginPath();
+                ctx.arc(unit.x, unit.y, 30, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 绘制单位细节
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(unit.x, unit.y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 绘制攻击范围（如果选中）
+                if (unit.selected) {
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(unit.x, unit.y, unit.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                // 绘制血条背景
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(unit.x - 35, unit.y - 45, 70, 10);
+                
+                // 绘制血条
+                const healthPercent = (unit.health / unit.maxHealth) * 70;
+                if (healthPercent > 49) {
+                    ctx.fillStyle = '#00ff00';
+                } else if (healthPercent > 21) {
+                    ctx.fillStyle = '#ffcc00';
+                } else {
+                    ctx.fillStyle = '#ff3300';
+                }
+                ctx.fillRect(unit.x - 35, unit.y - 45, healthPercent, 10);
+                
+                // 绘制血量文本
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                const healthText = `${Math.max(0, Math.ceil(unit.health))}/${unit.maxHealth}`;
+                ctx.fillText(healthText, unit.x, unit.y - 40);
+                
+                // 绘制单位类型
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(unit.name, unit.x, unit.y + 8);
+            });
+            
+            // 绘制AI单位
+            gameState.ai.units.forEach(unit => {
+                ctx.fillStyle = unit.color;
+                ctx.beginPath();
+                ctx.arc(unit.x, unit.y, 30, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 绘制单位细节
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(unit.x, unit.y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 绘制血条背景
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(unit.x - 35, unit.y - 45, 70, 10);
+                
+                // 绘制血条
+                const healthPercent = (unit.health / unit.maxHealth) * 70;
+                if (healthPercent > 49) {
+                    ctx.fillStyle = '#00ff00';
+                } else if (healthPercent > 21) {
+                    ctx.fillStyle = '#ffcc00';
+                } else {
+                    ctx.fillStyle = '#ff3300';
+                }
+                ctx.fillRect(unit.x - 35, unit.y - 45, healthPercent, 10);
+                
+                // 绘制血量文本
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                const healthText = `${Math.max(0, Math.ceil(unit.health))}/${unit.maxHealth}`;
+                ctx.fillText(healthText, unit.x, unit.y - 40);
+                
+                // 绘制单位类型
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(unit.name, unit.x, unit.y + 8);
+            });
+        }
+
+        function drawProjectiles() {
+            gameState.projectiles.forEach((proj, index) => {
+                ctx.fillStyle = proj.color;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, proj.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 绘制弹道尾迹
+                ctx.strokeStyle = proj.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(proj.startX, proj.startY);
+                ctx.lineTo(proj.x, proj.y);
+                ctx.stroke();
+            });
+        }
+
+        function drawEffects() {
+            gameState.effects.forEach((effect, index) => {
+                ctx.globalAlpha = effect.alpha;
+                
+                if (effect.type === "meteor") {
+                    ctx.fillStyle = "rgba(255, 100, 0, 0.6)";
+                } else if (effect.type === "ice") {
+                    ctx.fillStyle = "rgba(100, 200, 255, 0.4)";
+                } else if (effect.type === "heal") {
+                    ctx.fillStyle = "rgba(100, 255, 100, 0.4)";
+                }
+                
+                ctx.beginPath();
+                ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1.0;
+            });
+        }
+
+        // 游戏逻辑
+        function gameLoop(timestamp) {
+            if (gameState.paused || gameState.gameOver) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
+            // 计算时间增量
+            const deltaTime = timestamp - gameState.lastTime;
+            gameState.lastTime = timestamp;
+            
+            if (!gameState.gameStartTime) gameState.gameStartTime = timestamp;
+            
+            // 更新法力值
+            updateElixir(deltaTime);
+            
+            // 更新单位
+            updateUnits(deltaTime);
+            
+            // 更新防御塔
+            updateTowers(deltaTime);
+            
+            // 更新弹道
+            updateProjectiles(deltaTime);
+            
+            // 更新技能效果
+            updateEffects(deltaTime);
+            
+            // 更新技能冷却
+            updateSkillCooldowns(deltaTime);
+            
+            // AI逻辑（仅在非联机模式）
+            if (gameState.gameMode === "ai") {
+                aiLogic(timestamp);
+            }
+            
+            // 绘制游戏
+            drawGame();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateTowers(deltaTime) {
+            // 更新玩家防御塔
+            updatePlayerTowers(deltaTime, gameState.player.towers, gameState.ai.units);
+            
+            // 更新AI防御塔
+            updatePlayerTowers(deltaTime, gameState.ai.towers, gameState.player.units);
+        }
+
+        function updatePlayerTowers(deltaTime, towers, enemyUnits) {
+            // 遍历所有防御塔
+            for (const towerKey in towers) {
+                const tower = towers[towerKey];
+                if (!tower.alive) continue;
+                
+                // 更新攻击冷却
+                if (tower.attackCooldown > 0) {
+                    tower.attackCooldown -= deltaTime / 1000;
+                }
+                
+                // 寻找最近的敌人
+                let closestEnemy = null;
+                let minDist = Infinity;
+                
+                for (const enemy of enemyUnits) {
+                    if (enemy.health > 0) {
+                        const dist = Math.sqrt(
+                            Math.pow(tower.x - enemy.x, 2) + 
+                            Math.pow(tower.y - enemy.y, 2)
+                        );
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closestEnemy = enemy;
+                        }
+                    }
+                }
+                
+                // 如果有敌人在射程内
+                if (closestEnemy && minDist <= tower.range) {
+                    // 攻击冷却结束
+                    if (tower.attackCooldown <= 0) {
+                        // 创建弹道效果
+                        createTowerProjectile(tower, closestEnemy);
+                        
+                        // 攻击敌人
+                        closestEnemy.health = Math.max(0, closestEnemy.health - tower.damage);
+                        
+                        // 重置攻击冷却
+                        tower.attackCooldown = tower.attackSpeed;
+                    }
+                }
+            }
+        }
+
+        function createTowerProjectile(tower, target) {
+            gameState.projectiles.push({
+                x: tower.x,
+                y: tower.y,
+                startX: tower.x,
+                startY: tower.y,
+                targetX: target.x,
+                targetY: target.y,
+                color: "#ffffff",
+                size: 7,
+                speed: 25,
+                damage: tower.damage,
+                arrived: false
+            });
+        }
+
+        function updateElixir(deltaTime) {
+            // 玩家法力恢复
+            gameState.player.elixir = Math.min(
+                gameState.player.maxElixir, 
+                gameState.player.elixir + gameState.player.elixirRate * (deltaTime / 16.67)
+            );
+            
+            // 根据难度调整AI法力恢复
+            let aiElixirRate = 0.015;
+            if (gameState.ai.difficulty === "easy") {
+                aiElixirRate = 0.012;
+            } else if (gameState.ai.difficulty === "hard") {
+                aiElixirRate = 0.018;
+            }
+            
+            // AI法力恢复
+            gameState.ai.elixir = Math.min(
+                gameState.ai.maxElixir, 
+                gameState.ai.elixir + aiElixirRate * (deltaTime / 16.67)
+            );
+            
+            // 更新UI
+            updateUI();
+        }
+
+        function updateUnits(deltaTime) {
+            // 更新玩家单位
+            for (let i = gameState.player.units.length - 1; i >= 0; i--) {
+                const unit = gameState.player.units[i];
+                
+                // 更新攻击冷却
+                if (unit.attackCooldown > 0) {
+                    unit.attackCooldown -= deltaTime / 1000;
+                }
+                
+                // 寻找目标
+                if (!unit.target || 
+                    (unit.target !== "main-tower" && unit.target !== "left-tower" && unit.target !== "right-tower" && 
+                     (unit.target.health <= 0 || !unit.target.alive))) {
+                    findTarget(unit, gameState.ai.units, gameState.ai.towers);
+                }
+                
+                // 如果有目标
+                if (unit.target) {
+                    // 检查目标是否是塔
+                    let isTower = unit.target === "main-tower" || unit.target === "left-tower" || unit.target === "right-tower";
+                    let targetInRange = false;
+                    let targetX, targetY;
+                    let targetAlive = true;
+                    
+                    if (isTower) {
+                        // 获取塔的状态
+                        let tower;
+                        if (unit.target === "main-tower") {
+                            tower = gameState.ai.towers.main;
+                        } else if (unit.target === "left-tower") {
+                            tower = gameState.ai.towers.left;
+                        } else if (unit.target === "right-tower") {
+                            tower = gameState.ai.towers.right;
+                        }
+                        
+                        targetX = tower.x;
+                        targetY = tower.y;
+                        targetAlive = tower.alive;
+                        const dist = Math.sqrt(Math.pow(unit.x - targetX, 2) + Math.pow(unit.y - targetY, 2));
+                        targetInRange = dist <= unit.range;
+                    } else {
+                        // 目标是单位
+                        targetX = unit.target.x;
+                        targetY = unit.target.y;
+                        targetAlive = unit.target.health > 0;
+                        targetInRange = distance(unit, unit.target) <= unit.range;
+                    }
+                    
+                    // 如果目标存活且在范围内
+                    if (targetAlive && targetInRange) {
+                        // 攻击冷却结束
+                        if (unit.attackCooldown <= 0) {
+                            // 创建弹道效果
+                            createProjectile(unit, targetX, targetY);
+                            
+                            // 攻击目标
+                            if (isTower) {
+                                // 攻击塔
+                                if (unit.target === "main-tower") {
+                                    gameState.ai.towers.main.health = Math.max(0, gameState.ai.towers.main.health - unit.damage);
+                                    if (gameState.ai.towers.main.health <= 0) {
+                                        gameState.ai.towers.main.alive = false;
+                                    }
+                                } else if (unit.target === "left-tower") {
+                                    gameState.ai.towers.left.health = Math.max(0, gameState.ai.towers.left.health - unit.damage);
+                                    if (gameState.ai.towers.left.health <= 0) {
+                                        gameState.ai.towers.left.alive = false;
+                                    }
+                                } else if (unit.target === "right-tower") {
+                                    gameState.ai.towers.right.health = Math.max(0, gameState.ai.towers.right.health - unit.damage);
+                                    if (gameState.ai.towers.right.health <= 0) {
+                                        gameState.ai.towers.right.alive = false;
+                                    }
+                                }
+                            } else {
+                                // 攻击单位
+                                unit.target.health = Math.max(0, unit.target.health - unit.damage);
+                            }
+                            unit.attackCooldown = unit.attackSpeed;
+                        }
+                    } else if (targetAlive) {
+                        // 向目标移动
+                        moveTowardsTarget(unit, unit.target, deltaTime);
+                    } else {
+                        // 目标已死亡，重新寻找目标
+                        unit.target = null;
+                    }
+                } else {
+                    // 向AI主塔移动
+                    moveTowards(unit, gameState.ai.towers.main.x, gameState.ai.towers.main.y, deltaTime);
+                }
+                
+                // 检查单位是否死亡
+                if (unit.health <= 0) {
+                    gameState.player.units.splice(i, 1);
+                }
+            }
+            
+            // 更新AI单位
+            for (let i = gameState.ai.units.length - 1; i >= 0; i--) {
+                const unit = gameState.ai.units[i];
+                
+                // 更新攻击冷却
+                if (unit.attackCooldown > 0) {
+                    unit.attackCooldown -= deltaTime / 1000;
+                }
+                
+                // 寻找目标
+                if (!unit.target || 
+                    (unit.target !== "main-tower" && unit.target !== "left-tower" && unit.target !== "right-tower" && 
+                     (unit.target.health <= 0 || !unit.target.alive))) {
+                    findTarget(unit, gameState.player.units, gameState.player.towers);
+                }
+                
+                // 如果有目标
+                if (unit.target) {
+                    // 检查目标是否是塔
+                    let isTower = unit.target === "main-tower" || unit.target === "left-tower" || unit.target === "right-tower";
+                    let targetInRange = false;
+                    let targetX, targetY;
+                    let targetAlive = true;
+                    
+                    if (isTower) {
+                        // 获取塔的状态
+                        let tower;
+                        if (unit.target === "main-tower") {
+                            tower = gameState.player.towers.main;
+                        } else if (unit.target === "left-tower") {
+                            tower = gameState.player.towers.left;
+                        } else if (unit.target === "right-tower") {
+                            tower = gameState.player.towers.right;
+                        }
+                        
+                        targetX = tower.x;
+                        targetY = tower.y;
+                        targetAlive = tower.alive;
+                        const dist = Math.sqrt(Math.pow(unit.x - targetX, 2) + Math.pow(unit.y - targetY, 2));
+                        targetInRange = dist <= unit.range;
+                    } else {
+                        // 目标是单位
+                        targetX = unit.target.x;
+                        targetY = unit.target.y;
+                        targetAlive = unit.target.health > 0;
+                        targetInRange = distance(unit, unit.target) <= unit.range;
+                    }
+                    
+                    // 如果目标存活且在范围内
+                    if (targetAlive && targetInRange) {
+                        // 攻击冷却结束
+                        if (unit.attackCooldown <= 0) {
+                            // 创建弹道效果
+                            createProjectile(unit, targetX, targetY);
+                            
+                            // 攻击目标
+                            if (isTower) {
+                                // 攻击塔
+                                if (unit.target === "main-tower") {
+                                    gameState.player.towers.main.health = Math.max(0, gameState.player.towers.main.health - unit.damage);
+                                    if (gameState.player.towers.main.health <= 0) {
+                                        gameState.player.towers.main.alive = false;
+                                    }
+                                } else if (unit.target === "left-tower") {
+                                    gameState.player.towers.left.health = Math.max(0, gameState.player.towers.left.health - unit.damage);
+                                    if (gameState.player.towers.left.health <= 0) {
+                                        gameState.player.towers.left.alive = false;
+                                    }
+                                } else if (unit.target === "right-tower") {
+                                    gameState.player.towers.right.health = Math.max(0, gameState.player.towers.right.health - unit.damage);
+                                    if (gameState.player.towers.right.health <= 0) {
+                                        gameState.player.towers.right.alive = false;
+                                    }
+                                }
+                            } else {
+                                // 攻击单位
+                                unit.target.health = Math.max(0, unit.target.health - unit.damage);
+                            }
+                            unit.attackCooldown = unit.attackSpeed;
+                        }
+                    } else if (targetAlive) {
+                        // 向目标移动
+                        moveTowardsTarget(unit, unit.target, deltaTime);
+                    } else {
+                        // 目标已死亡，重新寻找目标
+                        unit.target = null;
+                    }
+                } else {
+                    // 向玩家主塔移动
+                    moveTowards(unit, gameState.player.towers.main.x, gameState.player.towers.main.y, deltaTime);
+                }
+                
+                // 检查单位是否死亡
+                if (unit.health <= 0) {
+                    gameState.ai.units.splice(i, 1);
+                }
+            }
+            
+            // 检查游戏结束条件
+            checkGameEnd();
+        }
+
+        function createProjectile(unit, targetX, targetY) {
+            const projType = unitTypes[unit.type].projectile;
+            
+            gameState.projectiles.push({
+                x: unit.x,
+                y: unit.y,
+                startX: unit.x,
+                startY: unit.y,
+                targetX: targetX,
+                targetY: targetY,
+                color: projType.color,
+                size: projType.size,
+                speed: projType.speed,
+                damage: unit.damage,
+                arrived: false
+            });
+        }
+
+        function updateProjectiles(deltaTime) {
+            for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+                const proj = gameState.projectiles[i];
+                
+                if (proj.arrived) {
+                    gameState.projectiles.splice(i, 1);
+                    continue;
+                }
+                
+                // 计算方向向量
+                const dx = proj.targetX - proj.x;
+                const dy = proj.targetY - proj.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // 计算移动距离
+                const moveDist = proj.speed * (deltaTime / 16.67);
+                
+                if (dist <= moveDist) {
+                    // 弹道到达目标
+                    proj.x = proj.targetX;
+                    proj.y = proj.targetY;
+                    proj.arrived = true;
+                } else {
+                    // 移动弹道
+                    proj.x += (dx / dist) * moveDist;
+                    proj.y += (dy / dist) * moveDist;
+                }
+            }
+        }
+
+        function updateEffects(deltaTime) {
+            for (let i = gameState.effects.length - 1; i >= 0; i--) {
+                const effect = gameState.effects[i];
+                
+                // 更新效果持续时间
+                effect.duration -= deltaTime / 1000;
+                
+                // 更新透明度
+                effect.alpha = Math.max(0, effect.duration / effect.maxDuration * 0.6);
+                
+                // 应用效果
+                applyEffect(effect, deltaTime);
+                
+                // 移除过期的效果
+                if (effect.duration <= 0) {
+                    gameState.effects.splice(i, 1);
+                }
+            }
+        }
+
+        function applyEffect(effect, deltaTime) {
+            const effectRadius = effect.radius;
+            
+            // 陨石效果 - 伤害
+            if (effect.type === "meteor") {
+                // 伤害玩家单位
+                gameState.player.units.forEach(unit => {
+                    const dist = Math.sqrt(Math.pow(unit.x - effect.x, 2) + Math.pow(unit.y - effect.y, 2));
+                    if (dist <= effectRadius) {
+                        unit.health -= 50 * (deltaTime / 1000);
+                    }
+                });
+                
+                // 伤害AI单位
+                gameState.ai.units.forEach(unit => {
+                    const dist = Math.sqrt(Math.pow(unit.x - effect.x, 2) + Math.pow(unit.y - effect.y, 2));
+                    if (dist <= effectRadius) {
+                        unit.health -= 100 * (deltaTime / 1000);
+                    }
+                });
+            }
+            // 寒冰效果 - 减速
+            else if (effect.type === "ice") {
+                // 减速AI单位
+                gameState.ai.units.forEach(unit => {
+                    const dist = Math.sqrt(Math.pow(unit.x - effect.x, 2) + Math.pow(unit.y - effect.y, 2));
+                    if (dist <= effectRadius) {
+                        unit.speed = unit.baseSpeed * 0.5;
+                        unit.attackSpeed = unit.baseAttackSpeed * 1.5;
+                    }
+                });
+            }
+            // 治疗效果 - 回复生命
+            else if (effect.type === "heal") {
+                // 治疗玩家单位
+                gameState.player.units.forEach(unit => {
+                    const dist = Math.sqrt(Math.pow(unit.x - effect.x, 2) + Math.pow(unit.y - effect.y, 2));
+                    if (dist <= effectRadius) {
+                        unit.health = Math.min(unit.maxHealth, unit.health + 40 * (deltaTime / 1000));
+                    }
+                });
+                
+                // 治疗玩家塔
+                for (const towerKey in gameState.player.towers) {
+                    const tower = gameState.player.towers[towerKey];
+                    if (tower.alive) {
+                        const dist = Math.sqrt(Math.pow(tower.x - effect.x, 2) + Math.pow(tower.y - effect.y, 2));
+                        if (dist <= effectRadius) {
+                            tower.health = Math.min(tower.maxHealth, tower.health + 30 * (deltaTime / 1000));
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateSkillCooldowns(deltaTime) {
+            for (const skill in gameState.player.skillCooldowns) {
+                if (gameState.player.skillCooldowns[skill] > 0) {
+                    gameState.player.skillCooldowns[skill] -= deltaTime / 1000;
+                }
+            }
+        }
+
+        function distance(unit1, unit2) {
+            const dx = unit1.x - unit2.x;
+            const dy = unit1.y - unit2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function moveTowards(unit, targetX, targetY, deltaTime) {
+            const dx = targetX - unit.x;
+            const dy = targetY - unit.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist > unit.speed * (deltaTime / 16.67)) {
+                unit.x += (dx / dist) * unit.speed * (deltaTime / 16.67);
+                unit.y += (dy / dist) * unit.speed * (deltaTime / 16.67);
+            } else {
+                unit.x = targetX;
+                unit.y = targetY;
+            }
+        }
+
+        function moveTowardsTarget(unit, target, deltaTime) {
+            if (target === "main-tower") {
+                moveTowards(unit, 
+                    unit.owner === "player" ? gameState.ai.towers.main.x : gameState.player.towers.main.x, 
+                    unit.owner === "player" ? gameState.ai.towers.main.y : gameState.player.towers.main.y, 
+                    deltaTime);
+            } else if (target === "left-tower") {
+                moveTowards(unit, 
+                    unit.owner === "player" ? gameState.ai.towers.left.x : gameState.player.towers.left.x, 
+                    unit.owner === "player" ? gameState.ai.towers.left.y : gameState.player.towers.left.y, 
+                    deltaTime);
+            } else if (target === "right-tower") {
+                moveTowards(unit, 
+                    unit.owner === "player" ? gameState.ai.towers.right.x : gameState.player.towers.right.x, 
+                    unit.owner === "player" ? gameState.ai.towers.right.y : gameState.player.towers.right.y, 
+                    deltaTime);
+            } else {
+                moveTowards(unit, target.x, target.y, deltaTime);
+            }
+        }
+
+        function findTarget(unit, enemyUnits, enemyTowers) {
+            let closestEnemy = null;
+            let minDist = Infinity;
+            
+            for (const enemy of enemyUnits) {
+                if (enemy.health > 0) {
+                    const dist = distance(unit, enemy);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestEnemy = enemy;
+                    }
+                }
+            }
+            
+            if (closestEnemy && minDist <= unit.range * 1.5) {
+                unit.target = closestEnemy;
+                return;
+            }
+            
+            let closestTower = null;
+            let towerDist = Infinity;
+            
+            if (enemyTowers.main.alive) {
+                const dist = Math.sqrt(
+                    Math.pow(unit.x - enemyTowers.main.x, 2) + 
+                    Math.pow(unit.y - enemyTowers.main.y, 2)
+                );
+                if (dist < towerDist) {
+                    towerDist = dist;
+                    closestTower = "main-tower";
+                }
+            }
+            
+            if (enemyTowers.left.alive) {
+                const dist = Math.sqrt(
+                    Math.pow(unit.x - enemyTowers.left.x, 2) + 
+                    Math.pow(unit.y - enemyTowers.left.y, 2)
+                );
+                if (dist < towerDist) {
+                    towerDist = dist;
+                    closestTower = "left-tower";
+                }
+            }
+            
+            if (enemyTowers.right.alive) {
+                const dist = Math.sqrt(
+                    Math.pow(unit.x - enemyTowers.right.x, 2) + 
+                    Math.pow(unit.y - enemyTowers.right.y, 2)
+                );
+                if (dist < towerDist) {
+                    towerDist = dist;
+                    closestTower = "right-tower";
+                }
+            }
+            
+            if (closestTower) {
+                unit.target = closestTower;
+            } else {
+                unit.target = null;
+            }
+        }
+
+        function aiLogic(timestamp) {
+            // 根据难度调整冷却时间
+            let deployCooldown = 5;
+            if (gameState.ai.difficulty === "easy") {
+                deployCooldown = 7;
+            } else if (gameState.ai.difficulty === "hard") {
+                deployCooldown = 3.5;
+            }
+            
+            // 如果冷却时间结束
+            if (timestamp - gameState.ai.lastDeploy > deployCooldown * 1000) {
+                // 尝试部署单位
+                const availableCards = [];
+                for (const unitType in unitTypes) {
+                    if (unitTypes[unitType].type === "unit" && unitTypes[unitType].cost <= gameState.ai.elixir) {
+                        availableCards.push(unitType);
+                    }
+                }
+                
+                if (availableCards.length > 0) {
+                    // 随机选择一张卡牌
+                    const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+                    const cost = unitTypes[randomCard].cost;
+                    
+                    // 部署单位
+                    placeAIUnit(randomCard);
+                    
+                    // 扣除法力值
+                    gameState.ai.elixir -= cost;
+                    
+                    // 更新上次部署时间
+                    gameState.ai.lastDeploy = timestamp;
+                    
+                    // 随机设置下一次部署的冷却时间
+                    gameState.ai.deployCooldown = deployCooldown - 1 + Math.random() * 2;
+                    
+                    // 显示AI行动消息
+                    showMessage(`AI 放置了 ${unitTypes[randomCard].name}`);
+                }
+            }
+        }
+
+        function checkGameEnd() {
+            // 检查玩家塔是否全部被摧毁
+            const playerTowersAlive = Object.values(gameState.player.towers).filter(tower => tower.alive).length;
+            if (playerTowersAlive === 0) {
+                gameState.gameOver = true;
+                document.getElementById('game-message').textContent = "游戏结束！AI获胜";
+                document.getElementById('game-message').style.display = 'block';
+                return;
+            }
+            
+            // 检查AI塔是否全部被摧毁
+            const aiTowersAlive = Object.values(gameState.ai.towers).filter(tower => tower.alive).length;
+            if (aiTowersAlive === 0) {
+                gameState.gameOver = true;
+                gameState.player.crowns++;
+                document.getElementById('game-message').textContent = "恭喜！你赢了";
+                document.getElementById('game-message').style.display = 'block';
+                updateUI();
+            }
+        }
+
+        function placeAIUnit(unitType) {
+            const type = unitTypes[unitType];
+            gameState.ai.units.push({
+                type: unitType,
+                owner: "ai",
+                name: type.name,
+                x: Math.random() * (canvas.width - 100) + 50,
+                y: 150,
+                health: type.health,
+                maxHealth: type.health,
+                damage: type.damage,
+                speed: type.speed,
+                range: type.range,
+                attackSpeed: type.attackSpeed,
+                attackCooldown: type.attackSpeed,
+                color: type.color,
+                targetType: type.targetType,
+                selected: false,
+                baseSpeed: type.speed,
+                baseAttackSpeed: type.attackSpeed
+            });
+        }
+
+        function placePlayerUnit(unitType, x, y) {
+            const type = unitTypes[unitType];
+            gameState.player.units.push({
+                type: unitType,
+                owner: "player",
+                name: type.name,
+                x: x,
+                y: y,
+                health: type.health,
+                maxHealth: type.health,
+                damage: type.damage,
+                speed: type.speed,
+                range: type.range,
+                attackSpeed: type.attackSpeed,
+                attackCooldown: type.attackSpeed,
+                color: type.color,
+                targetType: type.targetType,
+                selected: false,
+                baseSpeed: type.speed,
+                baseAttackSpeed: type.attackSpeed
+            });
+        }
+
+        function showMessage(message) {
+            const messageEl = document.getElementById('game-message');
+            messageEl.textContent = message;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 2000);
+        }
+
+        function updateUI() {
+            document.querySelector('.elixir-count').textContent = Math.floor(gameState.player.elixir);
+            document.querySelector('.crown-count span:last-child').textContent = gameState.player.crowns;
+        }
+
+        // 初始化游戏
+        function initGame() {
+            initCanvas();
+            
+            // 重置玩家状态
+            gameState.player.elixir = 10;
+            gameState.player.units = [];
+            gameState.player.towers.main.health = 3000;
+            gameState.player.towers.main.alive = true;
+            gameState.player.towers.left.health = 2000;
+            gameState.player.towers.left.alive = true;
+            gameState.player.towers.right.health = 2000;
+            gameState.player.towers.right.alive = true;
+            
+            // 重置AI状态
+            gameState.ai.elixir = 10;
+            gameState.ai.units = [];
+            gameState.ai.towers.main.health = 3000;
+            gameState.ai.towers.main.alive = true;
+            gameState.ai.towers.left.health = 2000;
+            gameState.ai.towers.left.alive = true;
+            gameState.ai.towers.right.health = 2000;
+            gameState.ai.towers.right.alive = true;
+            gameState.ai.lastDeploy = 0;
+            
+            // 重置技能冷却
+            for (const skill in gameState.player.skillCooldowns) {
+                gameState.player.skillCooldowns[skill] = 0;
+            }
+            
+            // 清空弹道和效果
+            gameState.projectiles = [];
+            gameState.effects = [];
+            
+            gameState.gameOver = false;
+            gameState.paused = false;
+            gameState.gameStartTime = 0;
+            
+            // 创建卡组和手牌
+            createDeck();
+            
+            // 更新玩家手牌
+            updatePlayerHand();
+            
+            // 更新联机状态
+            if (gameState.gameMode === "online") {
+                onlineStatus.style.display = "flex";
+                onlineStatus.querySelector('.online-text').textContent = "已连接: 房间" + document.getElementById('room-id').value;
+            } else {
+                onlineStatus.style.display = "none";
+            }
+            
+            updateUI();
+            showMessage("游戏开始！选择卡牌放置单位");
+            gameState.lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function createDeck() {
+            // 创建卡组（循环使用）
+            gameState.deck = [...gameState.selectedCardTypes];
+            
+            // 随机选择4张作为初始手牌
+            gameState.hand = [];
+            for (let i = 0; i < 4; i++) {
+                if (gameState.deck.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * gameState.deck.length);
+                    gameState.hand.push(gameState.deck[randomIndex]);
+                }
+            }
+        }
+        
+        function drawNewCard() {
+            if (gameState.deck.length > 0) {
+                const randomIndex = Math.floor(Math.random() * gameState.deck.length);
+                gameState.hand.push(gameState.deck[randomIndex]);
+            }
+        }
+        
+        function updatePlayerHand() {
+            playerCardsContainer.innerHTML = '';
+            
+            gameState.hand.forEach(cardType => {
+                const type = unitTypes[cardType];
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.cost = type.cost;
+                card.dataset.unit = cardType;
+                
+                card.innerHTML = `
+                    <div class="card-top">
+                        <div class="card-cost">${type.cost}</div>
+                        <div class="card-name">${type.name}</div>
+                    </div>
+                    <div class="card-bottom">
+                        <div class="card-stats">
+                            ${type.type === "unit" ? 
+                                `<span>⚔️ ${type.damage}</span>
+                                 <span>❤️ ${type.health}</span>` : 
+                                `<span>${cardType === "meteor" ? "🔥 范围伤害" : 
+                                          cardType === "ice" ? "❄️ 减速敌人" : 
+                                          "❤️ 回复生命"}</span>
+                                 <span>🔄 冷却${type.cooldown}秒</span>`}
+                        </div>
+                    </div>
+                `;
+                
+                playerCardsContainer.appendChild(card);
+            });
+        }
+        
+        function updateSelectedCardsInfo() {
+            const count = gameState.selectedCardTypes.length;
+            selectedCardsInfo.textContent = `已选择 ${count}/6 种卡牌`;
+            selectedCardsInfo.style.color = count === 6 ? '#00ff00' : '#ffcc00';
+            
+            const startBtn = document.getElementById('start-btn');
+            if (count === 6) {
+                startBtn.style.background = 'linear-gradient(to bottom, #00cc00, #00aa00)';
+                startBtn.style.boxShadow = '0 5px 20px rgba(0, 200, 0, 0.8)';
+            } else {
+                startBtn.style.background = 'linear-gradient(to bottom, #ffcc00, #ff9900)';
+                startBtn.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.5)';
+            }
+        }
+
+        // 事件监听
+        document.getElementById('player-cards-container').addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (!card) return;
+            
+            if (gameState.gameOver) return;
+            
+            const cost = parseInt(card.dataset.cost);
+            if (gameState.player.elixir < cost) {
+                showMessage("法力值不足！");
+                return;
+            }
+            
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            gameState.player.selectedCard = card.dataset.unit;
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (gameState.gameOver || !gameState.player.selectedCard || gameState.paused) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 获取卡牌类型
+            const cardType = gameState.player.selectedCard;
+            const cardData = unitTypes[cardType];
+            
+            // 检查技能冷却
+            if (cardData.type === "skill" && gameState.player.skillCooldowns[cardType] > 0) {
+                showMessage("技能冷却中！");
+                return;
+            }
+            
+            if (gameState.player.elixir < cardData.cost) {
+                showMessage("法力值不足！");
+                return;
+            }
+            
+            // 处理单位卡
+            if (cardData.type === "unit") {
+                // 只能在玩家半场放置单位
+                if (y < canvas.height / 2 + 50) {
+                    showMessage("只能在你的半场放置单位！");
+                    return;
+                }
+                
+                // 放置单位
+                placePlayerUnit(cardType, x, y);
+            } 
+            // 处理技能卡
+            else if (cardData.type === "skill") {
+                // 创建技能效果
+                createSkillEffect(cardType, x, y);
+                
+                // 设置技能冷却
+                gameState.player.skillCooldowns[cardType] = cardData.cooldown;
+            }
+            
+            // 扣除法力值
+            gameState.player.elixir -= cardData.cost;
+            
+            // 取消选择
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            gameState.player.selectedCard = null;
+            
+            // 从手牌中移除该卡
+            const index = gameState.hand.indexOf(cardType);
+            if (index !== -1) {
+                gameState.hand.splice(index, 1);
+                // 抽新卡
+                drawNewCard();
+                // 更新手牌
+                updatePlayerHand();
+            }
+            
+            updateUI();
+            showMessage(`已使用 ${cardData.name}`);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameState.gameOver || gameState.paused) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            let unitUnderMouse = null;
+            
+            for (const unit of gameState.player.units) {
+                const dx = unit.x - x;
+                const dy = unit.y - y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= 30) {
+                    unitUnderMouse = unit;
+                    break;
+                }
+            }
+            
+            if (!unitUnderMouse) {
+                for (const unit of gameState.ai.units) {
+                    const dx = unit.x - x;
+                    const dy = unit.y - y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist <= 30) {
+                        unitUnderMouse = unit;
+                        break;
+                    }
+                }
+            }
+            
+            if (unitUnderMouse) {
+                unitInfo.style.display = 'block';
+                unitInfo.style.left = `${e.clientX + 15}px`;
+                unitInfo.style.top = `${e.clientY + 15}px`;
+                unitInfo.innerHTML = `
+                    <div><strong>${unitUnderMouse.name}</strong></div>
+                    <div>生命值: ${Math.max(0, Math.ceil(unitUnderMouse.health))}/${unitUnderMouse.maxHealth}</div>
+                    <div>攻击力: ${unitUnderMouse.damage}</div>
+                    <div>攻击速度: ${unitUnderMouse.attackSpeed.toFixed(1)}/秒</div>
+                    <div>移动速度: ${unitUnderMouse.speed.toFixed(1)}</div>
+                    <div>攻击范围: ${unitUnderMouse.range}</div>
+                `;
+            } else {
+                unitInfo.style.display = 'none';
+            }
+        });
+
+        document.getElementById('new-game').addEventListener('click', initGame);
+        document.getElementById('start-btn').addEventListener('click', () => {
+            if (gameState.selectedCardTypes.length !== 6) {
+                showMessage("请选择6种卡牌！");
+                return;
+            }
+            
+            if (gameState.gameMode === "online") {
+                connectPanel.style.display = 'block';
+            } else {
+                startScreen.classList.add('hidden');
+                initGame();
+            }
+        });
+        
+        // 卡牌选择事件
+        cardSelection.addEventListener('click', (e) => {
+            const card = e.target.closest('.selectable-card');
+            if (!card) return;
+            
+            const unitType = card.dataset.unit;
+            const index = gameState.selectedCardTypes.indexOf(unitType);
+            
+            if (index !== -1) {
+                card.classList.remove('selected');
+                gameState.selectedCardTypes.splice(index, 1);
+            } else {
+                if (gameState.selectedCardTypes.length >= 6) {
+                    showMessage("最多只能选择6种卡牌！");
+                    return;
+                }
+                card.classList.add('selected');
+                gameState.selectedCardTypes.push(unitType);
+            }
+            
+            updateSelectedCardsInfo();
+        });
+        
+        // 模式选择
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                gameState.gameMode = btn.dataset.mode;
+            });
+        });
+        
+        function createSkillEffect(skill, x, y) {
+            const effect = {
+                type: skill,
+                x: x,
+                y: y,
+                radius: 120,
+                duration: 3,
+                maxDuration: 3,
+                alpha: 0.6
+            };
+            
+            gameState.effects.push(effect);
+            
+            // 显示技能使用消息
+            showMessage(`使用了${unitTypes[skill].name}！`);
+        }
+        
+        // 暂停功能
+        document.getElementById('pause-btn').addEventListener('click', () => {
+            gameState.paused = true;
+            document.getElementById('pause-menu').style.display = 'block';
+        });
+        
+        document.getElementById('resume-btn').addEventListener('click', () => {
+            gameState.paused = false;
+            document.getElementById('pause-menu').style.display = 'none';
+            gameState.lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        });
+        
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            gameState.paused = false;
+            document.getElementById('pause-menu').style.display = 'none';
+            initGame();
+        });
+        
+        document.getElementById('main-menu-btn').addEventListener('click', () => {
+            gameState.paused = false;
+            document.getElementById('pause-menu').style.display = 'none';
+            startScreen.classList.remove('hidden');
+        });
+        
+        // 联机功能
+        document.getElementById('create-room-btn').addEventListener('click', () => {
+            const roomId = document.getElementById('room-id').value || Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('room-id').value = roomId;
+            
+            // 模拟创建房间
+            setTimeout(() => {
+                connectPanel.style.display = 'none';
+                startScreen.classList.add('hidden');
+                initGame();
+            }, 1000);
+        });
+        
+        document.getElementById('join-room-btn').addEventListener('click', () => {
+            const roomId = document.getElementById('room-id').value;
+            if (!roomId) {
+                alert("请输入房间号");
+                return;
+            }
+            
+            // 模拟加入房间
+            setTimeout(() => {
+                connectPanel.style.display = 'none';
+                startScreen.classList.add('hidden');
+                initGame();
+            }, 1000);
+        });
+        
+        document.getElementById('cancel-connect-btn').addEventListener('click', () => {
+            connectPanel.style.display = 'none';
+        });
+
+        // 窗口调整大小
+        window.addEventListener('resize', initCanvas);
+        
+        // 初始化选中的卡牌信息
+        updateSelectedCardsInfo();
+    </script>
+</body>
+</html>

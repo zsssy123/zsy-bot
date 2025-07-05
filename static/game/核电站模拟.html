@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>核电站控制中心终极模拟</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a1929, #0d1b2a);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 25px;
+        }
+        
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #00b4d8;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #00b4d8, #90e0ef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #90e0ef;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        
+        .game-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            background: rgba(25, 40, 65, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(40, 60, 100, 0.6);
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #90e0ef;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .control-panel {
+            background: rgba(25, 40, 65, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(64, 156, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .reactors-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        .reactor-panel {
+            background: rgba(30, 45, 70, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .reactor-panel.critical {
+            animation: critical-pulse 1s infinite;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+        
+        @keyframes critical-pulse {
+            0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2a5485;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            color: #90e0ef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+            transition: all 0.3s ease;
+        }
+        
+        .status-warning {
+            background-color: #facc15;
+            box-shadow: 0 0 15px #facc15;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-critical {
+            background-color: #f87171;
+            box-shadow: 0 0 15px #f87171;
+            animation: pulse 0.8s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .gauge {
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+        
+        .gauge-background {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                #4ade80 0% 40%,
+                #facc15 40% 70%,
+                #f87171 70% 100%
+            );
+            mask: radial-gradient(transparent 55%, black 56%);
+            -webkit-mask: radial-gradient(transparent 55%, black 56%);
+            position: relative;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 70%;
+            background: #16213e;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        
+        .gauge-label {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #a0c8e0;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #a0c8e0;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #1e3a8a, #3b82f6, #10b981);
+            border-radius: 10px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 180, 216, 0.8);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .primary-btn {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+        }
+        
+        .primary-btn:hover {
+            background: linear-gradient(135deg, #0096c7, #005f8d);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.4);
+        }
+        
+        .warning-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .warning-btn:hover {
+            background: linear-gradient(135deg, #ea580c, #b45309);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        .danger-btn {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white;
+        }
+        
+        .danger-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        .success-btn {
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+        }
+        
+        .success-btn:hover {
+            background: linear-gradient(135deg, #059669, #065f46);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .data-item {
+            background: rgba(40, 60, 100, 0.6);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .data-item.critical {
+            background: rgba(180, 29, 29, 0.4);
+            border: 1px solid #ef4444;
+        }
+        
+        .data-label {
+            font-size: 0.8rem;
+            color: #a0c8e0;
+            margin-bottom: 5px;
+        }
+        
+        .data-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .visualization-panel {
+            grid-column: 1 / -1;
+            background: rgba(25, 40, 65, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #reactor-3d {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background: rgba(10, 20, 35, 0.7);
+        }
+        
+        .view-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .view-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(40, 60, 100, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .view-btn:hover {
+            background: rgba(64, 156, 255, 0.8);
+            transform: scale(1.1);
+        }
+        
+        .events-panel {
+            background: rgba(30, 45, 70, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .events-title {
+            font-size: 1.3rem;
+            color: #90e0ef;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .event-log {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(10, 20, 35, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .event-item {
+            margin-bottom: 8px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background: rgba(40, 60, 100, 0.4);
+            animation: fadeIn 0.5s;
+        }
+        
+        .event-warning {
+            background: rgba(180, 83, 9, 0.4);
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .event-danger {
+            background: rgba(180, 29, 29, 0.4);
+            border-left: 3px solid #ef4444;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .tasks-panel {
+            margin-top: 20px;
+            background: rgba(30, 45, 70, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .tasks-title {
+            font-size: 1.2rem;
+            color: #90e0ef;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .task-list {
+            list-style-type: none;
+        }
+        
+        .task-item {
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            background: rgba(40, 60, 100, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item.completed {
+            background: rgba(16, 185, 129, 0.3);
+        }
+        
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #90e0ef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item.completed .task-checkbox {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .task-item.completed .task-checkbox::after {
+            content: '✓';
+            font-size: 0.8rem;
+            color: white;
+        }
+        
+        .task-reward {
+            margin-left: auto;
+            background: rgba(245, 158, 11, 0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .advanced-panel {
+            grid-column: 1 / -1;
+            background: rgba(25, 40, 65, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .advanced-title {
+            font-size: 1.5rem;
+            color: #90e0ef;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .advanced-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .advanced-item {
+            background: rgba(40, 60, 100, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .advanced-item.critical {
+            animation: critical-pulse 1s infinite;
+            background: rgba(180, 29, 29, 0.4);
+        }
+        
+        .advanced-label {
+            font-size: 0.9rem;
+            color: #a0c8e0;
+            margin-bottom: 10px;
+        }
+        
+        .advanced-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .advanced-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .advanced-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .purple-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+        }
+        
+        .purple-btn:hover {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+        }
+        
+        .pink-btn {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            color: white;
+        }
+        
+        .pink-btn:hover {
+            background: linear-gradient(135deg, #db2777, #9d174d);
+        }
+        
+        .level-indicator {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .level-fill {
+            height: 100%;
+            background: linear-gradient(to right, #00b4d8, #0077b6);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #90e0ef;
+            font-size: 0.9rem;
+            border-top: 1px solid #2a5485;
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .game-over.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .game-over-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid #ef4444;
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
+        }
+        
+        .game-over h2 {
+            font-size: 3rem;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+        
+        .game-over p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 180, 216, 0.5);
+        }
+        
+        .temperature-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .temp-normal { background-color: #4ade80; }
+        .temp-warning { background-color: #facc15; }
+        .temp-danger { background-color: #f87171; }
+        
+        .mission-complete {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .mission-complete.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .mission-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid #10b981;
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
+        }
+        
+        .mission-content h2 {
+            font-size: 3rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+        
+        .mission-content p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .next-level-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .next-level-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+        
+        .tutorial-panel {
+            grid-column: 1 / -1;
+            background: rgba(25, 40, 65, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .tutorial-title {
+            font-size: 1.5rem;
+            color: #90e0ef;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tutorial-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .tutorial-item {
+            background: rgba(40, 60, 100, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .tutorial-item h3 {
+            color: #00b4d8;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tutorial-item p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .critical-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.5);
+            animation: alert-pulse 1s infinite;
+        }
+        
+        @keyframes alert-pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-radiation-alt"></i> 核电站控制中心终极模拟</h1>
+            <p class="subtitle">管理核裂变、聚变和反物质反应堆，完成挑战任务！</p>
+            
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">游戏时间</div>
+                    <div class="info-value" id="game-time">00:00</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">当前得分</div>
+                    <div class="info-value" id="game-score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">电力需求</div>
+                    <div class="info-value" id="power-demand">2500 MW</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">总输出</div>
+                    <div class="info-value" id="total-output">0 MW</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <h2><i class="fas fa-tachometer-alt"></i> 裂变反应堆控制系统</h2>
+                
+                <div class="reactors-container">
+                    <!-- 反应堆1 -->
+                    <div class="reactor-panel" id="reactor-panel-1">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><i class="fas fa-atom"></i> 裂变反应堆 #1</h2>
+                            <div class="status-indicator" id="status-1"></div>
+                        </div>
+                        
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-label">输出功率</div>
+                                <div class="data-value" id="power-1">0%</div>
+                            </div>
+                            <div class="data-item" id="temp-item-1">
+                                <div class="data-label">核心温度</div>
+                                <div class="data-value">
+                                    <span class="temperature-color" id="temp-color-1"></span>
+                                    <span id="temp-1">280°C</span>
+                                </div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">冷却效率</div>
+                                <div class="data-value" id="cooling-1">95%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="controls">
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>控制棒位置</span>
+                                    <span id="control-rod-1">75% 插入</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="75" class="control-rod" data-reactor="1">
+                            </div>
+                            
+                            <div class="buttons">
+                                <button class="primary-btn" onclick="adjustPower(1, 10)"><i class="fas fa-arrow-up"></i> 增加功率</button>
+                                <button class="warning-btn" onclick="adjustPower(1, -10)"><i class="fas fa-arrow-down"></i> 降低功率</button>
+                                <button class="danger-btn" onclick="scramReactor(1)"><i class="fas fa-skull-crossbones"></i> 紧急停止</button>
+                                <button class="success-btn" onclick="repairReactor(1)"><i class="fas fa-tools"></i> 修复系统</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 反应堆2 -->
+                    <div class="reactor-panel" id="reactor-panel-2">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><i class="fas fa-atom"></i> 裂变反应堆 #2</h2>
+                            <div class="status-indicator" id="status-2"></div>
+                        </div>
+                        
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-label">输出功率</div>
+                                <div class="data-value" id="power-2">0%</div>
+                            </div>
+                            <div class="data-item" id="temp-item-2">
+                                <div class="data-label">核心温度</div>
+                                <div class="data-value">
+                                    <span class="temperature-color" id="temp-color-2"></span>
+                                    <span id="temp-2">280°C</span>
+                                </div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">冷却效率</div>
+                                <div class="data-value" id="cooling-2">95%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="controls">
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>控制棒位置</span>
+                                    <span id="control-rod-2">75% 插入</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="75" class="control-rod" data-reactor="2">
+                            </div>
+                            
+                            <div class="buttons">
+                                <button class="primary-btn" onclick="adjustPower(2, 10)"><i class="fas fa-arrow-up"></i> 增加功率</button>
+                                <button class="warning-btn" onclick="adjustPower(2, -10)"><i class="fas fa-arrow-down"></i> 降低功率</button>
+                                <button class="danger-btn" onclick="scramReactor(2)"><i class="fas fa-skull-crossbones"></i> 紧急停止</button>
+                                <button class="success-btn" onclick="repairReactor(2)"><i class="fas fa-tools"></i> 修复系统</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 反应堆3 -->
+                    <div class="reactor-panel" id="reactor-panel-3">
+                        <div class="panel-header">
+                            <h2 class="panel-title"><i class="fas fa-atom"></i> 裂变反应堆 #3</h2>
+                            <div class="status-indicator" id="status-3"></div>
+                        </div>
+                        
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-label">输出功率</div>
+                                <div class="data-value" id="power-3">0%</div>
+                            </div>
+                            <div class="data-item" id="temp-item-3">
+                                <div class="data-label">核心温度</div>
+                                <div class="data-value">
+                                    <span class="temperature-color" id="temp-color-3"></span>
+                                    <span id="temp-3">280°C</span>
+                                </div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-label">冷却效率</div>
+                                <div class="data-value" id="cooling-3">95%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="controls">
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>控制棒位置</span>
+                                    <span id="control-rod-3">75% 插入</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="75" class="control-rod" data-reactor="3">
+                            </div>
+                            
+                            <div class="buttons">
+                                <button class="primary-btn" onclick="adjustPower(3, 10)"><i class="fas fa-arrow-up"></i> 增加功率</button>
+                                <button class="warning-btn" onclick="adjustPower(3, -10)"><i class="fas fa-arrow-down"></i> 降低功率</button>
+                                <button class="danger-btn" onclick="scramReactor(3)"><i class="fas fa-skull-crossbones"></i> 紧急停止</button>
+                                <button class="success-btn" onclick="repairReactor(3)"><i class="fas fa-tools"></i> 修复系统</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="visualization-panel">
+                    <h2><i class="fas fa-cube"></i> 反应堆 3D 可视化</h2>
+                    <div id="reactor-3d"></div>
+                    <div class="view-controls">
+                        <div class="view-btn" onclick="changeView('overview')"><i class="fas fa-globe-asia"></i></div>
+                        <div class="view-btn" onclick="changeView('reactor1')">1</div>
+                        <div class="view-btn" onclick="changeView('reactor2')">2</div>
+                        <div class="view-btn" onclick="changeView('reactor3')">3</div>
+                        <div class="view-btn" onclick="changeView('fusion')"><i class="fas fa-star"></i></div>
+                        <div class="view-btn" onclick="changeView('antimatter')"><i class="fas fa-radiation"></i></div>
+                    </div>
+                </div>
+                
+                <div class="advanced-panel">
+                    <h2 class="advanced-title"><i class="fas fa-rocket"></i> 高级能源系统</h2>
+                    <div class="advanced-grid">
+                        <div class="advanced-item" id="fusion-item">
+                            <div class="advanced-label">聚变反应堆</div>
+                            <div class="advanced-value" id="fusion-power">0%</div>
+                            <div class="level-indicator">
+                                <div class="level-fill" id="fusion-level" style="width: 0%"></div>
+                            </div>
+                            <div class="advanced-controls">
+                                <button class="purple-btn" onclick="adjustFusionPower(10)"><i class="fas fa-arrow-up"></i> 增加</button>
+                                <button class="purple-btn" onclick="adjustFusionPower(-10)"><i class="fas fa-arrow-down"></i> 减少</button>
+                            </div>
+                        </div>
+                        <div class="advanced-item" id="fusion-temp-item">
+                            <div class="advanced-label">聚变等离子体温度</div>
+                            <div class="advanced-value" id="fusion-temp">1.5亿°C</div>
+                            <div class="level-indicator">
+                                <div class="level-fill" id="fusion-temp-level" style="width: 50%"></div>
+                            </div>
+                            <div class="advanced-controls">
+                                <button class="purple-btn" onclick="adjustFusionTemp(5)"><i class="fas fa-fire"></i> 加热</button>
+                                <button class="purple-btn" onclick="adjustFusionTemp(-5)"><i class="fas fa-snowflake"></i> 冷却</button>
+                            </div>
+                        </div>
+                        <div class="advanced-item" id="antimatter-item">
+                            <div class="advanced-label">反物质反应堆</div>
+                            <div class="advanced-value" id="antimatter-power">0%</div>
+                            <div class="level-indicator">
+                                <div class="level-fill" id="antimatter-level" style="width: 0%"></div>
+                            </div>
+                            <div class="advanced-controls">
+                                <button class="pink-btn" onclick="adjustAntimatterPower(5)"><i class="fas fa-arrow-up"></i> 增加</button>
+                                <button class="pink-btn" onclick="adjustAntimatterPower(-5)"><i class="fas fa-arrow-down"></i> 减少</button>
+                            </div>
+                        </div>
+                        <div class="advanced-item" id="containment-item">
+                            <div class="advanced-label">反物质约束场</div>
+                            <div class="advanced-value" id="containment-field">100%</div>
+                            <div class="level-indicator">
+                                <div class="level-fill" id="containment-level" style="width: 100%"></div>
+                            </div>
+                            <div class="advanced-controls">
+                                <button class="pink-btn" onclick="adjustContainment(5)"><i class="fas fa-shield-alt"></i> 加强</button>
+                                <button class="pink-btn" onclick="adjustContainment(-5)"><i class="fas fa-bolt"></i> 释放</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tutorial-panel">
+                    <h2 class="tutorial-title"><i class="fas fa-graduation-cap"></i> 操作指南</h2>
+                    <div class="tutorial-content">
+                        <div class="tutorial-item">
+                            <h3><i class="fas fa-atom"></i> 裂变反应堆控制</h3>
+                            <p>1. 使用控制棒调节反应堆功率</p>
+                            <p>2. 保持温度在安全范围内（280-500°C）</p>
+                            <p>3. 温度超过800°C会引发熔毁</p>
+                            <p>4. 控制棒为0%时反应堆会失控</p>
+                        </div>
+                        <div class="tutorial-item">
+                            <h3><i class="fas fa-star"></i> 聚变反应堆控制</h3>
+                            <p>1. 保持等离子体温度在1.4-1.6亿°C</p>
+                            <p>2. 温度过低会停止反应</p>
+                            <p>3. 温度过高会损坏设备</p>
+                            <p>4. 功率过高可能导致磁约束失效</p>
+                        </div>
+                        <div class="tutorial-item">
+                            <h3><i class="fas fa-radiation"></i> 反物质反应堆控制</h3>
+                            <p>1. 约束场强度必须保持在85%以上</p>
+                            <p>2. 约束场低于75%可能引发爆炸</p>
+                            <p>3. 功率输出需缓慢增加</p>
+                            <p>4. 定期释放能量保持系统稳定</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="events-panel">
+                <h2 class="events-title"><i class="fas fa-exclamation-circle"></i> 系统事件日志</h2>
+                <div class="event-log" id="event-log">
+                    <div class="event-item">系统初始化完成，所有反应堆待机中...</div>
+                    <div class="event-item">准备启动反应堆序列</div>
+                    <div class="event-item">安全系统自检通过</div>
+                </div>
+                
+                <div class="tasks-panel">
+                    <h2 class="tasks-title"><i class="fas fa-tasks"></i> 当前任务</h2>
+                    <ul class="task-list" id="task-list">
+                        <li class="task-item" id="task-1">
+                            <div class="task-checkbox"></div>
+                            <div class="task-text">启动所有裂变反应堆</div>
+                            <div class="task-reward">+200分</div>
+                        </li>
+                        <li class="task-item" id="task-2">
+                            <div class="task-checkbox"></div>
+                            <div class="task-text">总输出达到5000MW</div>
+                            <div class="task-reward">+500分</div>
+                        </li>
+                        <li class="task-item" id="task-3">
+                            <div class="task-checkbox"></div>
+                            <div class="task-text">维持电力稳定120秒</div>
+                            <div class="task-reward">+800分</div>
+                        </li>
+                        <li class="task-item" id="task-4">
+                            <div class="task-checkbox"></div>
+                            <div class="task-text">激活聚变反应堆</div>
+                            <div class="task-reward">+1000分</div>
+                        </li>
+                        <li class="task-item" id="task-5">
+                            <div class="task-checkbox"></div>
+                            <div class="task-text">控制反物质反应堆输出</div>
+                            <div class="task-reward">+1500分</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>核电站控制中心终极模拟 | 本系统仅用于培训和教育目的 | 所有数据均为模拟生成</p>
+            <p>警告：这不是真实的核电站控制系统。请勿在真实核设施中使用。</p>
+        </footer>
+        
+        <div class="game-over" id="game-over">
+            <div class="game-over-content">
+                <h2><i class="fas fa-radiation"></i> 反应堆熔毁！</h2>
+                <p id="game-over-message">反应堆核心温度超过安全阈值，发生了熔毁事故！</p>
+                <p>你的最终得分: <span id="final-score">0</span></p>
+                <p>完成任务: <span id="tasks-completed">0</span>/<span id="total-tasks">0</span></p>
+                <p>存活时间: <span id="survival-time">00:00</span></p>
+                <button class="restart-btn" onclick="restartGame()"><i class="fas fa-redo"></i> 重新开始游戏</button>
+            </div>
+        </div>
+        
+        <div class="mission-complete" id="mission-complete">
+            <div class="mission-content">
+                <h2><i class="fas fa-star"></i> 任务完成！</h2>
+                <p id="mission-message">你成功完成了所有核裂变反应堆控制任务！</p>
+                <p>你的得分: <span id="mission-score">0</span></p>
+                <p>完成任务时间: <span id="mission-time">00:00</span></p>
+                <button class="next-level-btn" onclick="startNextLevel()"><i class="fas fa-arrow-right"></i> 进入高级能源系统</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            score: 0,
+            time: 0,
+            gameActive: true,
+            currentLevel: 1,
+            reactors: {
+                1: { power: 0, temperature: 280, controlRod: 75, status: 'normal', cooling: 95, scrammed: false, damaged: false },
+                2: { power: 0, temperature: 280, controlRod: 75, status: 'normal', cooling: 95, scrammed: false, damaged: false },
+                3: { power: 0, temperature: 280, controlRod: 75, status: 'normal', cooling: 95, scrammed: false, damaged: false }
+            },
+            fusionReactor: {
+                power: 0,
+                temperature: 150,
+                status: 'offline'
+            },
+            antimatterReactor: {
+                power: 0,
+                containment: 100,
+                status: 'offline'
+            },
+            powerDemand: 2500,
+            totalOutput: 0,
+            eventLog: [],
+            tasks: {
+                1: { id: 1, text: "启动所有裂变反应堆", completed: false, reward: 200 },
+                2: { id: 2, text: "总输出达到5000MW", completed: false, reward: 500 },
+                3: { id: 3, text: "维持电力稳定120秒", completed: false, reward: 800, progress: 0 },
+                4: { id: 4, text: "激活聚变反应堆", completed: false, reward: 1000 },
+                5: { id: 5, text: "控制反物质反应堆输出", completed: false, reward: 1500 }
+            },
+            stablePowerTime: 0,
+            hasCoolingFailure: false,
+            hasFusionEvent: false,
+            hasAntimatterEvent: false
+        };
+        
+        // Three.js 变量
+        let scene, camera, renderer;
+        let reactor1, reactor2, reactor3, fusionReactor, antimatterReactor;
+        let currentView = 'overview';
+        
+        // 初始化3D场景
+        function init3DScene() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a1929);
+            scene.fog = new THREE.Fog(0x0a1929, 10, 100);
+            
+            // 创建相机
+            const container = document.getElementById('reactor-3d');
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 15, 30);
+            camera.lookAt(0, 0, 0);
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // 添加灯光
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(10, 20, 15);
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0x00b4d8, 1, 100);
+            pointLight.position.set(0, 10, 0);
+            scene.add(pointLight);
+            
+            // 创建反应堆模型
+            createReactors();
+            
+            // 添加网格地面
+            const gridHelper = new THREE.GridHelper(50, 50, 0x2a5485, 0x1a2a6c);
+            scene.add(gridHelper);
+            
+            // 开始动画循环
+            animate();
+            
+            // 响应窗口大小变化
+            window.addEventListener('resize', onWindowResize);
+        }
+        
+        // 创建反应堆模型
+        function createReactors() {
+            // 裂变反应堆1
+            reactor1 = createFissionReactorModel(-12, 0, 0);
+            scene.add(reactor1);
+            
+            // 裂变反应堆2
+            reactor2 = createFissionReactorModel(0, 0, 0);
+            scene.add(reactor2);
+            
+            // 裂变反应堆3
+            reactor3 = createFissionReactorModel(12, 0, 0);
+            scene.add(reactor3);
+            
+            // 聚变反应堆
+            fusionReactor = createFusionReactorModel(-6, 0, -15);
+            scene.add(fusionReactor);
+            
+            // 反物质反应堆
+            antimatterReactor = createAntimatterReactorModel(6, 0, -15);
+            scene.add(antimatterReactor);
+        }
+        
+        // 创建裂变反应堆模型
+        function createFissionReactorModel(x, y, z) {
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+            
+            // 反应堆建筑
+            const buildingGeometry = new THREE.CylinderGeometry(3, 3, 8, 6);
+            const buildingMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.8
+            });
+            const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            building.position.y = 4;
+            building.rotation.y = Math.PI / 2;
+            group.add(building);
+            
+            // 反应堆核心
+            const coreGeometry = new THREE.SphereGeometry(1.8, 32, 32);
+            const coreMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x4ade80,
+                emissive: 0x00ff00,
+                emissiveIntensity: 0.1
+            });
+            const core = new THREE.Mesh(coreGeometry, coreMaterial);
+            core.position.y = 4;
+            group.add(core);
+            
+            // 冷却塔
+            const towerGeometry = new THREE.CylinderGeometry(1.2, 1.8, 10, 32);
+            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0x94a3b8 });
+            const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+            tower.position.x = -4;
+            tower.position.y = 5;
+            group.add(tower);
+            
+            // 涡轮机房
+            const turbineGeometry = new THREE.BoxGeometry(5, 3, 4);
+            const turbineMaterial = new THREE.MeshPhongMaterial({ color: 0x64748b });
+            const turbine = new THREE.Mesh(turbineGeometry, turbineMaterial);
+            turbine.position.x = 4;
+            turbine.position.y = 1.5;
+            group.add(turbine);
+            
+            // 蒸汽管道
+            const pipeGeometry = new THREE.CylinderGeometry(0.4, 0.4, 6, 16);
+            const pipeMaterial = new THREE.MeshPhongMaterial({ color: 0xa1a1aa });
+            const pipe1 = new THREE.Mesh(pipeGeometry, pipeMaterial);
+            pipe1.rotation.z = Math.PI / 2;
+            pipe1.position.x = -1;
+            pipe1.position.y = 4;
+            group.add(pipe1);
+            
+            const pipe2 = new THREE.Mesh(pipeGeometry, pipeMaterial);
+            pipe2.rotation.z = Math.PI / 2;
+            pipe2.position.x = 1;
+            pipe2.position.y = 4;
+            group.add(pipe2);
+            
+            return { group, core, building };
+        }
+        
+        // 创建聚变反应堆模型
+        function createFusionReactorModel(x, y, z) {
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+            
+            // 托卡马克装置
+            const torusGeometry = new THREE.TorusGeometry(3, 0.8, 16, 32);
+            const torusMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x8b5cf6,
+                emissive: 0x8b5cf6,
+                emissiveIntensity: 0.1
+            });
+            const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+            torus.rotation.x = Math.PI / 2;
+            group.add(torus);
+            
+            // 等离子体核心
+            const plasmaGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+            const plasmaMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xec4899,
+                emissive: 0xff0000,
+                emissiveIntensity: 0.2,
+                transparent: true,
+                opacity: 0.7
+            });
+            const plasma = new THREE.Mesh(plasmaGeometry, plasmaMaterial);
+            group.add(plasma);
+            
+            // 磁约束线圈
+            const coilGeometry = new THREE.TorusGeometry(3.5, 0.3, 16, 32);
+            const coilMaterial = new THREE.MeshPhongMaterial({ color: 0x3b82f6 });
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const coil = new THREE.Mesh(coilGeometry, coilMaterial);
+                coil.rotation.x = Math.PI / 2;
+                coil.rotation.z = angle;
+                coil.position.y = Math.sin(angle) * 0.5;
+                coil.position.z = Math.cos(angle) * 0.5;
+                group.add(coil);
+            }
+            
+            return { group, plasma, torus };
+        }
+        
+        // 创建反物质反应堆模型
+        function createAntimatterReactorModel(x, y, z) {
+            const group = new THREE.Group();
+            group.position.set(x, y, z);
+            
+            // 反应堆外壳
+            const shellGeometry = new THREE.SphereGeometry(3, 32, 32);
+            const shellMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xec4899,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
+            const shell = new THREE.Mesh(shellGeometry, shellMaterial);
+            group.add(shell);
+            
+            // 反物质核心
+            const coreGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+            const coreMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xf43f5e,
+                emissive: 0xff0000,
+                emissiveIntensity: 0.3
+            });
+            const core = new THREE.Mesh(coreGeometry, coreMaterial);
+            group.add(core);
+            
+            // 约束场发射器
+            const emitterGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 16);
+            const emitterMaterial = new THREE.MeshPhongMaterial({ color: 0x8b5cf6 });
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const emitter = new THREE.Mesh(emitterGeometry, emitterMaterial);
+                emitter.position.x = Math.cos(angle) * 3.5;
+                emitter.position.z = Math.sin(angle) * 3.5;
+                emitter.rotation.x = Math.PI / 2;
+                emitter.rotation.z = angle;
+                group.add(emitter);
+            }
+            
+            return { group, core, shell };
+        }
+        
+        // 更新反应堆3D模型
+        function updateReactorModels() {
+            updateFissionReactorModel(reactor1, 1);
+            updateFissionReactorModel(reactor2, 2);
+            updateFissionReactorModel(reactor3, 3);
+            updateFusionReactorModel();
+            updateAntimatterReactorModel();
+        }
+        
+        // 更新裂变反应堆模型
+        function updateFissionReactorModel(model, reactorId) {
+            const reactor = gameState.reactors[reactorId];
+            const core = model.core;
+            
+            // 根据温度改变颜色
+            let coreColor, emissiveColor, emissiveIntensity;
+            
+            if (reactor.temperature < 500) {
+                coreColor = 0x4ade80; // 绿色
+                emissiveColor = 0x00ff00;
+                emissiveIntensity = 0.1 + reactor.power / 500;
+            } else if (reactor.temperature < 800) {
+                coreColor = 0xfacc15; // 黄色
+                emissiveColor = 0xffff00;
+                emissiveIntensity = 0.2 + reactor.power / 400;
+            } else {
+                coreColor = 0xf87171; // 红色
+                emissiveColor = 0xff0000;
+                emissiveIntensity = 0.3 + reactor.power / 300;
+            }
+            
+            core.material.color.set(coreColor);
+            core.material.emissive.set(emissiveColor);
+            core.material.emissiveIntensity = emissiveIntensity;
+            
+            // 如果反应堆停止，降低亮度
+            if (reactor.scrammed || reactor.damaged) {
+                core.material.emissiveIntensity = 0.05;
+                model.building.material.color.set(0x64748b); // 灰色
+            } else {
+                model.building.material.color.set(0x3b82f6); // 蓝色
+            }
+        }
+        
+        // 更新聚变反应堆模型
+        function updateFusionReactorModel() {
+            const fusion = gameState.fusionReactor;
+            const plasma = fusionReactor.plasma;
+            const torus = fusionReactor.torus;
+            
+            if (fusion.status === 'online') {
+                // 根据功率调整等离子体亮度和大小
+                const intensity = 0.3 + fusion.power / 200;
+                plasma.material.emissiveIntensity = intensity;
+                plasma.scale.set(1 + fusion.power / 100, 1 + fusion.power / 100, 1 + fusion.power / 100);
+                
+                // 根据温度改变颜色
+                if (fusion.temperature < 140) {
+                    plasma.material.color.set(0xec4899); // 粉色
+                    plasma.material.emissive.set(0xff0000); // 红色
+                } else if (fusion.temperature < 160) {
+                    plasma.material.color.set(0xf97316); // 橙色
+                    plasma.material.emissive.set(0xff4500); // 橙红色
+                } else {
+                    plasma.material.color.set(0xfde047); // 黄色
+                    plasma.material.emissive.set(0xffff00); // 黄色
+                }
+                
+                torus.material.emissiveIntensity = 0.1 + fusion.power / 200;
+            } else {
+                plasma.material.emissiveIntensity = 0;
+                torus.material.emissiveIntensity = 0;
+            }
+            
+            // 更新温度指示器
+            document.getElementById('fusion-temp-level').style.width = `${(fusion.temperature - 100) / 1.5}%`;
+        }
+        
+        // 更新反物质反应堆模型
+        function updateAntimatterReactorModel() {
+            const antimatter = gameState.antimatterReactor;
+            const core = antimatterReactor.core;
+            const shell = antimatterReactor.shell;
+            
+            if (antimatter.status === 'online') {
+                // 根据功率调整核心亮度和大小
+                const intensity = 0.5 + antimatter.power / 100;
+                core.material.emissiveIntensity = intensity;
+                core.scale.set(1 + antimatter.power / 50, 1 + antimatter.power / 50, 1 + antimatter.power / 50);
+                
+                // 根据约束场调整外壳透明度
+                shell.material.opacity = 0.3 + antimatter.containment / 200;
+                
+                // 脉冲动画
+                const pulse = Math.sin(Date.now() / 200) * 0.1;
+                core.scale.x = 1 + antimatter.power / 50 + pulse;
+                core.scale.y = 1 + antimatter.power / 50 + pulse;
+                core.scale.z = 1 + antimatter.power / 50 + pulse;
+            } else {
+                core.material.emissiveIntensity = 0;
+                core.scale.set(1, 1, 1);
+                shell.material.opacity = 0.3;
+            }
+        }
+        
+        // 改变视角
+        function changeView(view) {
+            currentView = view;
+            
+            switch(view) {
+                case 'overview':
+                    camera.position.set(0, 15, 30);
+                    camera.lookAt(0, 0, 0);
+                    break;
+                case 'reactor1':
+                    camera.position.set(-12, 5, 10);
+                    camera.lookAt(-12, 3, 0);
+                    break;
+                case 'reactor2':
+                    camera.position.set(0, 5, 10);
+                    camera.lookAt(0, 3, 0);
+                    break;
+                case 'reactor3':
+                    camera.position.set(12, 5, 10);
+                    camera.lookAt(12, 3, 0);
+                    break;
+                case 'fusion':
+                    camera.position.set(-6, 3, -10);
+                    camera.lookAt(-6, 0, -15);
+                    break;
+                case 'antimatter':
+                    camera.position.set(6, 3, -10);
+                    camera.lookAt(6, 0, -15);
+                    break;
+            }
+        }
+        
+        // 窗口大小变化处理
+        function onWindowResize() {
+            const container = document.getElementById('reactor-3d');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 更新反应堆模型
+            updateReactorModels();
+            
+            // 旋转反应堆核心
+            reactor1.core.rotation.y += 0.01;
+            reactor2.core.rotation.y += 0.01;
+            reactor3.core.rotation.y += 0.01;
+            
+            // 聚变反应堆动画
+            if (gameState.fusionReactor.status === 'online') {
+                fusionReactor.plasma.rotation.y += 0.02;
+                fusionReactor.torus.rotation.y -= 0.005;
+            }
+            
+            // 反物质反应堆动画
+            if (gameState.antimatterReactor.status === 'online') {
+                antimatterReactor.core.rotation.y += 0.03;
+                antimatterReactor.shell.rotation.x += 0.01;
+                antimatterReactor.shell.rotation.y -= 0.01;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // DOM 元素
+        const gameTimeEl = document.getElementById('game-time');
+        const gameScoreEl = document.getElementById('game-score');
+        const powerDemandEl = document.getElementById('power-demand');
+        const totalOutputEl = document.getElementById('total-output');
+        const eventLogEl = document.getElementById('event-log');
+        const gameOverEl = document.getElementById('game-over');
+        const finalScoreEl = document.getElementById('final-score');
+        const survivalTimeEl = document.getElementById('survival-time');
+        const gameOverMessageEl = document.getElementById('game-over-message');
+        const tasksCompletedEl = document.getElementById('tasks-completed');
+        const totalTasksEl = document.getElementById('total-tasks');
+        const missionCompleteEl = document.getElementById('mission-complete');
+        const missionMessageEl = document.getElementById('mission-message');
+        const missionScoreEl = document.getElementById('mission-score');
+        const missionTimeEl = document.getElementById('mission-time');
+        
+        // 初始化游戏
+        function initGame() {
+            gameState.score = 0;
+            gameState.time = 0;
+            gameState.gameActive = true;
+            gameState.currentLevel = 1;
+            gameState.powerDemand = 2500;
+            gameState.totalOutput = 0;
+            gameState.stablePowerTime = 0;
+            gameState.hasCoolingFailure = false;
+            gameState.hasFusionEvent = false;
+            gameState.hasAntimatterEvent = false;
+            gameState.eventLog = [
+                '系统初始化完成，所有反应堆待机中...',
+                '准备启动反应堆序列',
+                '安全系统自检通过'
+            ];
+            
+            // 重置裂变反应堆状态
+            for (let i = 1; i <= 3; i++) {
+                gameState.reactors[i] = { 
+                    power: 0, 
+                    temperature: 280, 
+                    controlRod: 75, 
+                    status: 'normal', 
+                    cooling: 95,
+                    scrammed: false,
+                    damaged: false
+                };
+                updateReactorUI(i);
+            }
+            
+            // 重置高级能源系统
+            gameState.fusionReactor = {
+                power: 0,
+                temperature: 150,
+                status: 'offline'
+            };
+            
+            gameState.antimatterReactor = {
+                power: 0,
+                containment: 100,
+                status: 'offline'
+            };
+            
+            updateAdvancedSystemsUI();
+            
+            // 重置任务
+            resetTasks();
+            
+            updateEventLog();
+            updateGameInfo();
+            gameOverEl.classList.remove('show');
+            missionCompleteEl.classList.remove('show');
+            
+            // 启动游戏循环
+            setInterval(gameLoop, 1000);
+            setInterval(generateRandomEvent, 15000);
+            
+            // 初始化3D场景
+            init3DScene();
+        }
+        
+        // 重置任务
+        function resetTasks() {
+            gameState.tasks = {
+                1: { id: 1, text: "启动所有裂变反应堆", completed: false, reward: 200 },
+                2: { id: 2, text: "总输出达到5000MW", completed: false, reward: 500 },
+                3: { id: 3, text: "维持电力稳定120秒", completed: false, reward: 800, progress: 0 },
+                4: { id: 4, text: "激活聚变反应堆", completed: false, reward: 1000 },
+                5: { id: 5, text: "控制反物质反应堆输出", completed: false, reward: 1500 }
+            };
+            updateTasksUI();
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            if (!gameState.gameActive) return;
+            
+            // 更新时间
+            gameState.time++;
+            updateGameInfo();
+            
+            // 更新每个裂变反应堆状态
+            let fissionOutput = 0;
+            let allMeltdown = true;
+            
+            for (let i = 1; i <= 3; i++) {
+                const reactor = gameState.reactors[i];
+                
+                if (reactor.damaged) continue;
+                
+                // 如果反应堆被紧急停止，功率逐渐降低
+                if (reactor.scrammed) {
+                    reactor.power = Math.max(0, reactor.power - 15);
+                    reactor.temperature = Math.max(280, reactor.temperature - 10);
+                } else {
+                    // 正常状态下的功率波动
+                    reactor.power += Math.random() * 5 - 2.5;
+                    reactor.power = Math.max(0, Math.min(120, reactor.power)); // 最大120%功率
+                    
+                    // 控制棒位置影响功率（关键修复：控制棒为0时功率大幅增加）
+                    const controlEffect = (100 - reactor.controlRod) / 25;
+                    reactor.power += controlEffect;
+                    
+                    // 温度变化（增加温度上升速度）
+                    reactor.temperature = 280 + reactor.power * 7 - reactor.cooling * 0.8;
+                    reactor.temperature = Math.max(250, Math.min(1500, reactor.temperature));
+                    
+                    // 检查熔毁条件（降低熔毁阈值）
+                    if (reactor.temperature > 800) {
+                        reactor.status = 'critical';
+                        // 添加临界状态警告
+                        document.getElementById(`reactor-panel-${i}`).classList.add('critical');
+                        document.getElementById(`temp-item-${i}`).classList.add('critical');
+                        
+                        // 高温警报
+                        if (Math.random() > 0.9) {
+                            showCriticalAlert(`反应堆 #${i} 温度临界！`);
+                        }
+                        
+                        // 熔毁条件
+                        if (reactor.temperature > 900 && Math.random() > 0.7) {
+                            reactorMeltdown(i);
+                        }
+                    } else if (reactor.temperature > 500) {
+                        reactor.status = 'warning';
+                        document.getElementById(`reactor-panel-${i}`).classList.remove('critical');
+                        document.getElementById(`temp-item-${i}`).classList.remove('critical');
+                    } else {
+                        reactor.status = 'normal';
+                        document.getElementById(`reactor-panel-${i}`).classList.remove('critical');
+                        document.getElementById(`temp-item-${i}`).classList.remove('critical');
+                    }
+                    
+                    // 冷却效率自然下降
+                    reactor.cooling = Math.max(40, reactor.cooling - Math.random() * 0.3); // 最低40%效率
+                }
+                
+                fissionOutput += reactor.power * 15; // 每个反应堆最大1800MW
+                if (!reactor.damaged) allMeltdown = false;
+                
+                updateReactorUI(i);
+            }
+            
+            // 更新聚变反应堆状态
+            let fusionOutput = 0;
+            if (gameState.fusionReactor.status === 'online') {
+                // 聚变反应堆功率波动
+                gameState.fusionReactor.power += Math.random() * 2 - 1;
+                gameState.fusionReactor.power = Math.max(0, Math.min(100, gameState.fusionReactor.power));
+                
+                // 等离子体温度变化
+                gameState.fusionReactor.temperature += Math.random() * 4 - 2;
+                gameState.fusionReactor.temperature = Math.max(100, Math.min(250, gameState.fusionReactor.temperature));
+                
+                // 如果温度过高或过低，功率会下降
+                if (gameState.fusionReactor.temperature < 120 || gameState.fusionReactor.temperature > 220) {
+                    gameState.fusionReactor.power = Math.max(0, gameState.fusionReactor.power - 2);
+                }
+                
+                fusionOutput = gameState.fusionReactor.power * 30; // 最大3000MW
+                
+                // 温度临界警告
+                if (gameState.fusionReactor.temperature > 220 || gameState.fusionReactor.temperature < 120) {
+                    document.getElementById('fusion-temp-item').classList.add('critical');
+                    if (Math.random() > 0.95) {
+                        showCriticalAlert("聚变等离子体不稳定！");
+                    }
+                } else {
+                    document.getElementById('fusion-temp-item').classList.remove('critical');
+                }
+            }
+            
+            // 更新反物质反应堆状态
+            let antimatterOutput = 0;
+            if (gameState.antimatterReactor.status === 'online') {
+                // 反物质反应堆功率波动
+                gameState.antimatterReactor.power += Math.random() * 1 - 0.5;
+                gameState.antimatterReactor.power = Math.max(0, Math.min(50, gameState.antimatterReactor.power)); // 最大50%功率
+                
+                // 约束场自然衰减
+                gameState.antimatterReactor.containment -= 0.2;
+                gameState.antimatterReactor.containment = Math.max(70, Math.min(100, gameState.antimatterReactor.containment));
+                
+                // 如果约束场太低，有爆炸风险
+                if (gameState.antimatterReactor.containment < 75 && Math.random() > 0.95) {
+                    antimatterExplosion();
+                }
+                
+                antimatterOutput = gameState.antimatterReactor.power * 60; // 最大3000MW
+                
+                // 约束场临界警告
+                if (gameState.antimatterReactor.containment < 80) {
+                    document.getElementById('containment-item').classList.add('critical');
+                    if (Math.random() > 0.9) {
+                        showCriticalAlert("反物质约束场不稳定！");
+                    }
+                } else {
+                    document.getElementById('containment-item').classList.remove('critical');
+                }
+            }
+            
+            gameState.totalOutput = fissionOutput + fusionOutput + antimatterOutput;
+            
+            // 检查任务完成情况
+            checkTasks();
+            
+            // 检查电力稳定性
+            const outputDiff = Math.abs(gameState.totalOutput - gameState.powerDemand);
+            if (outputDiff < 500) {
+                gameState.stablePowerTime++;
+                if (gameState.stablePowerTime > 120) {
+                    gameState.stablePowerTime = 0;
+                    addEvent("电力输出稳定超过120秒！");
+                }
+            } else {
+                gameState.stablePowerTime = 0;
+            }
+            
+            // 检查游戏结束条件
+            if (allMeltdown) {
+                gameOver("所有裂变反应堆都已熔毁！");
+            }
+            
+            // 更新得分
+            if (outputDiff < 1000) {
+                gameState.score += 10 + Math.floor(1000 - outputDiff) / 10;
+            }
+            
+            updateGameInfo();
+            updateAdvancedSystemsUI();
+            
+            // 检查是否完成第一关任务
+            if (gameState.currentLevel === 1 && checkLevel1Completed()) {
+                completeLevel1();
+            }
+        }
+        
+        // 检查第一关任务是否完成
+        function checkLevel1Completed() {
+            // 检查是否所有任务都完成
+            for (const taskId in gameState.tasks) {
+                if (!gameState.tasks[taskId].completed) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // 完成第一关
+        function completeLevel1() {
+            gameState.gameActive = false;
+            missionMessageEl.textContent = "你成功完成了所有核裂变反应堆控制任务！解锁了聚变和反物质反应堆！";
+            missionScoreEl.textContent = Math.floor(gameState.score);
+            missionTimeEl.textContent = gameTimeEl.textContent;
+            missionCompleteEl.classList.add('show');
+            
+            // 解锁高级能源系统
+            gameState.fusionReactor.status = 'online';
+            gameState.antimatterReactor.status = 'online';
+            gameState.powerDemand = 8000;
+            
+            addEvent("聚变反应堆已上线！");
+            addEvent("反物质反应堆已上线！");
+            addEvent("电力需求增加至8000MW！");
+        }
+        
+        // 开始下一关
+        function startNextLevel() {
+            gameState.currentLevel = 2;
+            gameState.gameActive = true;
+            gameState.time = 0;
+            gameState.stablePowerTime = 0;
+            
+            // 重置任务为高级任务
+            gameState.tasks = {
+                1: { id: 1, text: "聚变反应堆输出达到50%", completed: false, reward: 1000 },
+                2: { id: 2, text: "维持聚变等离子体稳定", completed: false, reward: 1200 },
+                3: { id: 3, text: "反物质反应堆输出达到30%", completed: false, reward: 1500 },
+                4: { id: 4, text: "维持反物质约束场稳定", completed: false, reward: 1800 },
+                5: { id: 5, text: "总输出达到10000MW", completed: false, reward: 2000 }
+            };
+            
+            updateTasksUI();
+            missionCompleteEl.classList.remove('show');
+        }
+        
+        // 更新裂变反应堆UI
+        function updateReactorUI(reactorId) {
+            const reactor = gameState.reactors[reactorId];
+            
+            // 更新状态指示器
+            const statusEl = document.getElementById(`status-${reactorId}`);
+            statusEl.className = 'status-indicator';
+            if (reactor.status === 'warning') statusEl.classList.add('status-warning');
+            if (reactor.status === 'critical') statusEl.classList.add('status-critical');
+            
+            // 更新温度颜色指示器
+            const tempColorEl = document.getElementById(`temp-color-${reactorId}`);
+            tempColorEl.className = 'temperature-color';
+            if (reactor.temperature > 500) tempColorEl.classList.add('temp-warning');
+            if (reactor.temperature > 800) tempColorEl.classList.add('temp-danger');
+            
+            // 更新数据
+            document.getElementById(`power-${reactorId}`).textContent = `${Math.round(reactor.power)}%`;
+            document.getElementById(`temp-${reactorId}`).textContent = `${Math.round(reactor.temperature)}°C`;
+            document.getElementById(`cooling-${reactorId}`).textContent = `${Math.round(reactor.cooling)}%`;
+            document.getElementById(`control-rod-${reactorId}`).textContent = `${reactor.controlRod}% 插入`;
+            
+            // 更新滑块位置
+            const slider = document.querySelector(`.control-rod[data-reactor="${reactorId}"]`);
+            slider.value = reactor.controlRod;
+        }
+        
+        // 更新高级能源系统UI
+        function updateAdvancedSystemsUI() {
+            // 聚变反应堆
+            document.getElementById('fusion-power').textContent = `${Math.round(gameState.fusionReactor.power)}%`;
+            document.getElementById('fusion-temp').textContent = `${Math.round(gameState.fusionReactor.temperature)}百万°C`;
+            document.getElementById('fusion-level').style.width = `${gameState.fusionReactor.power}%`;
+            
+            // 反物质反应堆
+            document.getElementById('antimatter-power').textContent = `${Math.round(gameState.antimatterReactor.power)}%`;
+            document.getElementById('containment-field').textContent = `${Math.round(gameState.antimatterReactor.containment)}%`;
+            document.getElementById('antimatter-level').style.width = `${gameState.antimatterReactor.power * 2}%`;
+            document.getElementById('containment-level').style.width = `${gameState.antimatterReactor.containment}%`;
+        }
+        
+        // 更新游戏信息
+        function updateGameInfo() {
+            // 格式化时间
+            const minutes = Math.floor(gameState.time / 60).toString().padStart(2, '0');
+            const seconds = (gameState.time % 60).toString().padStart(2, '0');
+            gameTimeEl.textContent = `${minutes}:${seconds}`;
+            
+            // 更新分数和电力信息
+            gameScoreEl.textContent = Math.floor(gameState.score);
+            powerDemandEl.textContent = `${gameState.powerDemand} MW`;
+            totalOutputEl.textContent = `${Math.floor(gameState.totalOutput)} MW`;
+        }
+        
+        // 更新事件日志
+        function updateEventLog() {
+            eventLogEl.innerHTML = '';
+            gameState.eventLog.slice().reverse().forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'event-item';
+                eventEl.textContent = event;
+                
+                if (event.includes('警告') || event.includes('故障')) {
+                    eventEl.classList.add('event-warning');
+                } else if (event.includes('熔毁') || event.includes('紧急') || event.includes('爆炸')) {
+                    eventEl.classList.add('event-danger');
+                }
+                
+                eventLogEl.appendChild(eventEl);
+            });
+        }
+        
+        // 更新任务UI
+        function updateTasksUI() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            
+            let totalTasks = 0;
+            let completedTasks = 0;
+            
+            for (const taskId in gameState.tasks) {
+                const task = gameState.tasks[taskId];
+                totalTasks++;
+                if (task.completed) completedTasks++;
+                
+                const taskEl = document.createElement('li');
+                taskEl.id = `task-${taskId}`;
+                taskEl.className = 'task-item';
+                if (task.completed) taskEl.classList.add('completed');
+                
+                taskEl.innerHTML = `
+                    <div class="task-checkbox"></div>
+                    <div class="task-text">${task.text}</div>
+                    <div class="task-reward">+${task.reward}分</div>
+                `;
+                
+                taskList.appendChild(taskEl);
+            }
+            
+            tasksCompletedEl.textContent = completedTasks;
+            totalTasksEl.textContent = totalTasks;
+        }
+        
+        // 添加事件
+        function addEvent(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            gameState.eventLog.push(`[${timestamp}] ${message}`);
+            
+            if (gameState.eventLog.length > 20) {
+                gameState.eventLog.shift();
+            }
+            
+            updateEventLog();
+        }
+        
+        // 显示临界警报
+        function showCriticalAlert(message) {
+            const alert = document.createElement('div');
+            alert.className = 'critical-alert';
+            alert.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+        
+        // 调整裂变反应堆功率
+        function adjustPower(reactorId, amount) {
+            if (!gameState.gameActive || gameState.reactors[reactorId].damaged) return;
+            
+            const reactor = gameState.reactors[reactorId];
+            if (reactor.scrammed) return;
+            
+            reactor.power = Math.max(0, Math.min(120, reactor.power + amount));
+            addEvent(`裂变反应堆 #${reactorId} 功率${amount > 0 ? '增加' : '减少'}至 ${Math.round(reactor.power)}%`);
+        }
+        
+        // 紧急停止裂变反应堆
+        function scramReactor(reactorId) {
+            if (!gameState.gameActive || gameState.reactors[reactorId].damaged) return;
+            
+            const reactor = gameState.reactors[reactorId];
+            if (reactor.scrammed) return;
+            
+            reactor.scrammed = true;
+            reactor.status = 'normal';
+            addEvent(`裂变反应堆 #${reactorId} 紧急停止程序已启动！`);
+        }
+        
+        // 修复裂变反应堆
+        function repairReactor(reactorId) {
+            if (!gameState.gameActive) return;
+            
+            const reactor = gameState.reactors[reactorId];
+            if (!reactor.damaged) return;
+            
+            reactor.damaged = false;
+            reactor.scrammed = false;
+            reactor.power = 0;
+            reactor.temperature = 280;
+            reactor.cooling = 95;
+            reactor.controlRod = 75;
+            reactor.status = 'normal';
+            
+            addEvent(`裂变反应堆 #${reactorId} 修复完成，准备重新启动`);
+            updateReactorUI(reactorId);
+        }
+        
+        // 调整聚变反应堆功率
+        function adjustFusionPower(amount) {
+            if (!gameState.gameActive || gameState.fusionReactor.status !== 'online') return;
+            
+            gameState.fusionReactor.power = Math.max(0, Math.min(100, gameState.fusionReactor.power + amount));
+            addEvent(`聚变反应堆功率${amount > 0 ? '增加' : '减少'}至 ${Math.round(gameState.fusionReactor.power)}%`);
+        }
+        
+        // 调整聚变等离子体温度
+        function adjustFusionTemp(amount) {
+            if (!gameState.gameActive || gameState.fusionReactor.status !== 'online') return;
+            
+            gameState.fusionReactor.temperature = Math.max(100, Math.min(250, gameState.fusionReactor.temperature + amount));
+            addEvent(`聚变等离子体温度${amount > 0 ? '升高' : '降低'}至 ${Math.round(gameState.fusionReactor.temperature)}百万°C`);
+        }
+        
+        // 调整反物质反应堆功率
+        function adjustAntimatterPower(amount) {
+            if (!gameState.gameActive || gameState.antimatterReactor.status !== 'online') return;
+            
+            gameState.antimatterReactor.power = Math.max(0, Math.min(50, gameState.antimatterReactor.power + amount));
+            addEvent(`反物质反应堆功率${amount > 0 ? '增加' : '减少'}至 ${Math.round(gameState.antimatterReactor.power)}%`);
+        }
+        
+        // 调整反物质约束场
+        function adjustContainment(amount) {
+            if (!gameState.gameActive || gameState.antimatterReactor.status !== 'online') return;
+            
+            gameState.antimatterReactor.containment = Math.max(70, Math.min(100, gameState.antimatterReactor.containment + amount));
+            addEvent(`反物质约束场${amount > 0 ? '加强' : '减弱'}至 ${Math.round(gameState.antimatterReactor.containment)}%`);
+        }
+        
+        // 裂变反应堆熔毁
+        function reactorMeltdown(reactorId) {
+            if (!gameState.gameActive || gameState.reactors[reactorId].damaged) return;
+            
+            const reactor = gameState.reactors[reactorId];
+            reactor.damaged = true;
+            reactor.power = 0;
+            
+            addEvent(`裂变反应堆 #${reactorId} 发生熔毁事故！`);
+            addEvent(`警告！裂变反应堆 #${reactorId} 核心熔毁，辐射泄漏！`);
+            
+            // 检查是否所有裂变反应堆都熔毁了
+            let activeReactors = 0;
+            for (let i = 1; i <= 3; i++) {
+                if (!gameState.reactors[i].damaged) activeReactors++;
+            }
+            
+            if (activeReactors === 0) {
+                gameOver("所有裂变反应堆都已熔毁！");
+            } else {
+                // 随机增加电力需求
+                gameState.powerDemand += Math.floor(Math.random() * 1000) + 500;
+                addEvent(`电力需求增加至 ${gameState.powerDemand} MW`);
+            }
+        }
+        
+        // 反物质反应堆爆炸
+        function antimatterExplosion() {
+            if (!gameState.gameActive || gameState.antimatterReactor.status !== 'online') return;
+            
+            gameState.antimatterReactor.containment = 0;
+            gameState.antimatterReactor.power = 0;
+            
+            addEvent("警告！反物质约束场失效！");
+            addEvent("紧急情况！反物质与物质接触！");
+            addEvent("反物质反应堆爆炸！");
+            
+            gameOver("反物质反应堆爆炸导致设施完全摧毁！");
+        }
+        
+        // 检查任务完成情况
+        function checkTasks() {
+            // 任务1: 启动所有裂变反应堆
+            if (!gameState.tasks[1].completed) {
+                let allStarted = true;
+                for (let i = 1; i <= 3; i++) {
+                    if (gameState.reactors[i].power < 10 && !gameState.reactors[i].damaged) {
+                        allStarted = false;
+                        break;
+                    }
+                }
+                
+                if (allStarted) {
+                    gameState.tasks[1].completed = true;
+                    gameState.score += gameState.tasks[1].reward;
+                    addEvent("任务完成：所有裂变反应堆已启动！");
+                    updateTasksUI();
+                }
+            }
+            
+            // 任务2: 总输出达到5000MW
+            if (!gameState.tasks[2].completed && gameState.totalOutput >= 5000) {
+                gameState.tasks[2].completed = true;
+                gameState.score += gameState.tasks[2].reward;
+                addEvent("任务完成：总输出达到5000MW！");
+                updateTasksUI();
+            }
+            
+            // 任务3: 维持电力稳定120秒
+            if (!gameState.tasks[3].completed) {
+                if (gameState.stablePowerTime >= 120) {
+                    gameState.tasks[3].completed = true;
+                    gameState.score += gameState.tasks[3].reward;
+                    addEvent("任务完成：电力稳定维持120秒！");
+                    updateTasksUI();
+                } else {
+                    gameState.tasks[3].progress = gameState.stablePowerTime;
+                }
+            }
+            
+            // 任务4: 激活聚变反应堆
+            if (!gameState.tasks[4].completed && gameState.fusionReactor.status === 'online') {
+                gameState.tasks[4].completed = true;
+                gameState.score += gameState.tasks[4].reward;
+                addEvent("任务完成：聚变反应堆已激活！");
+                updateTasksUI();
+            }
+            
+            // 任务5: 控制反物质反应堆输出
+            if (!gameState.tasks[5].completed && gameState.antimatterReactor.status === 'online' && 
+                gameState.antimatterReactor.power > 10) {
+                gameState.tasks[5].completed = true;
+                gameState.score += gameState.tasks[5].reward;
+                addEvent("任务完成：反物质反应堆输出已控制！");
+                updateTasksUI();
+            }
+        }
+        
+        // 生成随机事件
+        function generateRandomEvent() {
+            if (!gameState.gameActive) return;
+            
+            // 60% 的几率发生事件
+            if (Math.random() > 0.4) {
+                const eventTypes = [
+                    {
+                        type: 'cooling',
+                        message: '冷却系统效率下降',
+                        action: (reactorId) => {
+                            const reduction = 15 + Math.random() * 20;
+                            gameState.reactors[reactorId].cooling -= reduction;
+                            gameState.hasCoolingFailure = true;
+                            addEvent(`裂变反应堆 #${reactorId} 冷却系统故障！效率下降${Math.round(reduction)}%`);
+                        }
+                    },
+                    {
+                        type: 'demand',
+                        message: '电力需求增加',
+                        action: () => {
+                            const increase = Math.floor(Math.random() * 1000) + 500;
+                            gameState.powerDemand += increase;
+                            addEvent(`电网需求增加${increase}MW！当前需求：${gameState.powerDemand}MW`);
+                        }
+                    },
+                    {
+                        type: 'control',
+                        message: '控制棒卡住',
+                        action: (reactorId) => {
+                            const stuckValue = Math.random() * 100;
+                            gameState.reactors[reactorId].controlRod = stuckValue;
+                            addEvent(`裂变反应堆 #${reactorId} 控制棒卡在${Math.round(stuckValue)}%位置！`);
+                        }
+                    },
+                    {
+                        type: 'fusion',
+                        message: '聚变等离子体不稳定',
+                        action: () => {
+                            if (gameState.fusionReactor.status === 'online') {
+                                const tempChange = Math.random() > 0.5 ? 30 : -30;
+                                gameState.fusionReactor.temperature += tempChange;
+                                addEvent(`聚变等离子体${tempChange > 0 ? '过热' : '冷却'}！当前温度：${Math.round(gameState.fusionReactor.temperature)}百万°C`);
+                            }
+                        }
+                    },
+                    {
+                        type: 'antimatter',
+                        message: '反物质约束场波动',
+                        action: () => {
+                            if (gameState.antimatterReactor.status === 'online') {
+                                const containmentChange = Math.random() > 0.5 ? 10 : -15;
+                                gameState.antimatterReactor.containment += containmentChange;
+                                addEvent(`反物质约束场${containmentChange > 0 ? '增强' : '减弱'}！当前强度：${Math.round(gameState.antimatterReactor.containment)}%`);
+                            }
+                        }
+                    }
+                ];
+                
+                const event = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+                let reactorId;
+                
+                if (event.type === 'cooling' || event.type === 'control') {
+                    reactorId = Math.floor(Math.random() * 3) + 1;
+                    if (gameState.reactors[reactorId].damaged) return;
+                }
+                
+                event.action(reactorId);
+            }
+        }
+        
+        // 控制棒滑块事件
+        document.querySelectorAll('.control-rod').forEach(slider => {
+            slider.addEventListener('input', function() {
+                const reactorId = this.dataset.reactor;
+                if (!gameState.gameActive || gameState.reactors[reactorId].damaged) return;
+                
+                gameState.reactors[reactorId].controlRod = parseInt(this.value);
+                addEvent(`裂变反应堆 #${reactorId} 控制棒位置调整为 ${this.value}%`);
+                updateReactorUI(reactorId);
+            });
+        });
+        
+        // 游戏结束
+        function gameOver(message) {
+            gameState.gameActive = false;
+            gameOverMessageEl.textContent = message;
+            finalScoreEl.textContent = Math.floor(gameState.score);
+            survivalTimeEl.textContent = gameTimeEl.textContent;
+            
+            // 计算完成的任务数
+            let completedTasks = 0;
+            for (const taskId in gameState.tasks) {
+                if (gameState.tasks[taskId].completed) completedTasks++;
+            }
+            tasksCompletedEl.textContent = completedTasks;
+            totalTasksEl.textContent = Object.keys(gameState.tasks).length;
+            
+            gameOverEl.classList.add('show');
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            initGame();
+        }
+        
+        // 启动游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
