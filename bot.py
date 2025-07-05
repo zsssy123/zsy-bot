@@ -27,8 +27,31 @@ app = Flask('')
 
 @app.route("/")
 def home():
-    return "✅ ZSY bot is alive."
-
+    return """
+    <html>
+      <head>
+        <title>ZSY AI 引导页</title>
+        <style>
+          body { font-family: sans-serif; text-align: center; padding-top: 100px; background: #f4f4f4; }
+          a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>👋 欢迎来到 ZSY AI</h1>
+        <p>点击下方按钮进入聊天体验页面</p>
+        <a href="/chat">进入 ZSY AI 聊天室</a>
+      </body>
+    </html>
+    """
 def run_flask():
     app.run(host="0.0.0.0", port=8080)
 from flask import request, jsonify, send_from_directory
