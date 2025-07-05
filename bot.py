@@ -28,30 +28,51 @@ app = Flask('')
 @app.route("/")
 def home():
     return """
+    <!DOCTYPE html>
     <html>
       <head>
-        <title>ZSY AI 引导页</title>
+        <title>ZSY AI 欢迎页</title>
         <style>
-          body { font-family: sans-serif; text-align: center; padding-top: 100px; background: #f4f4f4; }
-          a {
+          body {
+            background: #eef1f5;
+            font-family: "Segoe UI", sans-serif;
+            text-align: center;
+            padding-top: 80px;
+          }
+          h1 { font-size: 2.5em; color: #333; }
+          p { font-size: 1.2em; color: #666; margin-bottom: 30px; }
+          a.button {
             display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
+            margin: 10px;
+            padding: 14px 28px;
             background: #28a745;
             color: white;
             text-decoration: none;
             border-radius: 8px;
-            font-size: 1.2em;
+            font-size: 1.1em;
+            transition: background 0.3s;
+          }
+          a.button:hover { background: #218838; }
+          .section {
+            margin-top: 50px;
           }
         </style>
       </head>
       <body>
         <h1>👋 欢迎来到 ZSY AI</h1>
-        <p>点击下方按钮进入聊天体验页面</p>
-        <a href="/chat">进入 ZSY AI 聊天室</a>
+        <p>我是你的专属 AI 小搭子</p>
+        <a class="button" href="/chat">进入 ZSY 聊天室</a>
+
+        <div class="section">
+          <p>👇 除了聊天，还有更多小游戏哦～</p>
+          <a class="button" href="/game/dadishu.html">🦫 打地鼠</a>
+          <a class="button" href="/game/leitingzhanji.html">✈️ 雷霆战机</a>
+          <a class="button" href="/game/心灵飞球.html">🎈 心灵飞球</a>
+        </div>
       </body>
     </html>
     """
+
 def run_flask():
     app.run(host="0.0.0.0", port=8080)
 from flask import request, jsonify, send_from_directory
@@ -78,6 +99,9 @@ def web_chat():
 @app.route("/chat")
 def serve_chat_page():
     return send_from_directory("static", "index.html")
+@app.route("/games")
+def game_hub():
+    return send_from_directory("static", "gamehub.html")
 
 
 Thread(target=run_flask).start()
