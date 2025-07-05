@@ -65,9 +65,7 @@ def home():
 
         <div class="section">
           <p>👇 除了聊天，还有更多小游戏哦～</p>
-          <a class="button" href="/game/dadishu.html">🦫 打地鼠</a>
-          <a class="button" href="/game/leitingzhanji.html">✈️ 雷霆战机</a>
-          <a class="button" href="/game/心灵飞球.html">🎈 心灵飞球</a>
+          <a class="button" href="/games">🎮 查看所有小游戏</a>
         </div>
       </body>
     </html>
