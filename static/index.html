@@ -2,8 +2,14 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZSY AI 聊天室</title>
   <style>
+    html, body {
+  height: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
     body {
       margin: 0;
       font-family: "Segoe UI", sans-serif;
@@ -60,6 +66,8 @@
       line-height: 1.4;
       position: relative;
       white-space: pre-wrap;
+        max-width: 100%;
+        word-wrap: break-word;
     }
     .message.bot .bubble {
       background: #e2f5d3;
@@ -70,11 +78,21 @@
       margin-bottom: 2px;
     }
     #input-bar {
-      display: flex;
-      padding: 12px;
-      background: #fff;
-      border-top: 1px solid #ccc;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: #fff;
+    border-top: 1px solid #ccc;
     }
+    #msg {
+    width: 100%;
+    box-sizing: border-box;
+    }
+    #send-btn {
+    width: 100%;
+}
+
     #msg {
       flex: 1;
       padding: 10px 14px;
@@ -98,6 +116,19 @@
       color: #888;
       font-size: 0.9em;
     }
+    @media (max-width: 600px) {
+  #header .title {
+    font-size: 1em;
+  }
+  .bubble {
+    font-size: 0.95em;
+  }
+  #send-btn {
+    font-size: 1em;
+    padding: 10px;
+  }
+}
+
   </style>
 </head>
 <body>
