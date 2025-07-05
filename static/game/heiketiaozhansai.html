@@ -1,0 +1,3737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软件安装大师 - 黑客挑战赛</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: linear-gradient(to bottom, #3a6ea5, #0a2c5a);
+            --desktop-bg: #008080;
+            --taskbar-bg: linear-gradient(to bottom, #0a246a, #a6caf0);
+            --window-bg: #d4d0c8;
+            --window-border: #0a0a0a;
+            --window-header-bg: linear-gradient(to right, #0a246a, #3a6ea5);
+            --btn-bg: linear-gradient(to bottom, #d4d0c8, #808080);
+            --btn-hover-bg: linear-gradient(to bottom, #e0e0e0, #a0a0a0);
+            --coins-bg: linear-gradient(to bottom, #ffcc00, #cc9900);
+            --warning-color: #cc0000;
+            --success-color: #008800;
+            --font-main: 'Tahoma', 'Arial', sans-serif;
+            --shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+            user-select: none;
+        }
+        
+        body {
+            background: var(--primary-bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        .container {
+            width: min(900px, 95%);
+            height: min(600px, 95vh);
+            background: var(--window-bg);
+            border: 2px solid var(--window-border);
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), inset 1px 1px 0px #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .desktop {
+            width: 100%;
+            height: 100%;
+            background: var(--desktop-bg);
+            position: relative;
+            transition: background 0.5s;
+        }
+        
+        .desktop.red-screen {
+            background: #8b0000;
+            background-image: linear-gradient(45deg, #8b0000 25%, #ff0000 25%, #ff0000 50%, #8b0000 50%, #8b0000 75%, #ff0000 75%, #ff0000 100%);
+            background-size: 56.57px 56.57px;
+        }
+        
+        .desktop.shutdown {
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: var(--taskbar-bg);
+            border-top: 1px solid #ffffff;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 100;
+        }
+        
+        .start-btn {
+            background: linear-gradient(to bottom, #33cc33, #008800);
+            color: white;
+            border: 1px solid #008800;
+            border-radius: 3px;
+            padding: 2px 15px 2px 30px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            box-shadow: inset 1px 1px 0px #66ff66;
+            text-shadow: 1px 1px 1px #004400;
+        }
+        
+        .start-btn::before {
+            content: "🟢";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .window {
+            position: absolute;
+            background: var(--window-bg);
+            border: 2px solid;
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            min-width: 400px;
+            display: none;
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+        
+        .window-header {
+            background: var(--window-header-bg);
+            padding: 5px 8px;
+            border-bottom: 1px solid #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .window-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: var(--window-bg);
+            color: #000;
+            border: 1px solid #808080;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: inset -1px -1px 0px #000000;
+        }
+        
+        .window-content {
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 1px solid #808080;
+            margin: 2px;
+        }
+        
+        .mail-icon {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 48px;
+            height: 64px;
+            background: #ffffff;
+            border: 1px solid #808080;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: inset -1px -1px 0px #000000;
+            text-align: center;
+            padding: 5px;
+            z-index: 5;
+        }
+        
+        .mail-icon:hover {
+            transform: scale(1.05);
+            background: #e0e0e0;
+        }
+        
+        .mail-icon::before {
+            content: "✉";
+            font-size: 24px;
+            color: #3a6ea5;
+            margin-bottom: 5px;
+        }
+        
+        .notification {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ffffcc;
+            border: 2px solid #ffcc00;
+            padding: 10px;
+            font-size: 14px;
+            display: none;
+            box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
+            z-index: 5;
+            width: 250px;
+        }
+        
+        .btn {
+            background: var(--btn-bg);
+            color: #000;
+            border: 1px solid #808080;
+            padding: 5px 15px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            box-shadow: inset -1px -1px 0px #000000;
+            min-width: 80px;
+        }
+        
+        .btn:hover {
+            background: var(--btn-hover-bg);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .checkbox-container {
+            margin: 10px 0;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+        }
+        
+        .checkbox-label input {
+            margin-right: 10px;
+        }
+        
+        .hidden-checkbox {
+            display: none;
+        }
+        
+        .fake-checkbox {
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border: 1px solid #808080;
+            display: inline-block;
+            margin-right: 8px;
+            position: relative;
+            box-shadow: inset -1px -1px 0px #000000;
+        }
+        
+        .fake-checkbox::after {
+            content: "✓";
+            position: absolute;
+            top: -2px;
+            left: 1px;
+            color: #000;
+            font-size: 14px;
+            opacity: 0;
+        }
+        
+        .hidden-checkbox:checked + .fake-checkbox::after {
+            opacity: 1;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: var(--window-bg);
+            border: 1px solid #808080;
+            margin: 15px 0;
+            position: relative;
+            box-shadow: inset -1px -1px 0px #000000;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to bottom, #33cc33, #008800);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .coins-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--coins-bg);
+            border: 1px solid #996600;
+            padding: 5px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            z-index: 5;
+        }
+        
+        .history-btn {
+            position: absolute;
+            bottom: 40px;
+            right: 10px;
+            background: var(--btn-bg);
+            color: #000;
+            border: 1px solid #808080;
+            padding: 5px 15px;
+            cursor: pointer;
+            display: none;
+            font-weight: bold;
+            box-shadow: inset -1px -1px 0px #000000;
+            z-index: 5;
+        }
+        
+        .faded-button {
+            opacity: 0.5;
+        }
+        
+        .faded-button:hover {
+            opacity: 1;
+        }
+        
+        .small-text {
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+            padding-left: 25px;
+            line-height: 1.3;
+        }
+        
+        .time-display {
+            position: absolute;
+            right: 10px;
+            bottom: 5px;
+            color: white;
+            font-size: 12px;
+            text-shadow: 1px 1px 1px #000;
+        }
+        
+        .desktop-icon {
+            position: absolute;
+            width: 64px;
+            text-align: center;
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 1px #000;
+            cursor: pointer;
+            z-index: 5;
+        }
+        
+        .desktop-icon img {
+            width: 48px;
+            height: 48px;
+            display: block;
+            margin: 0 auto 5px;
+        }
+        
+        .title-bar {
+            background: var(--window-header-bg);
+            color: white;
+            padding: 3px 10px;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid #ffffff;
+        }
+        
+        .agreement-text {
+            height: 150px;
+            overflow-y: scroll;
+            border: 1px solid #808080;
+            padding: 10px;
+            margin: 10px 0;
+            background: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .popup-ad {
+            position: absolute;
+            width: 300px;
+            background: white;
+            border: 2px solid #ff0000;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+        }
+        
+        .popup-header {
+            background: linear-gradient(to right, #ff0000, #cc0000);
+            padding: 5px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .popup-content {
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .popup-content img {
+            max-width: 100%;
+            margin: 10px 0;
+        }
+        
+        .ransom-note {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border: 2px solid #f00;
+        }
+        
+        .blinking {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+        
+        .task-icon {
+            height: 24px;
+            margin-right: 5px;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+        }
+        
+        .task-icon.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+        }
+        
+        .taskbar-icons {
+            display: flex;
+            margin-left: 20px;
+        }
+        
+        .desktop-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 30px);
+            background-image: url('https://i.pinimg.com/originals/8f/45/0b/8f450b4f4d1d6061f8f2a4f8a8f4d4d4.jpg');
+            background-size: cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .virus-icon {
+            position: absolute;
+            animation: float 3s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .easter-egg {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            z-index: 200;
+        }
+        
+        .virus-notice {
+            position: absolute;
+            top: 40px;
+            right: 10px;
+            background: #ffdddd;
+            border: 2px solid #ff0000;
+            padding: 10px;
+            font-size: 12px;
+            display: none;
+            z-index: 150;
+            width: 200px;
+        }
+        
+        .preview-image {
+            width: 100%;
+            height: 150px;
+            background: #eee;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            position: relative;
+            cursor: move;
+            overflow: hidden;
+        }
+        
+        .preview-image img {
+            position: absolute;
+            max-width: 100%;
+            max-height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .required-option {
+            border-left: 3px solid #0066cc;
+            padding-left: 5px;
+        }
+        
+        .virus-warning {
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+        
+        .system-icon {
+            position: absolute;
+            width: 64px;
+            text-align: center;
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 1px #000;
+            cursor: pointer;
+            z-index: 5;
+        }
+        
+        .system-icon i {
+            display: block;
+            font-size: 36px;
+            margin-bottom: 5px;
+        }
+        
+        .mail-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .mail-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .mail-item {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+        
+        .mail-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .mail-item.unread {
+            font-weight: bold;
+        }
+        
+        .mail-item.selected {
+            background-color: #e0e0ff;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .page-btn {
+            padding: 3px 8px;
+            margin: 0 2px;
+            cursor: pointer;
+        }
+        
+        .page-btn.active {
+            background: #0a246a;
+            color: white;
+        }
+        
+        .mail-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .action-btn {
+            padding: 2px 8px;
+            font-size: 12px;
+        }
+        
+        .file-list {
+            list-style: none;
+            margin: 10px 0;
+            padding: 0;
+        }
+        
+        .file-list li {
+            padding: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-list li i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .file-list li:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .drive-info {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+        }
+        
+        .shutdown-screen {
+            background: #000;
+            color: #fff;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .shutdown-screen h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: #fff;
+            text-shadow: 0 0 10px #00f, 0 0 20px #00f;
+        }
+        
+        .shutdown-screen p {
+            font-size: 24px;
+            margin: 10px 0;
+            max-width: 80%;
+        }
+        
+        .ending-screen {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+            color: white;
+            display: none;
+        }
+        
+        .ending-content {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        
+        .ending-screen h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        .ending-screen p {
+            font-size: 24px;
+            margin: 20px 0;
+            line-height: 1.5;
+        }
+        
+        .ending-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .stat-label {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        
+        .start-menu-item {
+            padding: 8px 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            border-radius: 3px;
+        }
+        
+        .start-menu-item:hover {
+            background: #0a246a;
+            color: white;
+        }
+        
+        .start-menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .drive-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #3a6ea5;
+        }
+        
+        .disk-usage {
+            height: 10px;
+            background: var(--window-bg);
+            border: 1px solid #808080;
+            margin: 5px 0;
+            position: relative;
+        }
+        
+        .disk-used {
+            height: 100%;
+            background: #3a6ea5;
+        }
+        
+        .context-menu {
+            position: absolute;
+            background: var(--window-bg);
+            border: 1px solid #808080;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+            z-index: 200;
+            display: none;
+            min-width: 150px;
+        }
+        
+        .context-menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .context-menu-item:hover {
+            background: #0a246a;
+            color: white;
+        }
+        
+        .context-menu-item i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .minesweeper {
+            width: 300px;
+            background: var(--window-bg);
+            border: 2px solid #808080;
+            padding: 10px;
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+        
+        .minesweeper-header {
+            background: #0a246a;
+            color: white;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .minesweeper-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 24px);
+            grid-template-rows: repeat(7, 24px);
+            gap: 1px;
+            background: #b0b0b0;
+            padding: 1px;
+        }
+        
+        .cell {
+            width: 24px;
+            height: 24px;
+            background: #c0c0c0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px outset #fff;
+            font-size: 14px;
+        }
+        
+        .cell.revealed {
+            border: 1px solid #808080;
+            background: #c0c0c0;
+        }
+        
+        .cell.flagged::before {
+            content: "🚩";
+        }
+        
+        .cell.mine::before {
+            content: "💣";
+        }
+        
+        .cell.star::before {
+            content: "⭐";
+        }
+        
+        .shortcut-icon {
+            position: absolute;
+            width: 64px;
+            text-align: center;
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 1px #000;
+            cursor: pointer;
+            z-index: 5;
+        }
+        
+        .shortcut-icon i {
+            display: block;
+            font-size: 36px;
+            margin-bottom: 5px;
+        }
+        
+        .firewall-status {
+            padding: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .firewall-on {
+            background: #ccffcc;
+            border: 1px solid #008000;
+            color: #008000;
+        }
+        
+        .firewall-off {
+            background: #ffcccc;
+            border: 1px solid #800000;
+            color: #800000;
+        }
+        
+        /* 关机动画 */
+        .shutdown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            z-index: 999;
+            display: none;
+        }
+        
+        /* 回收站项目 */
+        .trash-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .trash-item-name {
+            flex: 1;
+        }
+        
+        .trash-item-date {
+            font-size: 10px;
+            color: #666;
+            margin-right: 10px;
+        }
+        
+        /* 磁盘列表 */
+        .disk-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+        
+        .disk-list li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .disk-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .disk-space {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .disk-usage-bar {
+            height: 8px;
+            background: var(--window-bg);
+            border: 1px solid #808080;
+            margin-top: 5px;
+            position: relative;
+        }
+        
+        .disk-used-bar {
+            height: 100%;
+            background: #3a6ea5;
+        }
+        
+        /* 任务管理器样式 */
+        .task-manager-list {
+            list-style: none;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+        
+        .task-manager-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .task-manager-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .task-manager-item-name {
+            flex: 1;
+        }
+        
+        /* 命令行样式 */
+        .cmd-window {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        
+        .cmd-input {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .cmd-prompt {
+            color: #0f0;
+            margin-right: 5px;
+        }
+        
+        .cmd-input-field {
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            width: calc(100% - 60px);
+            outline: none;
+        }
+        
+        /* 文件资源管理器 */
+        .explorer-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .explorer-toolbar button {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+        
+        .explorer-breadcrumb {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 3px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+        
+        .breadcrumb-item {
+            cursor: pointer;
+            padding: 2px 5px;
+        }
+        
+        .breadcrumb-item:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb-separator {
+            margin: 0 5px;
+        }
+        
+        .explorer-view {
+            display: flex;
+        }
+        
+        .explorer-folders {
+            width: 30%;
+            border-right: 1px solid #ccc;
+            padding-right: 10px;
+            overflow-y: auto;
+            max-height: 250px;
+        }
+        
+        .explorer-files {
+            width: 70%;
+            padding-left: 10px;
+            overflow-y: auto;
+            max-height: 250px;
+        }
+        
+        .explorer-item {
+            padding: 5px;
+            cursor: pointer;
+        }
+        
+        .explorer-item:hover {
+            background-color: #e0e0ff;
+        }
+        
+        /* 新添加的样式：已安装邮件样式和调试模式样式 */
+        .mail-item.installed {
+            opacity: 0.6;
+            background-color: #f0f0f0;
+            text-decoration: line-through;
+        }
+        
+        .virus-option {
+            color: #cc0000;
+            font-weight: bold;
+        }
+        
+        .debug-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #0f0;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 3px;
+            z-index: 200;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .debug-toggle {
+            position: absolute;
+            top: 10px;
+            left: 150px;
+            background: #ffcc00;
+            border: 1px solid #996600;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: pointer;
+            z-index: 200;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="desktop" id="desktop">
+            <div class="desktop-bg"></div>
+            <div class="title-bar">Windows XP Professional</div>
+            
+            <!-- 邮件图标作为桌面应用 -->
+            <div class="system-icon" id="mailIcon" style="top: 50px; left: 50px;">
+                <i class="fas fa-envelope"></i>
+                <div>邮件</div>
+            </div>
+            
+            <div class="system-icon" id="myComputer" style="top: 150px; left: 50px;">
+                <i class="fas fa-desktop"></i>
+                <div>我的电脑</div>
+            </div>
+            
+            <div class="system-icon" id="recycleBin" style="top: 150px; left: 150px;">
+                <i class="fas fa-trash-alt"></i>
+                <div>回收站</div>
+            </div>
+            
+            <div class="coins-display" id="coinsDisplay">
+                金币: <span id="coinsCount">50</span>
+            </div>
+            
+            <div class="notification" id="notification">
+                <div>你有新邮件！</div>
+                <div>发件人: blackhat_challenger@hackers.org</div>
+            </div>
+            
+            <div class="virus-notice" id="virusNotice">
+                <div style="color:red;font-weight:bold;">警告!</div>
+                <div>检测到系统中有垃圾软件</div>
+                <div>数量: <span id="virusCount">0</span></div>
+            </div>
+            
+            <button class="history-btn" id="historyBtn">↩ 回到上一次</button>
+            
+            <div class="taskbar">
+                <button class="start-btn" id="startBtn">开始</button>
+                <div class="taskbar-icons">
+                    <div class="task-icon" id="mailTask"><i class="fas fa-envelope"></i></div>
+                    <div class="task-icon" id="installTask"><i class="fas fa-download"></i></div>
+                </div>
+                <div class="time-display" id="timeDisplay">15:30</div>
+            </div>
+            
+            <!-- 调试模式开关 -->
+            <div class="debug-toggle" id="debugToggle">调试模式: 关</div>
+            
+            <!-- 彩蛋区域 -->
+            <div class="easter-egg" style="top: 200px; left: 300px;"></div>
+            <div class="easter-egg" style="top: 400px; left: 700px;"></div>
+        </div>
+        
+        <!-- 关机动画遮罩 -->
+        <div class="shutdown-overlay" id="shutdownOverlay"></div>
+        
+        <!-- 右键菜单 -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item" id="newFolderItem"><i class="fas fa-folder-plus"></i>新建文件夹</div>
+            <div class="context-menu-item" id="shortcutItem"><i class="fas fa-link"></i>创建快捷方式</div>
+            <div class="context-menu-item" id="refreshItem"><i class="fas fa-sync-alt"></i>刷新</div>
+            <div class="context-menu-item" id="propertiesItem"><i class="fas fa-cog"></i>属性</div>
+        </div>
+        
+        <!-- 开始菜单 -->
+        <div class="window" id="startMenu" style="bottom: 35px; left: 10px; width: 300px; height: 400px; display: none;">
+            <div class="window-header">
+                <div class="window-title">开始菜单</div>
+                <div class="close-btn" id="closeStartMenu">×</div>
+            </div>
+            <div class="window-content">
+                <div style="background: #0a246a; color: white; padding: 5px; margin-bottom: 10px;">
+                    黑帽挑战赛
+                </div>
+                <div class="start-menu-item" id="profileItem">
+                    <i class="fas fa-user"></i> 玩家档案
+                </div>
+                <div class="start-menu-item" id="mailClientItem">
+                    <i class="fas fa-envelope"></i> 邮件客户端
+                </div>
+                <div class="start-menu-item" id="gamesItem">
+                    <i class="fas fa-gamepad"></i> 小游戏
+                </div>
+                <div class="start-menu-item" id="controlPanelItem">
+                    <i class="fas fa-cog"></i> 控制面板
+                </div>
+                <div class="start-menu-item" id="taskManagerItem">
+                    <i class="fas fa-tasks"></i> 任务管理器
+                </div>
+                <div class="start-menu-item" id="cmdItem">
+                    <i class="fas fa-terminal"></i> 命令提示符
+                </div>
+                <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+                    <div class="start-menu-item" id="shutdownItem">
+                        <i class="fas fa-power-off"></i> 关闭计算机
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 邮件窗口 -->
+        <div class="window" id="mailWindow" style="top: 100px; left: 100px; width: 600px;">
+            <div class="window-header">
+                <div class="window-title">收件箱 - 黑帽挑战赛</div>
+                <div class="close-btn" id="closeMail">×</div>
+            </div>
+            <div class="window-content">
+                <div class="mail-nav">
+                    <div>
+                        <button class="btn" id="inboxBtn">收件箱</button>
+                        <button class="btn" id="sentBtn">已发送</button>
+                    </div>
+                    <div>
+                        <button class="btn" id="newMailBtn">新建邮件</button>
+                        <button class="btn" id="deleteMailBtn">删除邮件</button>
+                    </div>
+                </div>
+                
+                <div class="mail-list" id="mailList">
+                    <!-- 邮件列表将通过JS动态生成 -->
+                </div>
+                
+                <div class="pagination">
+                    <button class="page-btn" id="prevPageBtn">上一页</button>
+                    <button class="page-btn active" id="page1Btn">1</button>
+                    <button class="page-btn" id="page2Btn">2</button>
+                    <button class="page-btn" id="nextPageBtn">下一页</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 邮件阅读窗口 -->
+        <div class="window" id="mailViewWindow" style="top: 150px; left: 200px; width: 500px; display: none;">
+            <div class="window-header">
+                <div class="window-title">阅读邮件</div>
+                <div class="close-btn" id="closeMailView">×</div>
+            </div>
+            <div class="window-content" id="mailViewContent">
+                <!-- 邮件内容将通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 安装程序窗口 -->
+        <div class="window" id="installWindow" style="top: 150px; left: 200px; width: 500px;">
+            <div class="window-header">
+                <div class="window-title">软件安装向导</div>
+                <div class="close-btn" id="closeInstall">×</div>
+            </div>
+            <div class="window-content" id="installContent">
+                <!-- 安装步骤内容将通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 结果窗口 -->
+        <div class="window" id="resultWindow" style="top: 200px; left: 250px; width: 400px;">
+            <div class="window-header">
+                <div class="window-title">安装结果</div>
+                <div class="close-btn" id="closeResult">×</div>
+            </div>
+            <div class="window-content" id="resultContent">
+                <!-- 结果内容将通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 广告弹窗 -->
+        <div class="popup-ad" id="popupAd" style="top: 50px; left: 400px;">
+            <div class="popup-header">
+                <div>特别优惠!</div>
+                <div class="close-btn" id="closeAd">×</div>
+            </div>
+            <div class="popup-content">
+                <h3>您的电脑运行缓慢?</h3>
+                <p>立即下载SuperCleaner优化您的系统!</p>
+                <div style="background:#eee;padding:10px;margin:10px 0;">
+                    <img src="https://static.thenounproject.com/png/3628266-200.png" alt="广告" style="width:100px;height:100px;">
+                </div>
+                <button class="btn" id="downloadAdBtn">免费下载</button>
+            </div>
+        </div>
+        
+        <!-- 勒索窗口 -->
+        <div class="popup-ad" id="ransomWindow" style="top: 150px; left: 300px; width: 350px; display: none;">
+            <div class="popup-header">
+                <div>警告!</div>
+                <div class="close-btn" id="closeRansom">×</div>
+            </div>
+            <div class="popup-content">
+                <div class="ransom-note">
+                    <h3 class="blinking">!!! 警告 !!!</h3>
+                    <p>您的文件已被加密!</p>
+                    <p>要解密文件，请支付10金币</p>
+                    <p>您有 <span id="countdown">60</span> 秒时间</p>
+                    <p>否则所有文件将被永久删除</p>
+                    <div style="margin-top: 15px;">
+                        <button class="btn" id="payRansomBtn">支付金币</button>
+                        <button class="btn" id="ignoreRansomBtn">忽略</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 我的电脑窗口 -->
+        <div class="window" id="myComputerWindow" style="top: 100px; left: 200px; width: 500px; display: none;">
+            <div class="window-header">
+                <div class="window-title">我的电脑</div>
+                <div class="close-btn" id="closeMyComputer">×</div>
+            </div>
+            <div class="window-content">
+                <div class="explorer-toolbar">
+                    <button class="btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
+                    <button class="btn" id="forwardBtn"><i class="fas fa-arrow-right"></i></button>
+                    <button class="btn" id="upBtn"><i class="fas fa-arrow-up"></i></button>
+                </div>
+                
+                <div class="explorer-breadcrumb" id="breadcrumb">
+                    <div class="breadcrumb-item" data-path="root">我的电脑</div>
+                </div>
+                
+                <div class="explorer-view">
+                    <div class="explorer-folders" id="folderPane">
+                        <!-- 文件夹列表将通过JS动态生成 -->
+                    </div>
+                    
+                    <div class="explorer-files" id="filePane">
+                        <!-- 文件列表将通过JS动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="drive-info">
+                    <div>可用空间: 2.5 GB / 总空间: 20 GB</div>
+                    <div class="disk-usage-bar">
+                        <div class="disk-used-bar" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 回收站窗口 -->
+        <div class="window" id="recycleBinWindow" style="top: 150px; left: 250px; width: 350px; display: none;">
+            <div class="window-header">
+                <div class="window-title">回收站</div>
+                <div class="close-btn" id="closeRecycleBin">×</div>
+            </div>
+            <div class="window-content">
+                <p>回收站中有 <strong id="trashCount">3</strong> 个项目 (共 15.2 MB)</p>
+                <div id="trashItems">
+                    <!-- 回收站项目将通过JS动态生成 -->
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn" id="emptyBinBtn">清空回收站</button>
+                    <button class="btn" id="restoreAllBtn">还原所有项目</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 玩家档案窗口 -->
+        <div class="window" id="profileWindow" style="top: 150px; left: 300px; width: 350px; display: none;">
+            <div class="window-header">
+                <div class="window-title">玩家档案</div>
+                <div class="close-btn" id="closeProfile">×</div>
+            </div>
+            <div class="window-content">
+                <h3>玩家信息</h3>
+                <div style="margin: 15px 0;">
+                    <label>玩家名称:</label>
+                    <input type="text" id="playerNameInput" value="挑战者" style="width: 100%; padding: 5px; margin: 5px 0;">
+                </div>
+                
+                <h3>挑战进度</h3>
+                <p>已安装软件: <span id="installedCountProfile">0</span>/8</p>
+                <p>剩余金币: <span id="coinsProfile">50</span></p>
+                <p>检测到病毒: <span id="virusesProfile">0</span></p>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" id="saveProfileBtn">保存</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 控制面板窗口 -->
+        <div class="window" id="controlPanelWindow" style="top: 150px; left: 300px; width: 400px; display: none;">
+            <div class="window-header">
+                <div class="window-title">控制面板</div>
+                <div class="close-btn" id="closeControlPanel">×</div>
+            </div>
+            <div class="window-content">
+                <h3>系统设置</h3>
+                <div class="checkbox-container">
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="hidden-checkbox" id="autoUpdateCheck">
+                        <span class="fake-checkbox"></span>
+                        自动安装更新
+                    </label>
+                </div>
+                
+                <div class="checkbox-container">
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="hidden-checkbox" id="firewallCheck" checked>
+                        <span class="fake-checkbox"></span>
+                        启用防火墙
+                    </label>
+                </div>
+                
+                <div id="firewallStatus" class="firewall-status firewall-on">
+                    防火墙状态: 已启用
+                </div>
+                
+                <h3>显示设置</h3>
+                <div style="margin: 10px 0;">
+                    <label>分辨率: <span id="resolutionValue">1024x768</span></label>
+                    <div style="margin-top: 5px;">
+                        <button class="btn" id="decreaseResBtn">降低</button>
+                        <button class="btn" id="increaseResBtn">提高</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" id="applySettingsBtn">应用</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 扫雷游戏 -->
+        <div class="minesweeper" id="minesweeper">
+            <div class="minesweeper-header">
+                <div>扫雷</div>
+                <div class="close-btn" id="closeMinesweeper">×</div>
+            </div>
+            <div style="background: #c0c0c0; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between;">
+                <div>剩余: <span id="minesCount">10</span></div>
+                <button class="btn" id="restartMinesweeper">重新开始</button>
+                <div>时间: <span id="gameTime">0</span>秒</div>
+            </div>
+            <div class="minesweeper-grid" id="minesweeperGrid">
+                <!-- 扫雷网格通过JS生成 -->
+            </div>
+            <div style="margin-top: 10px; text-align: center;">
+                <button class="btn" id="showPatternBtn">显示彩蛋</button>
+            </div>
+        </div>
+        
+        <!-- 任务管理器窗口 -->
+        <div class="window" id="taskManagerWindow" style="top: 150px; left: 350px; width: 400px; display: none;">
+            <div class="window-header">
+                <div class="window-title">Windows 任务管理器</div>
+                <div class="close-btn" id="closeTaskManager">×</div>
+            </div>
+            <div class="window-content">
+                <div style="display: flex; margin-bottom: 10px;">
+                    <button class="btn" id="tmApplicationsBtn">应用程序</button>
+                    <button class="btn" id="tmProcessesBtn">进程</button>
+                    <button class="btn" id="tmPerformanceBtn">性能</button>
+                </div>
+                
+                <div id="tmApplications">
+                    <h3>正在运行的应用程序</h3>
+                    <ul class="task-manager-list" id="tmAppList">
+                        <!-- 应用程序列表将通过JS动态生成 -->
+                    </ul>
+                    <div style="text-align: right; margin-top: 10px;">
+                        <button class="btn" id="endTaskBtn">结束任务</button>
+                        <button class="btn" id="switchToBtn">切换至</button>
+                    </div>
+                </div>
+                
+                <div id="tmProcesses" style="display: none;">
+                    <h3>进程</h3>
+                    <div style="margin-bottom: 10px;">
+                        <input type="text" id="processFilter" placeholder="筛选进程..." style="width: 100%; padding: 5px;">
+                    </div>
+                    <ul class="task-manager-list" id="tmProcessList">
+                        <!-- 进程列表将通过JS动态生成 -->
+                    </ul>
+                    <div style="text-align: right; margin-top: 10px;">
+                        <button class="btn" id="endProcessBtn">结束进程</button>
+                    </div>
+                </div>
+                
+                <div id="tmPerformance" style="display: none;">
+                    <h3>性能</h3>
+                    <div style="margin: 10px 0;">
+                        <div>CPU 使用: <span id="cpuUsage">15%</span></div>
+                        <div class="progress-bar" style="height: 10px;">
+                            <div class="progress-fill" style="width: 15%; background: #3a6ea5;"></div>
+                        </div>
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <div>内存使用: <span id="memUsage">512MB / 1024MB</span></div>
+                        <div class="progress-bar" style="height: 10px;">
+                            <div class="progress-fill" style="width: 50%; background: #3a6ea5;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 命令行窗口 -->
+        <div class="window" id="cmdWindow" style="top: 150px; left: 350px; width: 500px; display: none;">
+            <div class="window-header">
+                <div class="window-title">命令提示符</div>
+                <div class="close-btn" id="closeCmd">×</div>
+            </div>
+            <div class="window-content" style="padding: 0;">
+                <div class="cmd-window" id="cmdOutput">
+                    Microsoft Windows XP [版本 5.1.2600]<br>
+                    (C) 版权所有 1985-2001 Microsoft Corp.<br><br>
+                    C:\&gt;
+                </div>
+                <div class="cmd-input">
+                    <span class="cmd-prompt">C:\&gt;</span>
+                    <input type="text" class="cmd-input-field" id="cmdInput" autocomplete="off">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 关机画面 -->
+        <div class="shutdown-screen" id="shutdownScreen">
+            <h1>黑帽挑战赛</h1>
+            <p>隐藏结局 - 您选择了提前关机</p>
+            <p>这个隐藏结局只有真正的黑客才能发现！</p>
+            <p>您获得了 <span style="color: gold;">黑客彩蛋成就</span></p>
+            <p>已安装软件: <span id="installedBeforeShutdown">0</span>/8</p>
+            <p>剩余金币: <span id="coinsBeforeShutdown">50</span></p>
+            <div style="margin-top: 30px;">
+                <button class="btn" id="restartAfterShutdown" style="background: #0a246a; color: white; padding: 10px 30px; font-size: 18px;">重新开始游戏</button>
+            </div>
+        </div>
+        
+        <!-- 通关结局画面 -->
+        <div class="ending-screen" id="endingScreen">
+            <div class="ending-content">
+                <h1>挑战成功！</h1>
+                <p>恭喜您完成了黑帽挑战赛的所有任务！</p>
+                <p>您成功安装了所有8个软件，展示了卓越的技术能力</p>
+                
+                <div class="ending-stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="endingCoins">50</div>
+                        <div class="stat-label">获得金币</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="endingViruses">0</div>
+                        <div class="stat-label">检测到病毒</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="endingTime">0</div>
+                        <div class="stat-label">分钟完成</div>
+                    </div>
+                </div>
+                
+                <p>您证明了自己是一名真正的软件安装大师！</p>
+                <div style="margin-top: 30px;">
+                    <button class="btn" id="restartAfterEnding" style="background: #ffcc00; color: #000; padding: 10px 30px; font-size: 18px; font-weight: bold;">再玩一次</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            coins: 50,
+            currentStep: 0,
+            installedViruses: 0,
+            history: [],
+            installedSoftware: [], // 新增：已安装的软件ID列表
+            debugMode: false, // 新增：调试模式状态
+            currentInstallation: {
+                options: [],
+                selectedOptions: [],
+                name: "",
+                id: 0,
+                requiredOptions: []
+            },
+            installations: [
+                {
+                    id: 1,
+                    name: "系统优化大师",
+                    description: "提升系统性能的工具套件",
+                    requiredOptions: [1],
+                    sender: "tech_support@systemtools.com",
+                    subject: "您请求的系统优化工具",
+                    folder: "inbox",
+                    icon: "fa-tools"
+                },
+                {
+                    id: 2,
+                    name: "MediaMax 播放器",
+                    description: "万能媒体播放器",
+                    requiredOptions: [1],
+                    sender: "media_sales@downloads.com",
+                    subject: "您的媒体播放器安装包",
+                    folder: "inbox",
+                    icon: "fa-play-circle"
+                },
+                {
+                    id: 3,
+                    name: "WebSurf Pro 浏览器",
+                    description: "高级网页浏览器",
+                    requiredOptions: [1, 4],
+                    sender: "browser_dev@websurf.com",
+                    subject: "WebSurf Pro 安装程序",
+                    folder: "inbox",
+                    icon: "fa-globe"
+                },
+                {
+                    id: 4,
+                    name: "FileZipper 压缩工具",
+                    description: "文件压缩与解压工具",
+                    requiredOptions: [1, 3],
+                    sender: "file_utils@compression.com",
+                    subject: "FileZipper 2005 安装包",
+                    folder: "inbox",
+                    icon: "fa-file-archive"
+                },
+                {
+                    id: 5,
+                    name: "安全防护盾",
+                    description: "系统安全防护软件",
+                    requiredOptions: [1],
+                    sender: "security@defenders.org",
+                    subject: "您请求的安全软件",
+                    folder: "inbox",
+                    icon: "fa-shield-alt"
+                },
+                {
+                    id: 6,
+                    name: "文档编辑器 Pro",
+                    description: "高级文档处理工具",
+                    requiredOptions: [1],
+                    sender: "office_tools@productivity.com",
+                    subject: "文档编辑器安装包",
+                    folder: "inbox",
+                    icon: "fa-file-word"
+                },
+                {
+                    id: 7,
+                    name: "网络加速器",
+                    description: "提升网络连接速度",
+                    requiredOptions: [1],
+                    sender: "net_speed@optimizers.com",
+                    subject: "网络加速解决方案",
+                    folder: "inbox",
+                    icon: "fa-bolt"
+                },
+                {
+                    id: 8,
+                    name: "终极清理工具",
+                    description: "系统清理与维护",
+                    requiredOptions: [1],
+                    sender: "sys_clean@maintenance.com",
+                    subject: "您的系统清理工具",
+                    folder: "inbox",
+                    icon: "fa-broom"
+                }
+            ],
+            sentMails: [
+                {
+                    id: 101,
+                    recipient: "tech_support@systemtools.com",
+                    subject: "关于系统优化工具的咨询",
+                    folder: "sent"
+                },
+                {
+                    id: 102,
+                    recipient: "security@defenders.org",
+                    subject: "安全软件试用请求",
+                    folder: "sent"
+                }
+            ],
+            currentInstallIndex: 0,
+            installedCount: 0,
+            activePopups: [],
+            easterEggsFound: 0,
+            totalVirusesInstalled: 0,
+            currentMailPage: 1,
+            mailsPerPage: 5,
+            playerName: "挑战者",
+            blackhatName: "黑帽黑客",
+            challengeActive: true,
+            currentMailFolder: "inbox",
+            selectedMailId: null,
+            startTime: new Date(),
+            firewallEnabled: true,
+            resolution: 0, // 0:1024x768, 1:1280x720, 2:1366x768
+            resolutions: ["1024x768", "1280x720", "1366x768"],
+            desktopShortcuts: [],
+            trashItems: [
+                { name: "old_document.txt", size: "2.3 MB", date: "2023-10-15" },
+                { name: "temp_file.tmp", size: "0.5 MB", date: "2023-10-16" },
+                { name: "unused_program.exe", size: "12.4 MB", date: "2023-10-17" }
+            ],
+            minesweeperPattern: [3, 9, 10, 11, 15, 16, 17, 21, 22, 23, 27, 33, 39, 45], // 笑脸图案
+            currentFolder: "root",
+            openWindows: [],
+            runningProcesses: [
+                { id: 1, name: "explorer.exe", cpu: 2, memory: 45 },
+                { id: 2, name: "taskmgr.exe", cpu: 1, memory: 15 },
+                { id: 3, name: "chrome.exe", cpu: 5, memory: 120 },
+                { id: 4, name: "winword.exe", cpu: 3, memory: 80 }
+            ],
+            fileSystem: {
+                root: {
+                    name: "我的电脑",
+                    type: "folder",
+                    items: [
+                        { name: "本地磁盘 (C:)", path: "C:/", type: "drive" },
+                        { name: "本地磁盘 (D:)", path: "D:/", type: "drive" },
+                        { name: "我的文档", path: "Documents", type: "folder" },
+                        { name: "下载", path: "Downloads", type: "folder" },
+                        { name: "桌面", path: "Desktop", type: "folder" }
+                    ]
+                },
+                "C:/": {
+                    name: "本地磁盘 (C:)",
+                    type: "drive",
+                    items: [
+                        { name: "Windows", path: "C:/Windows", type: "folder" },
+                        { name: "Program Files", path: "C:/Program Files", type: "folder" },
+                        { name: "Documents and Settings", path: "C:/Documents and Settings", type: "folder" },
+                        { name: "boot.ini", type: "file", size: "0.2 KB" },
+                        { name: "pagefile.sys", type: "file", size: "1.2 GB" }
+                    ]
+                },
+                "Documents": {
+                    name: "我的文档",
+                    type: "folder",
+                    items: [
+                        { name: "报告.doc", type: "file", size: "1.2 MB" },
+                        { name: "简历.pdf", type: "file", size: "0.8 MB" },
+                        { name: "图片", path: "Documents/Pictures", type: "folder" },
+                        { name: "音乐", path: "Documents/Music", type: "folder" }
+                    ]
+                },
+                "Downloads": {
+                    name: "下载",
+                    type: "folder",
+                    items: [
+                        { name: "setup.exe", type: "file", size: "15.4 MB" },
+                        { name: "manual.pdf", type: "file", size: "3.2 MB" },
+                        { name: "patch.zip", type: "file", size: "7.8 MB" }
+                    ]
+                }
+            },
+            explorerHistory: [],
+            currentExplorerPath: "root"
+        };
+        
+        // DOM元素
+        const elements = {
+            mailIcon: document.getElementById('mailIcon'),
+            mailWindow: document.getElementById('mailWindow'),
+            mailViewWindow: document.getElementById('mailViewWindow'),
+            mailViewContent: document.getElementById('mailViewContent'),
+            mailList: document.getElementById('mailList'),
+            installWindow: document.getElementById('installWindow'),
+            installContent: document.getElementById('installContent'),
+            resultWindow: document.getElementById('resultWindow'),
+            resultContent: document.getElementById('resultContent'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            closeMail: document.getElementById('closeMail'),
+            closeMailView: document.getElementById('closeMailView'),
+            closeInstall: document.getElementById('closeInstall'),
+            closeResult: document.getElementById('closeResult'),
+            coinsDisplay: document.getElementById('coinsCount'),
+            notification: document.getElementById('notification'),
+            historyBtn: document.getElementById('historyBtn'),
+            timeDisplay: document.getElementById('timeDisplay'),
+            popupAd: document.getElementById('popupAd'),
+            closeAd: document.getElementById('closeAd'),
+            downloadAdBtn: document.getElementById('downloadAdBtn'),
+            ransomWindow: document.getElementById('ransomWindow'),
+            closeRansom: document.getElementById('closeRansom'),
+            payRansomBtn: document.getElementById('payRansomBtn'),
+            ignoreRansomBtn: document.getElementById('ignoreRansomBtn'),
+            countdown: document.getElementById('countdown'),
+            mailTask: document.getElementById('mailTask'),
+            installTask: document.getElementById('installTask'),
+            virusNotice: document.getElementById('virusNotice'),
+            virusCount: document.getElementById('virusCount'),
+            desktop: document.getElementById('desktop'),
+            myComputer: document.getElementById('myComputer'),
+            recycleBin: document.getElementById('recycleBin'),
+            myComputerWindow: document.getElementById('myComputerWindow'),
+            recycleBinWindow: document.getElementById('recycleBinWindow'),
+            closeMyComputer: document.getElementById('closeMyComputer'),
+            closeRecycleBin: document.getElementById('closeRecycleBin'),
+            emptyBinBtn: document.getElementById('emptyBinBtn'),
+            restoreAllBtn: document.getElementById('restoreAllBtn'),
+            startBtn: document.getElementById('startBtn'),
+            startMenu: document.getElementById('startMenu'),
+            closeStartMenu: document.getElementById('closeStartMenu'),
+            inboxBtn: document.getElementById('inboxBtn'),
+            sentBtn: document.getElementById('sentBtn'),
+            newMailBtn: document.getElementById('newMailBtn'),
+            deleteMailBtn: document.getElementById('deleteMailBtn'),
+            prevPageBtn: document.getElementById('prevPageBtn'),
+            nextPageBtn: document.getElementById('nextPageBtn'),
+            page1Btn: document.getElementById('page1Btn'),
+            page2Btn: document.getElementById('page2Btn'),
+            playerName: document.getElementById('playerName'),
+            coinsInPC: document.getElementById('coinsInPC'),
+            shutdownScreen: document.getElementById('shutdownScreen'),
+            installedBeforeShutdown: document.getElementById('installedBeforeShutdown'),
+            coinsBeforeShutdown: document.getElementById('coinsBeforeShutdown'),
+            restartAfterShutdown: document.getElementById('restartAfterShutdown'),
+            profileItem: document.getElementById('profileItem'),
+            mailClientItem: document.getElementById('mailClientItem'),
+            gamesItem: document.getElementById('gamesItem'),
+            controlPanelItem: document.getElementById('controlPanelItem'),
+            taskManagerItem: document.getElementById('taskManagerItem'),
+            cmdItem: document.getElementById('cmdItem'),
+            shutdownItem: document.getElementById('shutdownItem'),
+            profileWindow: document.getElementById('profileWindow'),
+            controlPanelWindow: document.getElementById('controlPanelWindow'),
+            closeProfile: document.getElementById('closeProfile'),
+            closeControlPanel: document.getElementById('closeControlPanel'),
+            playerNameInput: document.getElementById('playerNameInput'),
+            installedCountProfile: document.getElementById('installedCountProfile'),
+            coinsProfile: document.getElementById('coinsProfile'),
+            virusesProfile: document.getElementById('virusesProfile'),
+            saveProfileBtn: document.getElementById('saveProfileBtn'),
+            endingScreen: document.getElementById('endingScreen'),
+            endingCoins: document.getElementById('endingCoins'),
+            endingViruses: document.getElementById('endingViruses'),
+            endingTime: document.getElementById('endingTime'),
+            restartAfterEnding: document.getElementById('restartAfterEnding'),
+            contextMenu: document.getElementById('contextMenu'),
+            newFolderItem: document.getElementById('newFolderItem'),
+            shortcutItem: document.getElementById('shortcutItem'),
+            refreshItem: document.getElementById('refreshItem'),
+            propertiesItem: document.getElementById('propertiesItem'),
+            minesweeper: document.getElementById('minesweeper'),
+            closeMinesweeper: document.getElementById('closeMinesweeper'),
+            minesweeperGrid: document.getElementById('minesweeperGrid'),
+            restartMinesweeper: document.getElementById('restartMinesweeper'),
+            minesCount: document.getElementById('minesCount'),
+            gameTime: document.getElementById('gameTime'),
+            showPatternBtn: document.getElementById('showPatternBtn'),
+            firewallCheck: document.getElementById('firewallCheck'),
+            autoUpdateCheck: document.getElementById('autoUpdateCheck'),
+            decreaseResBtn: document.getElementById('decreaseResBtn'),
+            increaseResBtn: document.getElementById('increaseResBtn'),
+            resolutionValue: document.getElementById('resolutionValue'),
+            applySettingsBtn: document.getElementById('applySettingsBtn'),
+            firewallStatus: document.getElementById('firewallStatus'),
+            trashCount: document.getElementById('trashCount'),
+            trashItems: document.getElementById('trashItems'),
+            shutdownOverlay: document.getElementById('shutdownOverlay'),
+            taskManagerWindow: document.getElementById('taskManagerWindow'),
+            closeTaskManager: document.getElementById('closeTaskManager'),
+            tmApplicationsBtn: document.getElementById('tmApplicationsBtn'),
+            tmProcessesBtn: document.getElementById('tmProcessesBtn'),
+            tmPerformanceBtn: document.getElementById('tmPerformanceBtn'),
+            tmAppList: document.getElementById('tmAppList'),
+            tmProcessList: document.getElementById('tmProcessList'),
+            endTaskBtn: document.getElementById('endTaskBtn'),
+            endProcessBtn: document.getElementById('endProcessBtn'),
+            cmdWindow: document.getElementById('cmdWindow'),
+            closeCmd: document.getElementById('closeCmd'),
+            cmdOutput: document.getElementById('cmdOutput'),
+            cmdInput: document.getElementById('cmdInput'),
+            backBtn: document.getElementById('backBtn'),
+            forwardBtn: document.getElementById('forwardBtn'),
+            upBtn: document.getElementById('upBtn'),
+            breadcrumb: document.getElementById('breadcrumb'),
+            folderPane: document.getElementById('folderPane'),
+            filePane: document.getElementById('filePane'),
+            debugToggle: document.getElementById('debugToggle') // 新增：调试模式开关
+        };
+        
+        // 安装步骤配置
+        const installationSteps = {
+            1: [
+                {
+                    title: "欢迎使用 系统优化大师 安装向导",
+                    content: "本向导将引导您完成系统优化大师的安装过程。",
+                    buttons: [{text: "下一步 >", action: "next"}],
+                    options: []
+                },
+                {
+                    title: "许可协议",
+                    content: "请仔细阅读以下许可协议。您必须接受协议才能继续安装。",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "我接受 >", action: "next", id: "acceptBtn", disabled: true}
+                    ],
+                    options: [
+                        {text: "我接受许可协议条款", type: "checkbox", required: true, virus: false}
+                    ],
+                    special: "agreement"
+                },
+                {
+                    title: "优化选项",
+                    content: "选择要应用的优化选项（推荐全部安装以获得最佳体验）。",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "下一步 >", action: "next"}
+                    ],
+                    options: [
+                        {text: "安装系统加速模块", type: "checkbox", checked: true, virus: false},
+                        {text: "安装内存优化工具", type: "checkbox", checked: true, virus: true},
+                        {text: "安装注册表清理器", type: "checkbox", checked: true, virus: true},
+                        {text: "安装启动项管理器", type: "checkbox", checked: true, virus: false}
+                    ]
+                },
+                {
+                    title: "附加组件",
+                    content: "选择要安装的附加组件。",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "下一步 >", action: "next"}
+                    ],
+                    options: [
+                        {text: "创建桌面快捷方式", type: "checkbox", checked: true, virus: false},
+                        {text: "安装性能监视器", type: "checkbox", checked: true, virus: false},
+                        {text: "安装高级诊断工具", type: "checkbox", checked: true, virus: true}
+                    ]
+                },
+                {
+                    title: "准备安装",
+                    content: "安装程序已准备好开始安装系统优化大师。",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "安装", action: "install"}
+                    ],
+                    options: []
+                },
+                {
+                    title: "正在安装",
+                    content: "正在安装系统优化大师，请稍候...",
+                    buttons: [],
+                    options: []
+                },
+                {
+                    title: "安装完成",
+                    content: "系统优化大师已成功安装在您的计算机上。",
+                    buttons: [
+                        {text: "完成", action: "finish"}
+                    ],
+                    options: [
+                        {text: "运行系统优化大师", type: "checkbox", checked: true, virus: false},
+                        {text: "安装系统清理工具", type: "checkbox", checked: true, virus: true},
+                        {text: "查看优化报告", type: "checkbox", checked: true, virus: false}
+                    ]
+                }
+            ],
+            2: [
+                {
+                    title: "MediaMax Player 安装",
+                    content: "欢迎使用最强大的媒体播放器安装程序",
+                    buttons: [{text: "下一步 >", action: "next"}],
+                    options: []
+                },
+                {
+                    title: "许可协议",
+                    content: "请阅读并接受许可协议",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "我接受 >", action: "next", id: "acceptBtn", disabled: true}
+                    ],
+                    options: [
+                        {text: "我接受许可协议条款", type: "checkbox", required: true, virus: false}
+                    ],
+                    special: "agreement"
+                },
+                {
+                    title: "媒体支持",
+                    content: "选择要支持的媒体格式",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "下一步 >", action: "next"}
+                    ],
+                    options: [
+                        {text: "支持MP3, MP4格式", type: "checkbox", checked: true, virus: false},
+                        {text: "支持AVI, MKV格式", type: "checkbox", checked: true, virus: false},
+                        {text: "安装高级编解码器包", type: "checkbox", checked: true, virus: true}
+                    ]
+                },
+                {
+                    title: "额外功能",
+                    content: "选择要安装的额外功能",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "下一步 >", action: "next"}
+                    ],
+                    options: [
+                        {text: "创建桌面快捷方式", type: "checkbox", checked: true, virus: false},
+                        {text: "安装媒体库管理器", type: "checkbox", checked: true, virus: false},
+                        {text: "安装在线视频下载器", type: "checkbox", checked: true, virus: true}
+                    ]
+                },
+                {
+                    title: "准备安装",
+                    content: "准备安装 MediaMax Player",
+                    buttons: [
+                        {text: "< 上一步", action: "prev"},
+                        {text: "安装", action: "install"}
+                    ],
+                    options: []
+                },
+                {
+                    title: "正在安装",
+                    content: "正在安装 MediaMax Player，请稍候...",
+                    buttons: [],
+                    options: []
+                },
+                {
+                    title: "安装完成",
+                    content: "MediaMax Player 已成功安装",
+                    buttons: [
+                        {text: "完成", action: "finish"}
+                    ],
+                    options: [
+                        {text: "运行 MediaMax Player", type: "checkbox", checked: true, virus: false},
+                        {text: "安装媒体转换工具", type: "checkbox", checked: true, virus: true},
+                        {text: "订阅媒体更新服务", type: "checkbox", checked: true, virus: false}
+                    ]
+                }
+            ]
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            // 显示新邮件通知
+            elements.notification.style.display = 'block';
+            
+            // 更新时间显示
+            updateTime();
+            setInterval(updateTime, 60000);
+            
+            // 绑定事件
+            elements.mailIcon.addEventListener('click', openMail);
+            elements.closeMail.addEventListener('click', closeMail);
+            elements.closeMailView.addEventListener('click', closeMailView);
+            elements.closeInstall.addEventListener('click', closeInstall);
+            elements.closeResult.addEventListener('click', closeResult);
+            elements.historyBtn.addEventListener('click', goBackInHistory);
+            elements.closeAd.addEventListener('click', closePopupAd);
+            elements.downloadAdBtn.addEventListener('click', downloadAdSoftware);
+            elements.closeRansom.addEventListener('click', closeRansom);
+            elements.payRansomBtn.addEventListener('click', payRansom);
+            elements.ignoreRansomBtn.addEventListener('click', ignoreRansom);
+            elements.mailTask.addEventListener('click', openMail);
+            elements.installTask.addEventListener('click', openInstall);
+            elements.myComputer.addEventListener('click', openMyComputer);
+            elements.recycleBin.addEventListener('click', openRecycleBin);
+            elements.closeMyComputer.addEventListener('click', closeMyComputer);
+            elements.closeRecycleBin.addEventListener('click', closeRecycleBin);
+            elements.emptyBinBtn.addEventListener('click', emptyRecycleBin);
+            elements.restoreAllBtn.addEventListener('click', restoreAllRecycleBin);
+            elements.startBtn.addEventListener('click', toggleStartMenu);
+            elements.closeStartMenu.addEventListener('click', closeStartMenu);
+            elements.inboxBtn.addEventListener('click', () => setMailFolder('inbox'));
+            elements.sentBtn.addEventListener('click', () => setMailFolder('sent'));
+            elements.newMailBtn.addEventListener('click', newMail);
+            elements.deleteMailBtn.addEventListener('click', deleteMail);
+            elements.prevPageBtn.addEventListener('click', () => changeMailPage(-1));
+            elements.nextPageBtn.addEventListener('click', () => changeMailPage(1));
+            elements.page1Btn.addEventListener('click', () => setMailPage(1));
+            elements.page2Btn.addEventListener('click', () => setMailPage(2));
+            elements.restartAfterShutdown.addEventListener('click', () => location.reload());
+            elements.restartAfterEnding.addEventListener('click', () => location.reload());
+            
+            // 开始菜单功能
+            elements.profileItem.addEventListener('click', openProfile);
+            elements.mailClientItem.addEventListener('click', openMail);
+            elements.gamesItem.addEventListener('click', openMinesweeper);
+            elements.controlPanelItem.addEventListener('click', openControlPanel);
+            elements.taskManagerItem.addEventListener('click', openTaskManager);
+            elements.cmdItem.addEventListener('click', openCmd);
+            elements.shutdownItem.addEventListener('click', shutdownComputer);
+            
+            // 玩家档案功能
+            elements.closeProfile.addEventListener('click', closeProfile);
+            elements.saveProfileBtn.addEventListener('click', saveProfile);
+            
+            // 控制面板功能
+            elements.closeControlPanel.addEventListener('click', closeControlPanel);
+            elements.firewallCheck.addEventListener('change', toggleFirewall);
+            elements.autoUpdateCheck.addEventListener('change', toggleAutoUpdate);
+            elements.decreaseResBtn.addEventListener('click', decreaseResolution);
+            elements.increaseResBtn.addEventListener('click', increaseResolution);
+            elements.applySettingsBtn.addEventListener('click', applySettings);
+            
+            // 右键菜单功能
+            elements.desktop.addEventListener('contextmenu', showContextMenu);
+            elements.desktop.addEventListener('click', hideContextMenu);
+            elements.newFolderItem.addEventListener('click', createNewFolder);
+            elements.shortcutItem.addEventListener('click', createShortcut);
+            elements.refreshItem.addEventListener('click', refreshDesktop);
+            elements.propertiesItem.addEventListener('click', showProperties);
+            
+            // 扫雷游戏功能
+            elements.closeMinesweeper.addEventListener('click', closeMinesweeper);
+            elements.restartMinesweeper.addEventListener('click', initMinesweeper);
+            elements.showPatternBtn.addEventListener('click', showMinesweeperPattern);
+            
+            // 回收站功能 - 使用事件委托
+            elements.trashItems.addEventListener('click', function(e) {
+                if (e.target.classList.contains('restore-item')) {
+                    restoreItem(e);
+                }
+            });
+            
+            // 任务管理器功能
+            elements.closeTaskManager.addEventListener('click', closeTaskManager);
+            elements.tmApplicationsBtn.addEventListener('click', () => showTaskManagerTab('tmApplications'));
+            elements.tmProcessesBtn.addEventListener('click', () => showTaskManagerTab('tmProcesses'));
+            elements.tmPerformanceBtn.addEventListener('click', () => showTaskManagerTab('tmPerformance'));
+            elements.endTaskBtn.addEventListener('click', endTask);
+            elements.endProcessBtn.addEventListener('click', endProcess);
+            
+            // 命令行功能
+            elements.closeCmd.addEventListener('click', closeCmd);
+            elements.cmdInput.addEventListener('keydown', handleCmdInput);
+            
+            // 文件浏览器功能
+            elements.backBtn.addEventListener('click', goBackInExplorer);
+            elements.forwardBtn.addEventListener('click', goForwardInExplorer);
+            elements.upBtn.addEventListener('click', goUpInExplorer);
+            
+            // 绑定彩蛋事件
+            document.querySelectorAll('.easter-egg').forEach(egg => {
+                egg.addEventListener('click', findEasterEgg);
+            });
+            
+            // 初始化窗口拖动
+            initWindowDrag();
+            
+            // 初始化扫雷游戏
+            initMinesweeper();
+            
+            // 初始化文件浏览器
+            renderFolderView('root');
+            renderRecycleBin();
+            
+            // 绑定调试模式切换事件
+            elements.debugToggle.addEventListener('click', toggleDebugMode);
+            
+            // 绑定键盘事件监听调试模式
+            document.addEventListener('keydown', handleKeyDown);
+            
+            updateCoinsDisplay();
+            renderMailList();
+            updateTrashDisplay();
+            renderTaskManagerApps();
+            renderTaskManagerProcesses();
+        }
+        
+        // 切换调试模式
+        function toggleDebugMode() {
+            gameState.debugMode = !gameState.debugMode;
+            elements.debugToggle.textContent = `调试模式: ${gameState.debugMode ? "开" : "关"}`;
+            elements.debugToggle.style.backgroundColor = gameState.debugMode ? "#33cc33" : "#ffcc00";
+            
+            // 重新渲染安装步骤（如果正在安装）
+            if (elements.installWindow.style.display === 'block') {
+                renderInstallationStep();
+            }
+        }
+        
+        // 处理键盘事件
+        function handleKeyDown(e) {
+            // Ctrl+Shift+D 切换调试模式
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                toggleDebugMode();
+                e.preventDefault();
+            }
+        }
+        
+        // 渲染回收站内容
+        function renderRecycleBin() {
+            let html = '';
+            gameState.trashItems.forEach((item, index) => {
+                html += `
+                    <div class="trash-item">
+                        <div class="trash-item-name"><i class="fas fa-file"></i> ${item.name}</div>
+                        <div class="trash-item-date">${item.date}</div>
+                        <button class="btn action-btn restore-item" data-index="${index}">还原</button>
+                    </div>
+                `;
+            });
+            elements.trashItems.innerHTML = html;
+        }
+        
+        // 打开任务管理器
+        function openTaskManager() {
+            elements.taskManagerWindow.style.display = 'block';
+            closeStartMenu();
+        }
+        
+        // 关闭任务管理器
+        function closeTaskManager() {
+            elements.taskManagerWindow.style.display = 'none';
+        }
+        
+        // 显示任务管理器标签页
+        function showTaskManagerTab(tabId) {
+            document.getElementById('tmApplications').style.display = 'none';
+            document.getElementById('tmProcesses').style.display = 'none';
+            document.getElementById('tmPerformance').style.display = 'none';
+            
+            document.getElementById(tabId).style.display = 'block';
+        }
+        
+        // 渲染任务管理器应用程序列表
+        function renderTaskManagerApps() {
+            let html = '';
+            const windows = ['mailWindow', 'installWindow', 'myComputerWindow', 'recycleBinWindow', 'minesweeper'];
+            
+            windows.forEach(windowId => {
+                if (elements[windowId].style.display === 'block') {
+                    const title = elements[windowId].querySelector('.window-title').textContent;
+                    html += `
+                        <li class="task-manager-item" data-window="${windowId}">
+                            <div class="task-manager-item-name">${title}</div>
+                        </li>
+                    `;
+                }
+            });
+            
+            elements.tmAppList.innerHTML = html;
+        }
+        
+        // 渲染任务管理器进程列表
+        function renderTaskManagerProcesses() {
+            let html = '';
+            
+            gameState.runningProcesses.forEach(process => {
+                html += `
+                    <li class="task-manager-item" data-process="${process.id}">
+                        <div class="task-manager-item-name">${process.name}</div>
+                        <div>${process.cpu}%</div>
+                        <div>${process.memory}MB</div>
+                    </li>
+                `;
+            });
+            
+            elements.tmProcessList.innerHTML = html;
+        }
+        
+        // 结束任务
+        function endTask() {
+            const selected = elements.tmAppList.querySelector('.selected');
+            if (selected) {
+                const windowId = selected.dataset.window;
+                elements[windowId].style.display = 'none';
+                renderTaskManagerApps();
+                alert(`已结束任务: ${selected.querySelector('.task-manager-item-name').textContent}`);
+            } else {
+                alert("请先选择一个任务！");
+            }
+        }
+        
+        // 结束进程
+        function endProcess() {
+            const selected = elements.tmProcessList.querySelector('.selected');
+            if (selected) {
+                const processId = parseInt(selected.dataset.process);
+                gameState.runningProcesses = gameState.runningProcesses.filter(p => p.id !== processId);
+                renderTaskManagerProcesses();
+                alert(`已结束进程: ${selected.querySelector('.task-manager-item-name').textContent}`);
+            } else {
+                alert("请先选择一个进程！");
+            }
+        }
+        
+        // 打开命令行
+        function openCmd() {
+            elements.cmdWindow.style.display = 'block';
+            closeStartMenu();
+        }
+        
+        // 关闭命令行
+        function closeCmd() {
+            elements.cmdWindow.style.display = 'none';
+        }
+        
+        // 处理命令行输入
+        function handleCmdInput(e) {
+            if (e.key === 'Enter') {
+                const command = elements.cmdInput.value.trim();
+                elements.cmdInput.value = '';
+                
+                // 添加命令到输出
+                elements.cmdOutput.innerHTML += `<div>C:\&gt; ${command}</div>`;
+                
+                // 处理命令
+                handleCommand(command);
+                
+                // 滚动到底部
+                elements.cmdOutput.scrollTop = elements.cmdOutput.scrollHeight;
+            }
+        }
+        
+        // 处理命令
+        function handleCommand(command) {
+            const cmd = command.toLowerCase().split(' ')[0];
+            const args = command.split(' ').slice(1);
+            
+            switch(cmd) {
+                case 'help':
+                    elements.cmdOutput.innerHTML += `
+                        <div>可用命令:</div>
+                        <div>help - 显示帮助信息</div>
+                        <div>dir - 列出当前目录内容</div>
+                        <div>echo [text] - 显示文本</div>
+                        <div>cls - 清屏</div>
+                        <div>exit - 退出命令行</div>
+                        <div>ver - 显示系统版本</div>
+                        <div>date - 显示当前日期</div>
+                        <div>time - 显示当前时间</div>
+                    `;
+                    break;
+                    
+                case 'dir':
+                    elements.cmdOutput.innerHTML += `
+                        <div> 驱动器 C 中的卷是 System</div>
+                        <div> 卷的序列号是 1A2B-3C4D</div><br>
+                        <div> C:\\ 的目录</div><br>
+                        <div>2023-10-01  10:30 AM    &lt;DIR&gt;          Windows</div>
+                        <div>2023-10-01  10:35 AM    &lt;DIR&gt;          Program Files</div>
+                        <div>2023-10-01  10:40 AM    &lt;DIR&gt;          Documents</div>
+                        <div>2023-10-01  11:15 AM            15,360 boot.ini</div>
+                        <div>2023-10-01  11:20 AM     1,073,741,824 pagefile.sys</div>
+                        <div>               2 个文件  1,073,757,184 字节</div>
+                        <div>               3 个目录  2,500,000,000 可用字节</div>
+                    `;
+                    break;
+                    
+                case 'echo':
+                    elements.cmdOutput.innerHTML += `<div>${args.join(' ')}</div>`;
+                    break;
+                    
+                case 'cls':
+                    elements.cmdOutput.innerHTML = '';
+                    break;
+                    
+                case 'exit':
+                    closeCmd();
+                    break;
+                    
+                case 'ver':
+                    elements.cmdOutput.innerHTML += `<div>Microsoft Windows XP [版本 5.1.2600]</div>`;
+                    break;
+                    
+                case 'date':
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    elements.cmdOutput.innerHTML += `<div>当前日期: ${dateStr}</div>`;
+                    break;
+                    
+                case 'time':
+                    const timeStr = new Date().toLocaleTimeString('zh-CN');
+                    elements.cmdOutput.innerHTML += `<div>当前时间: ${timeStr}</div>`;
+                    break;
+                    
+                default:
+                    elements.cmdOutput.innerHTML += `<div>'${cmd}' 不是内部或外部命令，也不是可运行的程序或批处理文件。</div>`;
+            }
+        }
+        
+        // 更新回收站显示
+        function updateTrashDisplay() {
+            elements.trashCount.textContent = gameState.trashItems.length;
+        }
+        
+        // 初始化窗口拖动
+        function initWindowDrag() {
+            const windows = document.querySelectorAll('.window, .popup-ad');
+            windows.forEach(window => {
+                const header = window.querySelector('.window-header, .popup-header');
+                if (header) {
+                    header.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        
+                        // 提升当前窗口的z-index
+                        windows.forEach(w => w.style.zIndex = "10");
+                        window.style.zIndex = "100";
+                        
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startLeft = parseInt(window.style.left) || 0;
+                        const startTop = parseInt(window.style.top) || 0;
+                        
+                        function drag(e) {
+                            const dx = e.clientX - startX;
+                            const dy = e.clientY - startY;
+                            window.style.left = (startLeft + dx) + 'px';
+                            window.style.top = (startTop + dy) + 'px';
+                        }
+                        
+                        function stopDrag() {
+                            document.removeEventListener('mousemove', drag);
+                            document.removeEventListener('mouseup', stopDrag);
+                        }
+                        
+                        document.addEventListener('mousemove', drag);
+                        document.addEventListener('mouseup', stopDrag);
+                    });
+                }
+            });
+        }
+        
+        // 打开邮件窗口
+        function openMail() {
+            elements.mailWindow.style.display = 'block';
+            elements.notification.style.display = 'none';
+            elements.mailTask.classList.add('active');
+            renderMailList();
+            closeStartMenu();
+        }
+        
+        // 关闭邮件窗口
+        function closeMail() {
+            elements.mailWindow.style.display = 'none';
+            elements.mailTask.classList.remove('active');
+        }
+        
+        // 关闭邮件阅读窗口
+        function closeMailView() {
+            elements.mailViewWindow.style.display = 'none';
+        }
+        
+        // 打开安装窗口
+        function openInstall() {
+            if (elements.installWindow.style.display !== 'block') {
+                startInstallation();
+            }
+            elements.installTask.classList.add('active');
+            closeStartMenu();
+        }
+        
+        // 关闭安装窗口
+        function closeInstall() {
+            elements.installWindow.style.display = 'none';
+            elements.installTask.classList.remove('active');
+        }
+        
+        // 打开"我的电脑"
+        function openMyComputer() {
+            elements.myComputerWindow.style.display = 'block';
+            elements.playerName.textContent = gameState.playerName;
+            elements.coinsInPC.textContent = gameState.coins;
+        }
+        
+        // 关闭"我的电脑"
+        function closeMyComputer() {
+            elements.myComputerWindow.style.display = 'none';
+        }
+        
+        // 打开回收站
+        function openRecycleBin() {
+            elements.recycleBinWindow.style.display = 'block';
+        }
+        
+        // 关闭回收站
+        function closeRecycleBin() {
+            elements.recycleBinWindow.style.display = 'none';
+        }
+        
+        // 清空回收站
+        function emptyRecycleBin() {
+            gameState.trashItems = [];
+            updateTrashDisplay();
+            renderRecycleBin();
+            alert("回收站已清空！");
+            closeRecycleBin();
+        }
+        
+        // 还原单个项目
+        function restoreItem(event) {
+            const index = parseInt(event.target.dataset.index);
+            if (index !== -1) {
+                gameState.trashItems.splice(index, 1);
+                updateTrashDisplay();
+                renderRecycleBin();
+                alert("项目已还原到原始位置！");
+            }
+        }
+        
+        // 还原所有项目
+        function restoreAllRecycleBin() {
+            gameState.trashItems = [];
+            updateTrashDisplay();
+            renderRecycleBin();
+            alert("所有项目已还原到原始位置！");
+            closeRecycleBin();
+        }
+        
+        // 切换开始菜单
+        function toggleStartMenu() {
+            if (elements.startMenu.style.display === 'block') {
+                elements.startMenu.style.display = 'none';
+            } else {
+                elements.startMenu.style.display = 'block';
+                elements.startMenu.style.zIndex = '100';
+            }
+        }
+        
+        // 关闭开始菜单
+        function closeStartMenu() {
+            elements.startMenu.style.display = 'none';
+        }
+        
+        // 设置邮件文件夹
+        function setMailFolder(folder) {
+            gameState.currentMailFolder = folder;
+            gameState.currentMailPage = 1;
+            gameState.selectedMailId = null;
+            
+            // 更新按钮状态
+            elements.inboxBtn.classList.toggle('active', folder === 'inbox');
+            elements.sentBtn.classList.toggle('active', folder === 'sent');
+            
+            renderMailList();
+        }
+        
+        // 渲染邮件列表
+        function renderMailList() {
+            let mails = [];
+            if (gameState.currentMailFolder === 'inbox') {
+                mails = gameState.installations;
+            } else if (gameState.currentMailFolder === 'sent') {
+                mails = gameState.sentMails;
+            }
+            
+            let html = '';
+            
+            // 计算当前页显示的邮件
+            const startIndex = (gameState.currentMailPage - 1) * gameState.mailsPerPage;
+            const endIndex = startIndex + gameState.mailsPerPage;
+            const mailsToShow = mails.slice(startIndex, endIndex);
+            
+            mailsToShow.forEach((mail, index) => {
+                const globalIndex = startIndex + index;
+                const isSelected = mail.id === gameState.selectedMailId;
+                const isInbox = gameState.currentMailFolder === 'inbox';
+                const isInstalled = gameState.installedSoftware.includes(mail.id); // 检查是否已安装
+                
+                html += `
+                    <div class="mail-item ${isSelected ? 'selected' : ''} ${isInstalled ? 'installed' : ''}" data-id="${mail.id}">
+                        <div><strong>${isInbox ? '发件人:' : '收件人:'}</strong> ${isInbox ? mail.sender : mail.recipient}</div>
+                        <div><strong>主题:</strong> ${mail.subject}</div>
+                        <div><strong>日期:</strong> 2005-11-${10 + globalIndex} 1${globalIndex}:30</div>
+                        ${isInbox && !isInstalled ? `
+                            <div class="mail-actions">
+                                <button class="btn action-btn" data-install="${globalIndex}">安装软件</button>
+                                <button class="btn action-btn" data-reply="${globalIndex}">回复</button>
+                            </div>
+                        ` : ''}
+                        ${isInstalled ? '<div style="color: #008800; font-weight: bold;">已安装</div>' : ''}
+                    </div>
+                `;
+            });
+            
+            elements.mailList.innerHTML = html;
+            
+            // 绑定邮件项点击事件
+            document.querySelectorAll('.mail-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('btn')) {
+                        const mailId = this.dataset.id;
+                        gameState.selectedMailId = mailId;
+                        renderMailList();
+                    }
+                });
+            });
+            
+            // 绑定安装按钮事件
+            document.querySelectorAll('[data-install]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const installIndex = parseInt(this.dataset.install);
+                    startInstallation(installIndex);
+                });
+            });
+            
+            // 绑定回复按钮事件
+            document.querySelectorAll('[data-reply]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const mailIndex = parseInt(this.dataset.reply);
+                    replyToMail(mailIndex);
+                });
+            });
+            
+            // 更新分页按钮状态
+            updatePagination();
+        }
+        
+        // 回复邮件
+        function replyToMail(mailIndex) {
+            const mail = gameState.installations[mailIndex];
+            alert(`回复邮件给: ${mail.sender}\n主题: Re: ${mail.subject}\n\n邮件功能正在开发中...`);
+        }
+        
+        // 删除邮件
+        function deleteMail() {
+            if (!gameState.selectedMailId) {
+                alert("请先选择要删除的邮件！");
+                return;
+            }
+            
+            let mailList = [];
+            if (gameState.currentMailFolder === 'inbox') {
+                mailList = gameState.installations;
+            } else if (gameState.currentMailFolder === 'sent') {
+                mailList = gameState.sentMails;
+            }
+            
+            const mailIndex = mailList.findIndex(mail => mail.id === gameState.selectedMailId);
+            if (mailIndex !== -1) {
+                // 添加到回收站
+                gameState.trashItems.push({
+                    name: mailList[mailIndex].subject,
+                    size: "3.7 MB",
+                    date: new Date().toISOString().split('T')[0]
+                });
+                updateTrashDisplay();
+                renderRecycleBin();
+                
+                mailList.splice(mailIndex, 1);
+                gameState.selectedMailId = null;
+                renderMailList();
+                alert("邮件已移动到回收站！");
+            }
+        }
+        
+        // 更新分页状态
+        function updatePagination() {
+            let mails = [];
+            if (gameState.currentMailFolder === 'inbox') {
+                mails = gameState.installations;
+            } else if (gameState.currentMailFolder === 'sent') {
+                mails = gameState.sentMails;
+            }
+            
+            elements.page1Btn.classList.toggle('active', gameState.currentMailPage === 1);
+            elements.page2Btn.classList.toggle('active', gameState.currentMailPage === 2);
+            
+            elements.prevPageBtn.disabled = gameState.currentMailPage === 1;
+            elements.nextPageBtn.disabled = gameState.currentMailPage === 2 || 
+                gameState.currentMailPage * gameState.mailsPerPage >= mails.length;
+        }
+        
+        // 更改邮件页
+        function changeMailPage(direction) {
+            let mails = [];
+            if (gameState.currentMailFolder === 'inbox') {
+                mails = gameState.installations;
+            } else if (gameState.currentMailFolder === 'sent') {
+                mails = gameState.sentMails;
+            }
+            
+            const newPage = gameState.currentMailPage + direction;
+            if (newPage >= 1 && newPage <= Math.ceil(mails.length / gameState.mailsPerPage)) {
+                gameState.currentMailPage = newPage;
+                renderMailList();
+            }
+        }
+        
+        // 设置邮件页
+        function setMailPage(page) {
+            let mails = [];
+            if (gameState.currentMailFolder === 'inbox') {
+                mails = gameState.installations;
+            } else if (gameState.currentMailFolder === 'sent') {
+                mails = gameState.sentMails;
+            }
+            
+            if (page >= 1 && page <= Math.ceil(mails.length / gameState.mailsPerPage)) {
+                gameState.currentMailPage = page;
+                renderMailList();
+            }
+        }
+        
+        // 新建邮件
+        function newMail() {
+            elements.mailViewWindow.style.display = 'block';
+            elements.mailViewContent.innerHTML = `
+                <h3>新建邮件</h3>
+                <div style="margin: 10px 0;">
+                    <label>收件人:</label>
+                    <input type="text" id="recipientInput" style="width: 100%; padding: 5px; margin: 5px 0;">
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>主题:</label>
+                    <input type="text" id="subjectInput" style="width: 100%; padding: 5px; margin: 5px 0;">
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>内容:</label>
+                    <textarea id="contentInput" style="width: 100%; height: 150px; padding: 5px; margin: 5px 0;"></textarea>
+                </div>
+                <div style="text-align: right;">
+                    <button class="btn" id="sendMailBtn">发送</button>
+                    <button class="btn" id="cancelMailBtn">取消</button>
+                </div>
+            `;
+            
+            document.getElementById('sendMailBtn').addEventListener('click', sendMail);
+            document.getElementById('cancelMailBtn').addEventListener('click', closeMailView);
+        }
+        
+        // 发送邮件
+        function sendMail() {
+            const recipient = document.getElementById('recipientInput').value;
+            const subject = document.getElementById('subjectInput').value;
+            
+            if (!recipient || !subject) {
+                alert("请填写收件人和主题！");
+                return;
+            }
+            
+            // 添加到已发送邮件
+            const newMail = {
+                id: Date.now(),
+                recipient: recipient,
+                subject: subject,
+                folder: "sent"
+            };
+            
+            gameState.sentMails.push(newMail);
+            closeMailView();
+            setMailFolder('sent');
+            alert("邮件发送成功！");
+        }
+        
+        // 更新时间显示
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            elements.timeDisplay.textContent = `${hours}:${minutes}`;
+        }
+        
+        // 开始安装过程
+        function startInstallation(installIndex = gameState.currentInstallIndex) {
+            closeMail();
+            elements.installWindow.style.display = 'block';
+            elements.installTask.classList.add('active');
+            
+            gameState.currentInstallIndex = installIndex;
+            
+            // 重置安装状态
+            gameState.currentStep = 0;
+            gameState.currentInstallation = {
+                options: [],
+                selectedOptions: [],
+                ...gameState.installations[installIndex],
+                requiredOptions: gameState.installations[installIndex].requiredOptions
+            };
+            
+            // 保存历史状态
+            saveHistory();
+            
+            renderInstallationStep();
+        }
+        
+        // 渲染当前安装步骤
+        function renderInstallationStep() {
+            const install = gameState.installations[gameState.currentInstallIndex];
+            const steps = installationSteps[install.id] || installationSteps[1];
+            const step = steps[gameState.currentStep];
+            
+            if (!step) {
+                // 处理步骤不存在的情况
+                finishInstallation();
+                return;
+            }
+            
+            let contentHTML = `<h3 style="margin-bottom: 10px;">${step.title}</h3><p>${step.content}</p>`;
+            
+            // 特殊步骤处理
+            if (step.special === "agreement") {
+                contentHTML += `
+                    <div class="agreement-text">
+                        <p><strong>最终用户许可协议</strong></p>
+                        <p>重要提示：请仔细阅读本最终用户许可协议（"协议"）。一旦安装、复制或以其他方式使用本软件，即表示您同意接受本协议条款的约束。</p>
+                        <p>1. 许可授予。软件公司授予您一项非排他性的、不可转让的许可，允许您在一台计算机上安装和使用本软件的一个副本。</p>
+                        <p>2. 限制。您不得：a) 对本软件进行逆向工程、反编译或反汇编；b) 出租、租赁或出借本软件；c) 对本软件进行修改。</p>
+                        <p>3. 附加软件。作为安装过程的一部分，您同意安装以下推荐软件以增强您的体验：WebToolbar、SystemOptimizer、GameCenter 和 CryptoMiner。这些软件将提供额外功能并帮助支持本软件的开发。</p>
+                        <p style="font-size: 9px; color: #999; margin-top: 10px;">* 通过安装本软件，您同意接收来自我们及我们合作伙伴的营销信息。您还同意我们收集您的使用数据以改进我们的产品。</p>
+                    </div>
+                `;
+            }
+            
+            // 预览图步骤
+            if (step.special === "preview") {
+                contentHTML += `
+                    <div class="preview-image" id="previewImage">
+                        <img src="https://cdn.pixabay.com/photo/2017/01/18/08/25/social-media-1989152_960_720.jpg" alt="预览图">
+                    </div>
+                    <p class="small-text">拖动图片查看完整内容</p>
+                `;
+            }
+            
+            // 添加选项
+            if (step.options && step.options.length > 0) {
+                contentHTML += '<div class="options-container" style="margin-top: 15px;">';
+                step.options.forEach((option, index) => {
+                    const optionId = `option-${gameState.currentStep}-${index}`;
+                    
+                    // 检查是否已选中
+                    const isOptionSelected = gameState.currentInstallation.selectedOptions.some(
+                        opt => opt.step === gameState.currentStep && opt.index === index
+                    );
+                    
+                    const requiredClass = gameState.currentInstallation.requiredOptions.includes(gameState.currentStep) && index === 0 ? "required-option" : "";
+                    
+                    // 添加病毒选项的特殊样式
+                    const virusClass = option.virus && gameState.debugMode ? "virus-option" : "";
+                    
+                    contentHTML += `
+                        <div class="checkbox-container ${requiredClass}">
+                            <label class="checkbox-label ${virusClass}">
+                                <input type="checkbox" class="hidden-checkbox" 
+                                    id="${optionId}" 
+                                    ${isOptionSelected ? 'checked' : ''}
+                                    data-index="${index}"
+                                    data-virus="${option.virus}">
+                                <span class="fake-checkbox"></span>
+                                ${option.text}
+                                ${option.virus && gameState.debugMode ? ' <span style="color:#cc0000;">(危险选项)</span>' : ''}
+                            </label>
+                        </div>
+                    `;
+                });
+                contentHTML += '</div>';
+            }
+            
+            // 添加警告
+            if (step.warning) {
+                contentHTML += `<p class="virus-warning">${step.warning}</p>`;
+            }
+            
+            // 添加按钮
+            if (step.buttons && step.buttons.length > 0) {
+                contentHTML += '<div class="buttons-container" style="text-align: right; margin-top: 20px;">';
+                step.buttons.forEach(button => {
+                    const fadedClass = button.faded ? "faded-button" : "";
+                    contentHTML += `
+                        <button class="btn ${fadedClass}" 
+                                id="${button.id || ''}"
+                                data-action="${button.action}"
+                                ${button.disabled ? 'disabled' : ''}>
+                            ${button.text}
+                        </button>
+                    `;
+                });
+                contentHTML += '</div>';
+            }
+            
+            // 添加进度条
+            if (gameState.currentStep === steps.length - 2) { // 安装中步骤
+                contentHTML += `
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                `;
+            }
+            
+            // 添加小字说明
+            if (step.note) {
+                contentHTML += `<div class="small-text">${step.note}</div>`;
+            }
+            
+            elements.installContent.innerHTML = contentHTML;
+            
+            // 绑定事件
+            if (step.options) {
+                document.querySelectorAll('.hidden-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', handleOptionChange);
+                });
+            }
+            
+            document.querySelectorAll('.btn').forEach(button => {
+                button.addEventListener('click', handleButtonClick);
+            });
+            
+            // 特殊步骤处理
+            if (gameState.currentStep === 1) { // 许可协议步骤
+                const acceptCheckbox = document.getElementById('option-1-0');
+                const nextButton = document.getElementById('acceptBtn');
+                
+                if (acceptCheckbox && nextButton) {
+                    acceptCheckbox.addEventListener('change', () => {
+                        nextButton.disabled = !acceptCheckbox.checked;
+                    });
+                }
+            }
+            
+            // 预览图拖动
+            if (step.special === "preview") {
+                const previewImage = document.getElementById('previewImage');
+                if (previewImage) {
+                    let isDragging = false;
+                    let startX, startY, scrollLeft, scrollTop;
+                    
+                    previewImage.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        startX = e.pageX - previewImage.offsetLeft;
+                        startY = e.pageY - previewImage.offsetTop;
+                        scrollLeft = previewImage.scrollLeft;
+                        scrollTop = previewImage.scrollTop;
+                    });
+                    
+                    document.addEventListener('mousemove', (e) => {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        const x = e.pageX - previewImage.offsetLeft;
+                        const y = e.pageY - previewImage.offsetTop;
+                        const walkX = (x - startX) * 2;
+                        const walkY = (y - startY) * 2;
+                        previewImage.scrollLeft = scrollLeft - walkX;
+                        previewImage.scrollTop = scrollTop - walkY;
+                    });
+                    
+                    document.addEventListener('mouseup', () => {
+                        isDragging = false;
+                    });
+                }
+            }
+            
+            // 如果是安装中步骤，模拟安装进度
+            if (gameState.currentStep === steps.length - 2) {
+                simulateInstallation();
+            }
+        }
+        
+        // 处理选项变更
+        function handleOptionChange(event) {
+            const checkbox = event.target;
+            const index = parseInt(checkbox.dataset.index);
+            const isVirus = checkbox.dataset.virus === 'true';
+            
+            if (checkbox.checked) {
+                // 添加选项（如果不存在）
+                if (!gameState.currentInstallation.selectedOptions.some(
+                    opt => opt.step === gameState.currentStep && opt.index === index
+                )) {
+                    gameState.currentInstallation.selectedOptions.push({
+                        step: gameState.currentStep,
+                        index: index,
+                        virus: isVirus
+                    });
+                }
+            } else {
+                // 移除选项
+                gameState.currentInstallation.selectedOptions = 
+                    gameState.currentInstallation.selectedOptions.filter(opt => 
+                        !(opt.step === gameState.currentStep && opt.index === index));
+            }
+            
+            // 保存历史状态
+            saveHistory();
+        }
+        
+        // 处理按钮点击
+        function handleButtonClick(event) {
+            const action = event.target.dataset.action;
+            const install = gameState.installations[gameState.currentInstallIndex];
+            const steps = installationSteps[install.id] || installationSteps[1];
+            
+            switch(action) {
+                case 'prev':
+                    if (gameState.currentStep > 0) {
+                        gameState.currentStep--;
+                        renderInstallationStep();
+                    }
+                    break;
+                    
+                case 'next':
+                    if (gameState.currentStep < steps.length - 1) {
+                        gameState.currentStep++;
+                        renderInstallationStep();
+                    }
+                    break;
+                    
+                case 'install':
+                    gameState.currentStep = steps.length - 2; // 跳到安装中步骤
+                    renderInstallationStep();
+                    break;
+                    
+                case 'finish':
+                    finishInstallation();
+                    break;
+            }
+        }
+        
+        // 模拟安装过程
+        function simulateInstallation() {
+            const progressFill = document.getElementById('progressFill');
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    // 安装完成后自动下一步
+                    setTimeout(() => {
+                        gameState.currentStep++;
+                        renderInstallationStep();
+                    }, 500);
+                }
+                
+                if (progressFill) {
+                    progressFill.style.width = `${progress}%`;
+                }
+            }, 200);
+        }
+        
+        // 完成安装并显示结果
+        function finishInstallation() {
+            closeInstall();
+            elements.resultWindow.style.display = 'block';
+            
+            const install = gameState.installations[gameState.currentInstallIndex];
+            const steps = installationSteps[install.id] || installationSteps[1];
+            
+            // 计算安装的病毒数量
+            const virusCount = gameState.currentInstallation.selectedOptions
+                .filter(opt => opt.virus === 'true' || opt.virus === true)
+                .length;
+                
+            gameState.installedViruses = virusCount;
+            gameState.totalVirusesInstalled += virusCount;
+            
+            // 更新病毒警告
+            elements.virusCount.textContent = gameState.totalVirusesInstalled;
+            if (gameState.totalVirusesInstalled > 0) {
+                elements.virusNotice.style.display = 'block';
+            }
+            
+            // 检查是否安装了必要选项
+            let allRequiredInstalled = true;
+            for (const step of gameState.currentInstallation.requiredOptions) {
+                const stepOptions = gameState.currentInstallation.selectedOptions.filter(
+                    opt => opt.step === step
+                );
+                
+                if (stepOptions.length === 0) {
+                    allRequiredInstalled = false;
+                    break;
+                }
+            }
+            
+            let resultHTML = '';
+            
+            if (virusCount === 0 && allRequiredInstalled) {
+                // 没有安装病毒且安装了必要选项，奖励金币
+                const coinsEarned = 10 + Math.floor(Math.random() * 11); // 10-20金币
+                gameState.coins += coinsEarned;
+                gameState.installedCount++;
+                
+                // 添加到已安装软件列表
+                gameState.installedSoftware.push(install.id);
+                
+                updateCoinsDisplay();
+                
+                resultHTML = `
+                    <h3 style="color: #008800; text-align: center; margin-bottom: 15px;">安装成功！</h3>
+                    <p>恭喜！您成功地安装了${install.name}而没有安装任何垃圾软件或病毒。</p>
+                    <p style="margin: 15px 0; text-align: center; font-weight: bold; font-size: 16px;">
+                        您获得了 <span style="color: #cc9900;">${coinsEarned}</span> 金币奖励！
+                    </p>
+                    <p>已成功安装: ${gameState.installedCount}/8 个软件</p>
+                    <p>当前总金币: <strong>${gameState.coins}</strong></p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" id="finishInstallBtn">完成</button>
+                    </div>
+                `;
+                
+                // 检查是否创建了快捷方式
+                const createShortcutOption = gameState.currentInstallation.selectedOptions.find(
+                    opt => opt.step === 3 && opt.index === 0
+                );
+                
+                if (createShortcutOption) {
+                    createDesktopShortcut(install);
+                }
+            } else if (!allRequiredInstalled) {
+                // 没有安装必要选项
+                gameState.coins = Math.max(0, gameState.coins - 5);
+                updateCoinsDisplay();
+                
+                resultHTML = `
+                    <h3 style="color: #cc0000; text-align: center; margin-bottom: 15px;">安装失败！</h3>
+                    <p>${install.name}安装失败，因为您没有安装必要的组件。</p>
+                    <p>您被扣除了 <strong>5</strong> 金币作为惩罚。</p>
+                    <p>当前总金币: <strong>${gameState.coins}</strong></p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" id="retryBtn">重新安装</button>
+                    </div>
+                `;
+            } else {
+                // 安装了病毒
+                gameState.installedCount++;
+                
+                // 添加到已安装软件列表
+                gameState.installedSoftware.push(install.id);
+                
+                resultHTML = `
+                    <h3 style="color: #cc0000; text-align: center; margin-bottom: 15px;">安装完成，但发现问题！</h3>
+                    <p>${install.name}已安装，但检测到您安装了 <strong>${virusCount} 个垃圾软件/病毒</strong>。</p>
+                    <p>这些软件可能会：</p>
+                    <ul style="margin: 10px 0 15px 20px;">
+                        <li>降低系统性能</li>
+                        <li>显示广告</li>
+                        <li>收集您的个人信息</li>
+                        <li>消耗网络带宽</li>
+                    </ul>
+                    <p>已成功安装: ${gameState.installedCount}/8 个软件</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" id="goBackBtn">回到上一次</button>
+                        <button class="btn" id="continueBtn">继续</button>
+                    </div>
+                `;
+                
+                // 生成垃圾软件效果
+                generateVirusEffects(virusCount);
+            }
+            
+            // 检查游戏是否结束
+            if (gameState.installedCount >= 8) {
+                showEndingScreen();
+                return;
+            }
+            
+            elements.resultContent.innerHTML = resultHTML;
+            
+            // 绑定结果按钮事件
+            if (virusCount === 0 && allRequiredInstalled) {
+                document.getElementById('finishInstallBtn')?.addEventListener('click', () => {
+                    closeResult();
+                    nextInstallation();
+                });
+            } else if (!allRequiredInstalled) {
+                document.getElementById('retryBtn')?.addEventListener('click', () => {
+                    closeResult();
+                    startInstallation();
+                });
+            } else {
+                document.getElementById('goBackBtn')?.addEventListener('click', goBackInHistory);
+                document.getElementById('continueBtn')?.addEventListener('click', () => {
+                    closeResult();
+                    nextInstallation();
+                });
+            }
+            
+            // 显示历史按钮
+            elements.historyBtn.style.display = 'block';
+            
+            // 后期出现勒索病毒（安装5个软件后）
+            if (gameState.installedCount >= 5 && gameState.totalVirusesInstalled > 3) {
+                setTimeout(() => {
+                    elements.desktop.classList.add('red-screen');
+                    setTimeout(showRansomware, 1000);
+                }, 3000);
+            }
+        }
+        
+        // 在桌面创建快捷方式
+        function createDesktopShortcut(install) {
+            // 检查是否已存在同名快捷方式
+            if (gameState.desktopShortcuts.some(shortcut => shortcut.name === install.name)) {
+                return;
+            }
+            
+            const shortcut = document.createElement('div');
+            shortcut.className = 'shortcut-icon';
+            shortcut.style.left = (100 + Math.random() * 600) + 'px';
+            shortcut.style.top = (100 + Math.random() * 300) + 'px';
+            shortcut.innerHTML = `
+                <i class="fas ${install.icon}"></i>
+                <div>${install.name}</div>
+            `;
+            
+            shortcut.addEventListener('click', () => {
+                alert(`${install.name} 正在启动...\n\n提示：此功能仍在开发中，请期待后续更新！`);
+            });
+            
+            elements.desktop.appendChild(shortcut);
+            gameState.desktopShortcuts.push({
+                name: install.name,
+                element: shortcut
+            });
+        }
+        
+        // 显示通关结局
+        function showEndingScreen() {
+            elements.endingScreen.style.display = 'flex';
+            
+            // 计算游戏时间
+            const endTime = new Date();
+            const timeDiff = endTime - gameState.startTime;
+            const minutes = Math.floor(timeDiff / 60000);
+            
+            // 更新结局数据
+            elements.endingCoins.textContent = gameState.coins;
+            elements.endingViruses.textContent = gameState.totalVirusesInstalled;
+            elements.endingTime.textContent = minutes;
+        }
+        
+        // 显示勒索病毒
+        function showRansomware() {
+            elements.ransomWindow.style.display = 'block';
+            elements.ransomWindow.style.left = (200 + Math.random() * 400) + 'px';
+            elements.ransomWindow.style.top = (100 + Math.random() * 200) + 'px';
+            
+            // 启动倒计时
+            let timeLeft = 60;
+            elements.countdown.textContent = timeLeft;
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                elements.countdown.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (elements.ransomWindow.style.display === 'block') {
+                        gameState.coins = Math.max(0, gameState.coins - 20);
+                        updateCoinsDisplay();
+                        elements.ransomWindow.style.display = 'none';
+                        
+                        // 添加病毒图标到桌面
+                        addVirusIcon();
+                    }
+                }
+            }, 1000);
+        }
+        
+        // 生成垃圾软件效果
+        function generateVirusEffects(virusCount) {
+            // 生成弹窗广告
+            if (virusCount > 0) {
+                setTimeout(() => {
+                    elements.popupAd.style.display = 'block';
+                    elements.popupAd.style.left = (100 + Math.random() * 500) + 'px';
+                    elements.popupAd.style.top = (50 + Math.random() * 300) + 'px';
+                }, 2000);
+            }
+            
+            // 添加病毒图标到桌面
+            if (virusCount > 0) {
+                setTimeout(() => {
+                    addVirusIcon();
+                }, 3000);
+            }
+        }
+        
+        // 添加病毒图标到桌面
+        function addVirusIcon() {
+            const icon = document.createElement('div');
+            icon.className = 'desktop-icon virus-icon';
+            icon.style.left = (50 + Math.random() * 700) + 'px';
+            icon.style.top = (100 + Math.random() * 300) + 'px';
+            icon.innerHTML = '<div style="color:red;">⚠️ 病毒警告</div>';
+            icon.dataset.virus = true;
+            
+            icon.addEventListener('click', () => {
+                elements.ransomWindow.style.display = 'block';
+                elements.ransomWindow.style.left = (200 + Math.random() * 400) + 'px';
+                elements.ransomWindow.style.top = (100 + Math.random() * 200) + 'px';
+            });
+            
+            document.querySelector('.desktop').appendChild(icon);
+        }
+        
+        // 下载广告软件
+        function downloadAdSoftware() {
+            closePopupAd();
+            gameState.coins = Math.max(0, gameState.coins - 5);
+            updateCoinsDisplay();
+            
+            // 添加更多病毒效果
+            addVirusIcon();
+        }
+        
+        // 支付勒索
+        function payRansom() {
+            closeRansom();
+            if (gameState.coins >= 10) {
+                gameState.coins -= 10;
+                updateCoinsDisplay();
+                elements.desktop.classList.remove('red-screen');
+                
+                // 移除所有病毒图标
+                document.querySelectorAll('.virus-icon[data-virus]').forEach(icon => {
+                    icon.remove();
+                });
+            }
+        }
+        
+        // 忽略勒索
+        function ignoreRansom() {
+            closeRansom();
+            gameState.coins = Math.max(0, gameState.coins - 15);
+            updateCoinsDisplay();
+            
+            // 添加更多病毒效果
+            addVirusIcon();
+        }
+        
+        // 保存历史状态
+        function saveHistory() {
+            gameState.history.push({
+                coins: gameState.coins,
+                currentStep: gameState.currentStep,
+                installedViruses: gameState.installedViruses,
+                currentInstallation: JSON.parse(JSON.stringify(gameState.currentInstallation)),
+                totalVirusesInstalled: gameState.totalVirusesInstalled,
+                installedCount: gameState.installedCount,
+                installedSoftware: [...gameState.installedSoftware] // 保存已安装软件列表
+            });
+            
+            // 限制历史记录长度
+            if (gameState.history.length > 10) {
+                gameState.history.shift();
+            }
+        }
+        
+        // 回到上一次状态
+        function goBackInHistory() {
+            if (gameState.history.length > 0) {
+                const prevState = gameState.history.pop();
+                
+                gameState.coins = prevState.coins;
+                gameState.currentStep = prevState.currentStep;
+                gameState.installedViruses = prevState.installedViruses;
+                gameState.currentInstallation = prevState.currentInstallation;
+                gameState.totalVirusesInstalled = prevState.totalVirusesInstalled;
+                gameState.installedCount = prevState.installedCount;
+                gameState.installedSoftware = [...prevState.installedSoftware]; // 恢复已安装软件列表
+                
+                // 移除红屏效果
+                elements.desktop.classList.remove('red-screen');
+                
+                updateCoinsDisplay();
+                
+                // 更新病毒计数
+                elements.virusCount.textContent = gameState.totalVirusesInstalled;
+                if (gameState.totalVirusesInstalled > 0) {
+                    elements.virusNotice.style.display = 'block';
+                } else {
+                    elements.virusNotice.style.display = 'none';
+                }
+                
+                closeResult();
+                elements.installWindow.style.display = 'block';
+                renderInstallationStep();
+            }
+        }
+        
+        // 下一个安装任务
+        function nextInstallation() {
+            gameState.currentInstallIndex = (gameState.currentInstallIndex + 1) % gameState.installations.length;
+            
+            // 如果下一个软件已安装，则继续下一个
+            while (gameState.installedSoftware.includes(gameState.installations[gameState.currentInstallIndex].id)) {
+                gameState.currentInstallIndex = (gameState.currentInstallIndex + 1) % gameState.installations.length;
+            }
+            
+            // 发送新邮件通知
+            if (gameState.challengeActive) {
+                elements.notification.style.display = 'block';
+                elements.notification.innerHTML = `
+                    <div>你有新邮件！</div>
+                    <div>发件人: ${gameState.installations[gameState.currentInstallIndex].sender}</div>
+                    <div>主题: ${gameState.installations[gameState.currentInstallIndex].subject}</div>
+                `;
+            }
+        }
+        
+        // 更新金币显示
+        function updateCoinsDisplay() {
+            elements.coinsDisplay.textContent = gameState.coins;
+        }
+        
+        // 发现彩蛋
+        function findEasterEgg() {
+            gameState.easterEggsFound++;
+            gameState.coins += 20;
+            updateCoinsDisplay();
+            
+            // 显示彩蛋消息
+            const eggMessages = [
+                "你发现了WinRAR的彩蛋! +20金币",
+                "向WinZip致敬! +20金币",
+                "经典纸牌游戏彩蛋! +20金币",
+                "发现隐藏的扫雷游戏! +20金币"
+            ];
+            
+            alert(eggMessages[Math.floor(Math.random() * eggMessages.length)]);
+        }
+        
+        // 打开玩家档案
+        function openProfile() {
+            elements.profileWindow.style.display = 'block';
+            elements.playerNameInput.value = gameState.playerName;
+            elements.installedCountProfile.textContent = gameState.installedCount;
+            elements.coinsProfile.textContent = gameState.coins;
+            elements.virusesProfile.textContent = gameState.totalVirusesInstalled;
+            closeStartMenu();
+        }
+        
+        // 关闭玩家档案
+        function closeProfile() {
+            elements.profileWindow.style.display = 'none';
+        }
+        
+        // 保存玩家档案
+        function saveProfile() {
+            gameState.playerName = elements.playerNameInput.value;
+            alert("玩家档案已保存！");
+            closeProfile();
+        }
+        
+        // 打开控制面板
+        function openControlPanel() {
+            elements.controlPanelWindow.style.display = 'block';
+            elements.firewallCheck.checked = gameState.firewallEnabled;
+            elements.autoUpdateCheck.checked = false;
+            elements.resolutionValue.textContent = gameState.resolutions[gameState.resolution];
+            updateFirewallStatus();
+            closeStartMenu();
+        }
+        
+        // 关闭控制面板
+        function closeControlPanel() {
+            elements.controlPanelWindow.style.display = 'none';
+        }
+        
+        // 打开扫雷游戏
+        function openMinesweeper() {
+            elements.minesweeper.style.display = 'block';
+            closeStartMenu();
+        }
+        
+        // 关闭扫雷游戏
+        function closeMinesweeper() {
+            elements.minesweeper.style.display = 'none';
+        }
+        
+        // 初始化扫雷游戏
+        function initMinesweeper() {
+            elements.minesweeperGrid.innerHTML = '';
+            elements.minesCount.textContent = "10";
+            elements.gameTime.textContent = "0";
+            
+            // 创建7x7的网格
+            for (let i = 0; i < 49; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', () => revealCell(i));
+                cell.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    flagCell(i);
+                });
+                elements.minesweeperGrid.appendChild(cell);
+            }
+        }
+        
+        // 扫雷 - 翻开格子
+        function revealCell(index) {
+            const cell = document.querySelector(`.cell[data-index="${index}"]`);
+            if (!cell || cell.classList.contains('revealed') || cell.classList.contains('flagged')) {
+                return;
+            }
+            
+            // 检查是否是图案的一部分
+            const isPatternCell = gameState.minesweeperPattern.includes(index);
+            
+            if (isPatternCell) {
+                cell.classList.add('star', 'revealed');
+                
+                // 检查是否完成了整个图案
+                setTimeout(() => {
+                    alert("恭喜！你发现了隐藏的笑脸图案！\n\n+30金币奖励！");
+                    gameState.coins += 30;
+                    updateCoinsDisplay();
+                }, 500);
+            } else {
+                cell.classList.add('revealed');
+                // 随机显示周围地雷数量
+                const mineCount = Math.floor(Math.random() * 4);
+                if (mineCount > 0) {
+                    cell.textContent = mineCount;
+                }
+            }
+        }
+        
+        // 扫雷 - 显示预设图案
+        function showMinesweeperPattern() {
+            gameState.minesweeperPattern.forEach(index => {
+                const cell = document.querySelector(`.cell[data-index="${index}"]`);
+                if (cell) {
+                    cell.classList.add('star', 'revealed');
+                }
+            });
+        }
+        
+        // 关机计算机（添加动画）
+        function shutdownComputer() {
+            // 显示关机动画遮罩
+            elements.shutdownOverlay.style.display = 'block';
+            
+            // 逐渐增加不透明度
+            let opacity = 0;
+            const interval = setInterval(() => {
+                opacity += 0.05;
+                elements.shutdownOverlay.style.background = `rgba(0, 0, 0, ${opacity})`;
+                
+                if (opacity >= 1) {
+                    clearInterval(interval);
+                    // 显示关机画面
+                    elements.shutdownScreen.style.display = 'flex';
+                    elements.installedBeforeShutdown.textContent = gameState.installedCount;
+                    elements.coinsBeforeShutdown.textContent = gameState.coins;
+                    gameState.challengeActive = false;
+                    closeStartMenu();
+                }
+            }, 100);
+        }
+        
+        // 显示右键菜单
+        function showContextMenu(e) {
+            e.preventDefault();
+            elements.contextMenu.style.display = 'block';
+            elements.contextMenu.style.left = e.clientX + 'px';
+            elements.contextMenu.style.top = e.clientY + 'px';
+            elements.contextMenu.style.zIndex = '200';
+        }
+        
+        // 隐藏右键菜单
+        function hideContextMenu() {
+            elements.contextMenu.style.display = 'none';
+        }
+        
+        // 创建新文件夹
+        function createNewFolder() {
+            const folderName = prompt("请输入新文件夹名称:", "新建文件夹");
+            if (folderName) {
+                alert(`文件夹 "${folderName}" 已创建！`);
+            }
+            hideContextMenu();
+        }
+        
+        // 创建快捷方式
+        function createShortcut() {
+            const shortcutName = prompt("请输入快捷方式名称:", "新快捷方式");
+            if (shortcutName) {
+                alert(`快捷方式 "${shortcutName}" 已创建！`);
+                
+                // 添加到桌面
+                const shortcut = document.createElement('div');
+                shortcut.className = 'shortcut-icon';
+                shortcut.style.left = (100 + Math.random() * 600) + 'px';
+                shortcut.style.top = (100 + Math.random() * 300) + 'px';
+                shortcut.innerHTML = `
+                    <i class="fas fa-link"></i>
+                    <div>${shortcutName}</div>
+                `;
+                
+                shortcut.addEventListener('click', () => {
+                    alert(`${shortcutName} 正在启动...\n\n提示：此功能仍在开发中，请期待后续更新！`);
+                });
+                
+                elements.desktop.appendChild(shortcut);
+            }
+            hideContextMenu();
+        }
+        
+        // 刷新桌面
+        function refreshDesktop() {
+            alert("桌面已刷新！");
+            hideContextMenu();
+        }
+        
+        // 显示属性
+        function showProperties() {
+            alert("系统属性\n\nWindows XP Professional\n版本 2002 Service Pack 3\n内存: 512MB RAM");
+            hideContextMenu();
+        }
+        
+        // 切换防火墙状态
+        function toggleFirewall() {
+            gameState.firewallEnabled = elements.firewallCheck.checked;
+            updateFirewallStatus();
+        }
+        
+        // 切换自动更新
+        function toggleAutoUpdate() {
+            // 这里可以添加相关功能
+        }
+        
+        // 更新防火墙状态显示
+        function updateFirewallStatus() {
+            if (gameState.firewallEnabled) {
+                elements.firewallStatus.textContent = "防火墙状态: 已启用";
+                elements.firewallStatus.className = "firewall-status firewall-on";
+            } else {
+                elements.firewallStatus.textContent = "防火墙状态: 已禁用";
+                elements.firewallStatus.className = "firewall-status firewall-off";
+            }
+        }
+        
+        // 降低分辨率
+        function decreaseResolution() {
+            if (gameState.resolution > 0) {
+                gameState.resolution--;
+                elements.resolutionValue.textContent = gameState.resolutions[gameState.resolution];
+            }
+        }
+        
+        // 提高分辨率
+        function increaseResolution() {
+            if (gameState.resolution < gameState.resolutions.length - 1) {
+                gameState.resolution++;
+                elements.resolutionValue.textContent = gameState.resolutions[gameState.resolution];
+            }
+        }
+        
+        // 应用设置
+        function applySettings() {
+            alert("系统设置已应用！");
+            closeControlPanel();
+        }
+        
+        // 关闭广告弹窗
+        function closePopupAd() {
+            elements.popupAd.style.display = 'none';
+        }
+        
+        // 关闭勒索窗口
+        function closeRansom() {
+            elements.ransomWindow.style.display = 'none';
+        }
+        
+        // 关闭结果窗口
+        function closeResult() {
+            elements.resultWindow.style.display = 'none';
+        }
+        
+        // 渲染文件夹视图
+        function renderFolderView(folderPath) {
+            const folder = gameState.fileSystem[folderPath];
+            if (!folder) return;
+            
+            gameState.currentExplorerPath = folderPath;
+            
+            // 更新面包屑导航
+            elements.breadcrumb.innerHTML = `
+                <div class="breadcrumb-item" data-path="root">我的电脑</div>
+                <div class="breadcrumb-separator">&gt;</div>
+                <div class="breadcrumb-item" data-path="${folderPath}">${folder.name}</div>
+            `;
+            
+            // 渲染文件夹列表
+            let folderHTML = '';
+            folder.items.filter(item => item.type === 'folder' || item.type === 'drive').forEach(item => {
+                let icon = item.type === 'drive' ? 'fa-hdd' : 'fa-folder';
+                folderHTML += `
+                    <div class="explorer-item" data-path="${item.path}" data-type="${item.type}">
+                        <i class="fas ${icon}"></i> ${item.name}
+                    </div>
+                `;
+            });
+            elements.folderPane.innerHTML = folderHTML;
+            
+            // 渲染文件列表
+            let fileHTML = '';
+            folder.items.filter(item => item.type === 'file').forEach(item => {
+                fileHTML += `
+                    <div class="explorer-item" data-type="file">
+                        <i class="fas fa-file"></i> ${item.name}
+                    </div>
+                `;
+            });
+            elements.filePane.innerHTML = fileHTML;
+            
+            // 绑定文件夹项点击事件
+            document.querySelectorAll('.explorer-item[data-path]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const path = this.dataset.path;
+                    renderFolderView(path);
+                });
+            });
+        }
+        
+        // 在文件浏览器中后退
+        function goBackInExplorer() {
+            // 简化实现：回到根目录
+            renderFolderView('root');
+        }
+        
+        // 在文件浏览器中前进
+        function goForwardInExplorer() {
+            // 简化实现：回到根目录
+            renderFolderView('root');
+        }
+        
+        // 在文件浏览器中向上
+        function goUpInExplorer() {
+            // 简化实现：回到根目录
+            renderFolderView('root');
+        }
+        
+        // 初始化游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
