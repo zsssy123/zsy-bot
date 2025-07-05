@@ -100,6 +100,9 @@ def serve_chat_page():
 @app.route("/games")
 def game_hub():
     return send_from_directory("static", "gamehub.html")
+@app.route("/game/<filename>")
+def serve_game(filename):
+    return send_from_directory("static/game", filename)
 
 
 Thread(target=run_flask).start()
