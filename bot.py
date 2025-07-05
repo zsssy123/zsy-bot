@@ -88,7 +88,7 @@ user_histories = {}    # 用户上下文消息历史
 
 # ---👋 /start ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("你好，我是 ZSY 🤖 已启动！可发送消息试试 /mode me /ping 指令～")
+    await update.message.reply_text("你好，我是 ZSY 🤖 已启动！可发送消息试试 /mode me /ping 指令～  我们还有官方的zsy 网站 https://zsyai.onrender.com/")
 
 # ---🩺 /ping ---
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
