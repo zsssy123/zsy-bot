@@ -75,25 +75,43 @@ def run_flask():
     app.run(host="0.0.0.0", port=8080)
 from flask import request, jsonify, send_from_directory
 
+user_histories = {}  # 放在文件顶部，全局变量
+
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
     if not user_msg:
         return jsonify({"error": "消息为空"}), 400
+
     try:
+        user_id = request.remote_addr  # 使用客户端 IP 做简单识别
+        user_histories.setdefault(user_id, [])
+        history = user_histories[user_id]
+
+        # 添加当前用户发的消息
+        history.append({"role": "user", "content": user_msg})
+
+        # 限制对话历史长度（建议保留最近 6 轮）
+        if len(history) > 12:
+            history = history[-12:]
+        user_histories[user_id] = history
+
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=[
-                {"role": "system", "content": "你是一个温和、真实、有点性格的 AI 伙伴。"},
-                {"role": "user", "content": user_msg}
+                {"role": "system", "content": "你是一个温和真实的 AI 伙伴，会记住用户说过的重要信息并自然回应。"},
+                *history
             ]
         )
+
         reply = response.choices[0].message.content.strip()
+        history.append({"role": "assistant", "content": reply})
+        user_histories[user_id] = history
+
         return jsonify({"reply": reply})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 @app.route("/chat")
 def serve_chat_page():
     return send_from_directory("static", "index.html")
