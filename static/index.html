@@ -109,6 +109,16 @@
       <div class="title">ZSY AI 机器人</div>
       <div style="font-size: 0.85em; color: #777;">你的专属 AI 小搭子 🤖</div>
     </div>
+    <a href="/" style="
+        margin-left: auto;
+        background: #007bff;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9em;
+    ">🏠 返回首页</a>
+
   </div>
 <!-- 是否使用记忆开关 -->
 <div id="memory-toggle" style="text-align: right; padding: 0 16px 10px;">
@@ -124,82 +134,88 @@
   <!-- 输入区 -->
   <div id="input-bar">
     <input id="msg" placeholder="说点什么…" autocomplete="off" />
-    <button id="send-btn" onclick="send()">发送</button>
+    <button id="send-btn">发送</button>
   </div>
 
-  <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("msg");
+ <script>
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("msg");
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, m => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;",
-        '"': "&quot;", "'": "&#39;"
-      }[m]));
-    }
-
-    function addMessage(text, sender = "bot") {
-      const msg = document.createElement("div");
-      msg.className = `message ${sender}`;
-      const avatar = document.createElement("img");
-      avatar.className = "avatar";
-      avatar.src = sender === "bot"
-        ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
-        : "https://cdn.pixabay.com/photo/2022/10/07/11/02/autumn-7504820_1280.jpg";
-
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.innerHTML = `<div class="name">${sender === "bot" ? "ZSY AI 机器人" : "你"}</div>${escapeHtml(text)}`;
-
-      msg.appendChild(avatar);
-      msg.appendChild(bubble);
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    function showTyping() {
-      const typing = document.createElement("div");
-      typing.className = "message bot typing-indicator";
-      typing.innerHTML = `
-        <img class="avatar" src="https://i.imgur.com/wB8zF7v.png" />
-        <div class="bubble"><div class="name">ZSY AI 机器人</div><span class="typing">ZSY 正在输入中...</span></div>
-      `;
-      chat.appendChild(typing);
-      chat.scrollTop = chat.scrollHeight;
-    }
-    function removeTyping() {
-  const t = chat.querySelector(".typing-indicator");
-  if (t) t.remove();
-}
-
-async function send() {
-  const text = input.value.trim();
-  if (!text) return;
-  addMessage(text, "user");
-  input.value = "";
-  showTyping();
-
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      const useMemory = document.getElementById("use-memory").checked;
-      body: JSON.stringify({ message: text, useMemory })
-
-    });
-    const data = await res.json();
-    removeTyping();
-    addMessage(data.reply || "出错了…", "bot");
-  } catch {
-    removeTyping();
-    addMessage("❌ 网络错误", "bot");
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, m => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    }[m]));
   }
-}
 
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter") send();
-});
-  </script>
+  function addMessage(text, sender = "bot") {
+    const msg = document.createElement("div");
+    msg.className = `message ${sender}`;
+    const avatar = document.createElement("img");
+    avatar.className = "avatar";
+    avatar.src = sender === "bot"
+      ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
+      : "https://cdn.pixabay.com/photo/2022/10/07/11/02/autumn-7504820_1280.jpg";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = `<div class="name">${sender === "bot" ? "ZSY AI 机器人" : "你"}</div>${escapeHtml(text)}`;
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function showTyping() {
+    const typing = document.createElement("div");
+    typing.className = "message bot typing-indicator";
+    typing.innerHTML = `
+      <img class="avatar" src="https://i.imgur.com/wB8zF7v.png" />
+      <div class="bubble"><div class="name">ZSY AI 机器人</div><span class="typing">ZSY 正在输入中...</span></div>
+    `;
+    chat.appendChild(typing);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = chat.querySelector(".typing-indicator");
+    if (t) t.remove();
+  }
+
+  async function send() {
+    const text = input.value.trim();
+    if (!text) return;
+    addMessage(text, "user");
+    input.value = "";
+    showTyping();
+
+    const useMemory = document.getElementById("use-memory").checked;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, useMemory })
+      });
+      const data = await res.json();
+      removeTyping();
+      addMessage(data.reply || "出错了…", "bot");
+    } catch {
+      removeTyping();
+      addMessage("❌ 网络错误", "bot");
+    }
+  }
+
+  // 绑定发送按钮点击事件
+  document.getElementById("send-btn").addEventListener("click", send);
+
+  // 支持按 Enter 发送消息
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") send();
+  });
+</script>
+
 
 </body>
 </html>
