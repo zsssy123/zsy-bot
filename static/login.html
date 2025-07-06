@@ -29,6 +29,7 @@
       const data = await res.json();
       if (data.token) {
         localStorage.setItem("zsy_token", data.token);
+        localStorage.setItem("zsy_username", username);  // ✅ 保存用户名
         window.location.href = "/chat";
       } else {
         document.getElementById("err").innerText = data.error || "登录失败";
