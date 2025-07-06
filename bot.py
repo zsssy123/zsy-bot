@@ -147,10 +147,6 @@ def register():
     return jsonify({"token": token})
 from flask import send_from_directory
 
-@app.route("/register")          # 仅 GET
-def register_page():
-    return send_from_directory("static", "register.html")
-
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
@@ -223,6 +219,14 @@ def web_chat():
         return jsonify({"reply": reply})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/login")
+def login_page():
+    return send_from_directory("static", "login.html")
+
+@app.route("/register")          # 仅 GET
+def register_page():
+    return send_from_directory("static", "register.html")
+
 @app.route("/chat")
 def serve_chat_page():
     return send_from_directory("static", "index.html")
