@@ -111,7 +111,7 @@ def run_flask():
 from flask import request, jsonify, send_from_directory
 user_histories = {}  # 放在文件顶部，全局变量，保存用户历史记录
 
-@app.route("/register", methods=["POST"])
+@app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
     username = data.get("username")
@@ -130,6 +130,11 @@ def register():
     }, JWT_SECRET, algorithm="HS256")
 
     return jsonify({"token": token})
+from flask import send_from_directory
+
+@app.route("/register")          # 仅 GET
+def register_page():
+    return send_from_directory("static", "register.html")
 
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
