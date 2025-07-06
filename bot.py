@@ -111,6 +111,21 @@ def run_flask():
 from flask import request, jsonify, send_from_directory
 user_histories = {}  # 放在文件顶部，全局变量，保存用户历史记录
 
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if users.get(username) == password:
+        token = jwt.encode({
+            "user": username,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=3)
+        }, JWT_SECRET, algorithm="HS256")
+        return jsonify({"token": token})
+    else:
+        return jsonify({"error": "用户名或密码错误"}), 401
+
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
