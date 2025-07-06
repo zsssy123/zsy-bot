@@ -251,7 +251,7 @@
 
       const data = await res.json();
       removeTyping();
-      addMessage(data.reply || "出错了…", "bot");
+      addMessage(data.reply || "出错了，请检查登录情况 https://zsyai.onrender.com/login …", "bot");
     } catch {
       removeTyping();
       addMessage("❌ 网络错误", "bot");
