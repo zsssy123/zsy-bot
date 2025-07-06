@@ -155,18 +155,18 @@ def register():
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
-auth_header = request.headers.get("Authorization", "")
-if auth_header.startswith("Bearer "):
-    token = auth_header.split(" ")[1]
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user"]
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "登录已过期，请重新登录"}), 401
-    except Exception as e:
-        return jsonify({"error": f"无效令牌：{str(e)}"}), 401
-else:
-    return jsonify({"error": "未提供身份认证"}), 401
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload["user"]
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "登录已过期，请重新登录"}), 401
+        except Exception as e:
+            return jsonify({"error": f"无效令牌：{str(e)}"}), 401
+    else:
+        return jsonify({"error": "未提供身份认证"}), 401
 
     use_memory = data.get("useMemory", True)  # 获取是否启用记忆
     use_zsy_mode = data.get("useZSYMode", False)  # 获取是否启用 ZSY 人格模式
