@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>注册账号</title>
 </head>
 <body>
@@ -9,18 +9,22 @@
   <input id="username" placeholder="用户名" />
   <input id="password" type="password" placeholder="密码" />
   <button onclick="register()">注册</button>
-  <p id="err" style="color:red;"></p>
+  <p id="err" style="color: red;"></p>
+
   <script>
     async function register() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const res = await fetch("/register", {
+
+      const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
       });
+
       const data = await res.json();
-      if (data.token) {
+      if (res.ok) {
+        alert("✅ 注册成功！");
         localStorage.setItem("zsy_token", data.token);
         window.location.href = "/chat";
       } else {
