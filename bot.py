@@ -155,7 +155,7 @@ def register():
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
-    auth_header = request.headers.get("Authorization", "")
+auth_header = request.headers.get("Authorization", "")
 if auth_header.startswith("Bearer "):
     token = auth_header.split(" ")[1]
     try:
