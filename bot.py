@@ -111,7 +111,7 @@ def run_flask():
 from flask import request, jsonify, send_from_directory
 user_histories = {}  # 放在文件顶部，全局变量，保存用户历史记录
 
-@app.route("/login", methods=["POST"])
+@app.route("/api/login", methods=["POST"])
 def login():
     data = request.get_json()
     username = data.get("username")
