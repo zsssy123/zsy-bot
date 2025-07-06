@@ -237,11 +237,16 @@
 
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, useMemory, useZSYMode })
-      });
+     const token = localStorage.getItem("zsy_token");
+     const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+     body: JSON.stringify({ message: text, useMemory, useZSYMode })
+    });
+
       const data = await res.json();
       removeTyping();
       addMessage(data.reply || "出错了…", "bot");
