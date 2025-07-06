@@ -171,16 +171,6 @@
     使用 ZSY 人格
   </label>
 </div>
-<div style="text-align: right; padding: 0 16px 10px;">
-  <label style="font-size: 0.9em; color: #444;">
-    <input type="radio" name="model-type" value="deepseek" checked />
-    使用 DeepSeek
-  </label>
-  <label style="font-size: 0.9em; color: #444; margin-left: 10px;">
-    <input type="radio" name="model-type" value="openai" />
-    使用 OpenAI 模型
-  </label>
-</div>
 
   <!-- 聊天记录区 -->
   <div id="chat"></div>
@@ -246,7 +236,6 @@
 
     const useMemory = document.getElementById("use-memory").checked;
     const useZSYMode = document.getElementById("zsy-mode").checked;
-    const modelType = document.querySelector('input[name="model-type"]:checked').value;
 
 
     try {
@@ -257,13 +246,7 @@
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
     },
-     body: JSON.stringify({
-  message: text,
-  useMemory,
-  useZSYMode,
-  modelType  // ✅ 动态传给后端
-})
-
+     body: JSON.stringify({ message: text, useMemory, useZSYMode })
     });
 
       const data = await res.json();
