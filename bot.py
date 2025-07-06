@@ -275,7 +275,8 @@ def game_hub():
 @app.route("/game/<filename>")
 def serve_game(filename):
     return send_from_directory("static/game", filename)
-
+def run_flask():
+    app.run(host="0.0.0.0", port=8080)
 
 Thread(target=run_flask).start()
 
