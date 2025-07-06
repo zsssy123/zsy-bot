@@ -1,3 +1,6 @@
+import jwt
+import datetime
+from flask import request, jsonify
 import os
 from openai import OpenAI
 from telegram import Update
@@ -35,6 +38,11 @@ ZSY_PROMPT = """
 
 请根据以上人格特征进行回答，尽量体现出 ZSY 的果断、深情、清醒和成长的特点。你在处理每个问题时，都要兼顾温柔与果断、情感与理性。
 """
+
+# 🔐 JWT & 用户数据配置
+JWT_SECRET = "zsy-secret"  # 请换成安全密钥
+users = {}  # 用户账号密码表
+user_histories = {}  # 用户聊天历史
 
 load_dotenv()
 
@@ -103,10 +111,63 @@ def run_flask():
 from flask import request, jsonify, send_from_directory
 user_histories = {}  # 放在文件顶部，全局变量，保存用户历史记录
 
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "用户名和密码不能为空"}), 400
+    if username in users:
+        return jsonify({"error": "用户名已存在"}), 409
+
+    users[username] = password
+
+    token = jwt.encode({
+        "user": username,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=3)
+    }, JWT_SECRET, algorithm="HS256")
+
+    return jsonify({"token": token})
+    
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "用户名和密码不能为空"}), 400
+    if username in users:
+        return jsonify({"error": "用户名已存在"}), 409
+
+    users[username] = password
+
+    token = jwt.encode({
+        "user": username,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=3)
+    }, JWT_SECRET, algorithm="HS256")
+
+    return jsonify({"token": token})
+
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
+    auth_header = request.headers.get("Authorization", "")
+if auth_header.startswith("Bearer "):
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user"]
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "登录已过期，请重新登录"}), 401
+    except Exception as e:
+        return jsonify({"error": f"无效令牌：{str(e)}"}), 401
+else:
+    return jsonify({"error": "未提供身份认证"}), 401
+
     use_memory = data.get("useMemory", True)  # 获取是否启用记忆
     use_zsy_mode = data.get("useZSYMode", False)  # 获取是否启用 ZSY 人格模式
 
@@ -118,7 +179,7 @@ def web_chat():
     try:
         if use_memory:
             # 使用 remote_addr (IP) 识别用户
-            user_id = request.remote_addr
+       #     user_id = request.remote_addr
             user_histories.setdefault(user_id, [])
             history = user_histories[user_id]
 
