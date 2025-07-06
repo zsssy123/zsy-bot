@@ -34,45 +34,44 @@
       font-size: 1.1em;
     }
     #chat {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  overflow-y: scroll;
-  padding: 16px;
-  min-height: 0;
-  -webkit-overflow-scrolling: touch;
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;             /* ✅ 关键：允许换行 */
+    word-break: break-word;      /* ✅ 中文自动换行 */
 }
 
-.message {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-  gap: 10px;
-  word-break: break-word;
-  overflow: visible;
-  min-height: 0;
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .message.bot {
+      align-self: flex-start;
+    }
+    .avatar {
+     width: 36px;
+     height: 36px;
+     border-radius: 50%;
+     flex-shrink: 0;
 }
 
-.bubble {
-  background: #e3f3e3;
-  border-radius: 10px;
-  padding: 10px 14px;
-  max-width: 80%;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.typing-indicator {
-  opacity: 0.8;
+   .bubble {
+    background: #e3f3e3;
+    border-radius: 10px;
+    padding: 10px 14px;
+    max-width: 80%;
+    line-height: 1.6;
+    word-break: break-word;
+    white-space: pre-wrap;      /* ✅ 保留换行，兼容中文 */
 }
 
     .message.bot .bubble {
