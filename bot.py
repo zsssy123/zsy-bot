@@ -187,27 +187,6 @@ def register():
 from flask import send_from_directory
 
 @app.route("/api/chat", methods=["POST"])
-def call_model(messages, model_type="deepseek"):
-    try:
-        if model_type == "openai":
-            import openai
-            openai.api_key = os.getenv("OPENAI_API_KEY")
-            openai.base_url = os.getenv("OPENAI_BASE_URL")  # https://free.v36.cm/v1
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages
-            )
-            return response["choices"][0]["message"]["content"].strip()
-        else:
-            # 默认使用 DeepSeek
-            response = client.chat.completions.create(
-                model="deepseek-chat",
-                messages=messages
-            )
-            return response.choices[0].message.content.strip()
-    except Exception as e:
-        return f"❌ 模型调用失败：{str(e)}"
-
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
@@ -267,9 +246,11 @@ def web_chat():
             ]
 
         # 调用 AI 接口
-        model_type = data.get("modelType", "deepseek")
-        reply = call_model(messages, model_type)
-
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=messages
+        )
+        reply = response.choices[0].message.content.strip()
 
         if use_memory:
             user_histories[user_id].append({"role": "assistant", "content": reply})
