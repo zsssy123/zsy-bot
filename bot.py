@@ -130,26 +130,6 @@ def register():
     }, JWT_SECRET, algorithm="HS256")
 
     return jsonify({"token": token})
-    
-@app.route("/register", methods=["POST"])
-def register():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-
-    if not username or not password:
-        return jsonify({"error": "用户名和密码不能为空"}), 400
-    if username in users:
-        return jsonify({"error": "用户名已存在"}), 409
-
-    users[username] = password
-
-    token = jwt.encode({
-        "user": username,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=3)
-    }, JWT_SECRET, algorithm="HS256")
-
-    return jsonify({"token": token})
 
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
