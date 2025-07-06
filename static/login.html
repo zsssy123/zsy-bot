@@ -10,11 +10,18 @@
   <input id="password" type="password" placeholder="密码" />
   <button onclick="login()">登录</button>
   <p id="err" style="color:red;"></p>
+
+  <!-- 注册跳转链接 -->
+  <p style="margin-top: 12px;">
+    还没有账号？
+    <a href="/register" style="color: #007bff;">立即注册</a>
+  </p>
+
   <script>
     async function login() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const res = await fetch("/login", {
+      const res = await fetch("/api/login", {  // ✅ 注意这里加了前导斜杠
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
