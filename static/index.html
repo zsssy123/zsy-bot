@@ -34,21 +34,26 @@
       font-size: 1.1em;
     }
     #chat {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+     flex: 1 1 auto;
+     padding: 16px;
+     overflow-y: scroll;        /* ✅ 强制滚动条出现 */
+     -webkit-overflow-scrolling: touch;  /* ✅ 兼容 iOS 弹性滚动 */
+     display: flex;
+     flex-direction: column;
+     min-height: 0;             /* ✅ 修复 iOS 12 高度计算 bug */
+     }
+
     .message {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;             /* ✅ 关键：允许换行 */
-    word-break: break-word;      /* ✅ 中文自动换行 */
-}
+     display: flex;
+     align-items: flex-start;
+     flex-wrap: wrap;
+     gap: 10px;
+     margin-bottom: 16px;
+     word-break: break-word;
+     min-height: 0;            /* ✅ 防止高度塌陷 */
+     overflow: visible;        /* ✅ 防止被裁剪 */
+     }
+
 
     .message.user {
       align-self: flex-end;
