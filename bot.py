@@ -66,6 +66,7 @@ def home():
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="UTF-8" />
         <title>ZSY AI 欢迎页</title>
         <style>
           body {
@@ -91,18 +92,21 @@ def home():
           .section {
             margin-top: 50px;
           }
+          #user-box {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 0.9em;
+          }
         </style>
       </head>
       <body>
+
+        <!-- ✅ 用户显示区域 -->
+        <div id="user-box"></div>
+
         <h1>👋 欢迎来到 ZSY AI</h1>
         <p>我是你的专属 AI 小搭子</p>
-        <script>
-            // 如果没有 token，自动跳转到登录页
-        const token = localStorage.getItem("zsy_token");
-        if (!token) {
-            window.location.href = "/login";
-          }
-        </script>
 
         <a class="button" href="/chat">进入 ZSY 聊天室</a>
 
@@ -110,14 +114,41 @@ def home():
           <p>👇 除了聊天，还有更多小游戏哦～</p>
           <a class="button" href="/games">🎮 查看所有小游戏</a>
         </div>
+
+        <script>
+          const token = localStorage.getItem("zsy_token");
+          const userBox = document.getElementById("user-box");
+
+          if (!token) {
+            // 未登录跳转登录页
+            window.location.href = "/login";
+          } else {
+            const username = localStorage.getItem("zsy_username") || "ZSY用户";
+            userBox.innerHTML = `
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span>👤 ${username}</span>
+                <button onclick="logout()" style="
+                  padding: 4px 10px;
+                  background: #dc3545;
+                  color: white;
+                  border: none;
+                  border-radius: 4px;
+                  font-size: 0.8em;
+                  cursor: pointer;
+                ">🚪 退出</button>
+              </div>
+            `;
+          }
+
+          function logout() {
+            localStorage.removeItem("zsy_token");
+            localStorage.removeItem("zsy_username");
+            window.location.href = "/login";
+          }
+        </script>
       </body>
     </html>
     """
-
-def run_flask():
-    app.run(host="0.0.0.0", port=8080)
-from flask import request, jsonify, send_from_directory
-user_histories = {}  # 放在文件顶部，全局变量，保存用户历史记录
 
 @app.route("/api/login", methods=["POST"])
 def login():
