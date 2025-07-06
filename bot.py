@@ -96,6 +96,14 @@ def home():
       <body>
         <h1>👋 欢迎来到 ZSY AI</h1>
         <p>我是你的专属 AI 小搭子</p>
+        <script>
+            // 如果没有 token，自动跳转到登录页
+        const token = localStorage.getItem("zsy_token");
+        if (!token) {
+            window.location.href = "/login";
+          }
+        </script>
+
         <a class="button" href="/chat">进入 ZSY 聊天室</a>
 
         <div class="section">
