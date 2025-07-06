@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>登录账号</title>
+</head>
+<body>
+  <h2>登录</h2>
+  <input id="username" placeholder="用户名" />
+  <input id="password" type="password" placeholder="密码" />
+  <button onclick="login()">登录</button>
+  <p id="err" style="color:red;"></p>
+  <script>
+    async function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem("zsy_token", data.token);
+        window.location.href = "/chat";
+      } else {
+        document.getElementById("err").innerText = data.error || "登录失败";
+      }
+    }
+  </script>
+</body>
+</html>
