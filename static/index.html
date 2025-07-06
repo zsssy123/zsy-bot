@@ -154,6 +154,8 @@
         text-decoration: none;
         font-size: 0.9em;
     ">🏠 返回首页</a>
+    <div id="user-info" style="margin-left: 10px;"></div>
+
 
   </div>
 <!-- 是否使用记忆开关 -->
@@ -263,6 +265,46 @@
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") send();
   });
+   // 登录状态显示
+const userInfoBox = document.getElementById("user-info");
+const token = localStorage.getItem("zsy_token");
+
+if (token) {
+  const username = localStorage.getItem("zsy_username") || "ZSY用户";
+  userInfoBox.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png" width="30" height="30" style="border-radius: 50%;" />
+      <span style="font-size: 0.9em;">👤 ${username}</span>
+      <button onclick="logout()" style="
+        padding: 4px 10px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8em;
+      ">🚪 退出</button>
+    </div>
+  `;
+} else {
+  userInfoBox.innerHTML = `
+    <a href="/login" style="
+      background: #007bff;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.9em;
+    ">🔐 登录</a>
+  `;
+}
+
+function logout() {
+  localStorage.removeItem("zsy_token");
+  localStorage.removeItem("zsy_username");
+  window.location.href = "/login";
+}
+
 </script>
 
 
