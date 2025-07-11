@@ -184,12 +184,6 @@ def fetch_users():
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
     }
-    def fetch_users():
-    url = f"{SUPABASE_URL}/rest/v1/users"
-    headers = {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
-    }
     try:
         res = requests.get(url, headers=headers)
         res.raise_for_status()
