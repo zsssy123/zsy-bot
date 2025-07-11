@@ -161,7 +161,12 @@ def login():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
+
+    print("👉 登录请求:", username, password)
+
     users = fetch_users()
+    print("📄 当前用户列表:", users)
+
     if users.get(username) == password:
         token = jwt.encode({
             "user": username,
@@ -172,14 +177,26 @@ def login():
         return jsonify({"error": "用户名或密码错误"}), 401
 
 
+
 def fetch_users():
     url = f"{SUPABASE_URL}/rest/v1/users"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
     }
-    res = requests.get(url, headers=headers)
-    return {u['username']: u['password'] for u in res.json()}
+    def fetch_users():
+    url = f"{SUPABASE_URL}/rest/v1/users"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+    try:
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        return {u['username']: u['password'] for u in res.json()}
+    except Exception as e:
+        print("❌ fetch_users 失败:", e)
+        return {}
 
 def insert_user(username, password):
     url = f"{SUPABASE_URL}/rest/v1/users"
