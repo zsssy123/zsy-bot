@@ -11,6 +11,9 @@ from telegram.ext import (
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
+import requests  # 如果你还没有这个
+from dotenv import load_dotenv
+
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
@@ -50,6 +53,9 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+JWT_SECRET = os.getenv("JWT_SECRET", "zsy-secret")
 
 # ---🤖 DeepSeek 接入 ---
 client = OpenAI(
@@ -155,7 +161,7 @@ def login():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
-
+    users = fetch_users()
     if users.get(username) == password:
         token = jwt.encode({
             "user": username,
@@ -165,16 +171,44 @@ def login():
     else:
         return jsonify({"error": "用户名或密码错误"}), 401
 
+
+def fetch_users():
+    url = f"{SUPABASE_URL}/rest/v1/users"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+    res = requests.get(url, headers=headers)
+    return {u['username']: u['password'] for u in res.json()}
+
+def insert_user(username, password):
+    url = f"{SUPABASE_URL}/rest/v1/users"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    data = { "username": username, "password": password }
+    res = requests.post(url, headers=headers, json=data)
+    return res.status_code == 201
+
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
-
-    if not username or not password:
-        return jsonify({"error": "用户名和密码不能为空"}), 400
+    users = fetch_users()
     if username in users:
         return jsonify({"error": "用户名已存在"}), 409
+    if insert_user(username, password):
+        token = jwt.encode({
+            "user": username,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=3)
+        }, JWT_SECRET, algorithm="HS256")
+        return jsonify({"token": token})
+    else:
+        return jsonify({"error": "注册失败"}), 500
 
     users[username] = password
 
