@@ -2,13 +2,19 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>注册 ZSY AI 账号 ✨</title>
   <style>
     body {
-      background: #f5f7fa;
-      font-family: "Segoe UI", sans-serif;
-      text-align: center;
-      padding: 60px 20px;
+      background: linear-gradient(to bottom right, #e0f7fa, #fffde7);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 16px;
+      min-height: 100vh;
+      margin: 0;
     }
     h2 {
       font-size: 2em;
@@ -16,30 +22,41 @@
       margin-bottom: 20px;
     }
     input {
-      display: block;
-      margin: 10px auto;
-      padding: 10px 12px;
-      width: 220px;
+      margin: 10px 0;
+      padding: 12px;
+      width: 100%;
+      max-width: 280px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 10px;
       font-size: 1em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     button {
-      background: #28a745;
+      background: linear-gradient(to right, #42a5f5, #478ed1);
       color: white;
       border: none;
       padding: 12px 26px;
       font-size: 1em;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       margin-top: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     button:hover {
-      background: #218838;
+      background: linear-gradient(to right, #1e88e5, #1565c0);
     }
     #err {
       color: red;
       margin-top: 10px;
+    }
+    .hint {
+      margin-top: 16px;
+      font-size: 0.95em;
+      color: #555;
+    }
+    .hint a {
+      color: #007bff;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -48,28 +65,28 @@
 
   <input id="username" placeholder="用户名" />
   <input id="password" type="password" placeholder="密码" />
-  <input id="captcha" placeholder="验证码（固定值：zsyai）" />
-
+  <input id="captcha" placeholder="验证码（zsyai）" />
   <button onclick="register()">注册</button>
   <p id="err"></p>
+
+  <p class="hint">
+    已有账号？<a href="/login">返回登录</a>
+  </p>
 
   <script>
     async function register() {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
       const captcha = document.getElementById("captcha").value.trim();
-
       if (captcha !== "zsyai") {
         document.getElementById("err").innerText = "验证码错误，请输入 zsyai";
         return;
       }
-
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
       });
-
       const data = await res.json();
       if (res.ok) {
         alert("✅ 注册成功！");
