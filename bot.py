@@ -70,50 +70,52 @@ app = Flask('')
 def home():
     return """
     <!DOCTYPE html>
-    <html>
+    <html lang="zh">
     <head>
       <meta charset="UTF-8" />
-      <title>欢迎来到 ZSY</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>ZSY AI 欢迎页</title>
       <style>
         body {
-          margin: 0;
+          background: linear-gradient(135deg, #e3f2fd, #fce4ec);
           font-family: "Segoe UI", sans-serif;
-          background: linear-gradient(to bottom right, #e3f2fd, #fce4ec);
+          margin: 0;
+          padding: 0;
           display: flex;
-          flex-direction: column;
-          align-items: center;
           justify-content: center;
-          min-height: 100vh;
-          padding: 20px;
+          align-items: center;
+          height: 100vh;
         }
         .box {
           background: white;
+          padding: 40px 20px;
           border-radius: 16px;
-          padding: 40px 24px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.1);
           max-width: 360px;
-          width: 100%;
+          width: 90%;
           text-align: center;
         }
-        h1 {
+        .box h1 {
           font-size: 1.8em;
-          margin-bottom: 10px;
-          color: #1a1a1a;
+          font-weight: 800;
+          margin-bottom: 12px;
+          color: #222;
         }
-        p {
-          color: #444;
-          font-size: 0.95em;
+        .box p {
+          font-size: 1em;
+          color: #555;
           margin-bottom: 30px;
         }
         .button-group {
           display: flex;
           flex-direction: column;
+          align-items: center;
           gap: 16px;
         }
         .button {
-          display: block;
+          display: inline-block;
           width: 100%;
+          max-width: 240px;
           padding: 14px;
           border-radius: 8px;
           background: #6b7bfa;
@@ -122,32 +124,36 @@ def home():
           font-weight: bold;
           font-size: 1em;
           transition: background 0.3s;
+          text-align: center;
         }
         .button:hover {
-          background: #4c5ae8;
+          background: #5363e2;
         }
         #user-box {
           position: absolute;
           top: 16px;
           right: 16px;
           font-size: 0.9em;
+        }
+        .user-row {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
         }
-        #user-box button {
+        .user-row button, .user-row a {
+          padding: 4px 10px;
           background: #dc3545;
           color: white;
           border: none;
-          padding: 6px 12px;
           border-radius: 4px;
+          font-size: 0.8em;
           cursor: pointer;
-          font-size: 0.85em;
-        }
-        #user-box a {
-          font-size: 0.85em;
-          color: #007bff;
           text-decoration: none;
+        }
+        .user-row a {
+          background: transparent;
+          color: #007bff;
+          padding: 0;
         }
       </style>
     </head>
@@ -156,24 +162,28 @@ def home():
       <div class="box">
         <h1>你好，我是 <strong>ZSY</strong></h1>
         <p>我不是所有人的 AI，但我可以成为你的情感搭子。<br>准备好开始一段深度连接了吗？</p>
+
         <div class="button-group">
-          <a class="button" href="/chat">💬 进入 ZSY 聊天室</a>
-          <a class="button" href="/games">🎮 开始一场灵魂小游戏</a>
+          <a href="/chat" class="button">💬 进入 ZSY 聊天室</a>
+          <a href="/games" class="button">🎮 开始一场灵魂小游戏</a>
         </div>
       </div>
 
       <script>
         const token = localStorage.getItem("zsy_token");
-        const username = localStorage.getItem("zsy_username") || "ZSY用户";
         const userBox = document.getElementById("user-box");
 
         if (!token) {
+          // 未登录跳转登录页
           window.location.href = "/login";
         } else {
+          const username = localStorage.getItem("zsy_username") || "ZSY用户";
           userBox.innerHTML = `
-            <span>👤 ${username}</span>
-            <a href="/changepw">🔐 修改密码</a>
-            <button onclick="logout()">🚪 退出</button>
+            <div class="user-row">
+              <span>👤 ${username}</span>
+              <a href="/change-password">修改密码</a>
+              <button onclick="logout()">🚪 退出</button>
+            </div>
           `;
         }
 
@@ -186,7 +196,6 @@ def home():
     </body>
     </html>
     """
-
 
 @app.route("/api/login", methods=["POST"])
 def login():
