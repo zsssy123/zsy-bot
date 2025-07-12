@@ -143,7 +143,15 @@ def home():
                   cursor: pointer;
                 ">🚪 退出</button>
               </div>
+              <div style="margin-top: 6px;">
+                  <a href="/changepwd" style="
+                      font-size: 0.8em;
+                      text-decoration: none;
+                      color: #007bff;
+                    ">🔑 修改密码</a>
+              </div>
             `;
+
           }
 
           function logout() {
