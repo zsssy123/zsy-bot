@@ -9,6 +9,13 @@
       background: #f9f9f9;
       padding: 40px;
       text-align: center;
+      position: relative;
+    }
+    #user-box {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 0.9em;
     }
     h1 {
       color: #333;
@@ -41,6 +48,8 @@
   </style>
 </head>
 <body>
+  <div id="user-box"></div>
+
   <h1>🎮 欢迎来到 ZSY 游戏大厅</h1>
   <p>点击游戏名称开始玩吧！</p>
 
@@ -68,6 +77,8 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       const token = localStorage.getItem("zsy_token");
+      const userBox = document.getElementById("user-box");
+
       if (!token) {
         document.querySelectorAll("a").forEach(a => {
           a.addEventListener("click", function(e) {
@@ -77,8 +88,31 @@
           a.style.pointerEvents = "auto";
           a.style.opacity = "0.5";
         });
+        userBox.innerHTML = '<a href="/login" style="color:#007bff;">🔐 请先登录</a>';
+      } else {
+        const username = localStorage.getItem("zsy_username") || "ZSY用户";
+        userBox.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span>👤 ${username}</span>
+            <button onclick="logout()" style="
+              padding: 4px 10px;
+              background: #dc3545;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              font-size: 0.8em;
+              cursor: pointer;
+            ">🚪 退出</button>
+          </div>
+        `;
       }
     });
+
+    function logout() {
+      localStorage.removeItem("zsy_token");
+      localStorage.removeItem("zsy_username");
+      location.reload();
+    }
   </script>
 </body>
 </html>
