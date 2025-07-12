@@ -92,19 +92,27 @@
       } else {
         const username = localStorage.getItem("zsy_username") || "ZSY用户";
         userBox.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span>👤 ${username}</span>
-            <button onclick="logout()" style="
-              padding: 4px 10px;
-              background: #dc3545;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              font-size: 0.8em;
-              cursor: pointer;
-            ">🚪 退出</button>
-          </div>
-        `;
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span>👤 ${username}</span>
+    <button onclick="logout()" style="
+      padding: 4px 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8em;
+      cursor: pointer;
+    ">🚪 退出</button>
+  </div>
+  <div style="margin-top: 6px;">
+    <a href="/changepwd" style="
+      font-size: 0.8em;
+      text-decoration: none;
+      color: #007bff;
+    ">🔑 修改密码</a>
+  </div>
+`;
+
       }
     });
 
