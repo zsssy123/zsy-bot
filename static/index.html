@@ -176,16 +176,10 @@
   <div id="chat"></div>
 
   <!-- 输入区 -->
-<div id="input-bar">
-  <!-- ✅ 新增模型选择器 -->
-  <select id="model-select" style="padding: 8px; border-radius: 6px;">
-    <option value="deepseek">🌊 DeepSeek</option>
-    <option value="v36">🆓 v36 ChatGPT</option>
-  </select>
-
-  <input id="msg" placeholder="说点什么…" autocomplete="off" />
-  <button id="send-btn">发送</button>
-</div>
+  <div id="input-bar">
+    <input id="msg" placeholder="说点什么…" autocomplete="off" />
+    <button id="send-btn">发送</button>
+  </div>
 
  <script>
   const chat = document.getElementById("chat");
@@ -234,41 +228,35 @@
   }
 
   async function send() {
-  const text = input.value.trim();
-  if (!text) return;
-  addMessage(text, "user");
-  input.value = "";
-  showTyping();
+    const text = input.value.trim();
+    if (!text) return;
+    addMessage(text, "user");
+    input.value = "";
+    showTyping();
 
-  const useMemory = document.getElementById("use-memory").checked;
-  const useZSYMode = document.getElementById("zsy-mode").checked;
-  const modelSource = document.getElementById("model-select").value;  // ✅ 放在这里！
+    const useMemory = document.getElementById("use-memory").checked;
+    const useZSYMode = document.getElementById("zsy-mode").checked;
 
-  try {
-    const token = localStorage.getItem("zsy_token");
-    const res = await fetch("/api/chat", {
+
+    try {
+     const token = localStorage.getItem("zsy_token");
+     const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        message: text,
-        useMemory,
-        useZSYMode,
-        modelSource   // ✅ 正确地放入 body 中
-      })
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+     body: JSON.stringify({ message: text, useMemory, useZSYMode })
     });
 
-    const data = await res.json();
-    removeTyping();
-    addMessage(data.reply || "出错了，请检查登录情况 https://zsyai.onrender.com/login …", "bot");
-  } catch {
-    removeTyping();
-    addMessage("❌ 网络错误", "bot");
+      const data = await res.json();
+      removeTyping();
+      addMessage(data.reply || "出错了，请检查登录情况 https://zsyai.onrender.com/login …", "bot");
+    } catch {
+      removeTyping();
+      addMessage("❌ 网络错误", "bot");
+    }
   }
-}
-
 
   // 绑定发送按钮点击事件
   document.getElementById("send-btn").addEventListener("click", send);
