@@ -1,27 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>登录账号</title>
+  <title>欢迎登录 ZSY AI ✨</title>
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    h2 {
+      font-size: 2em;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 12px;
+      width: 220px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 26px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #err {
+      color: red;
+      margin-top: 10px;
+    }
+    .register-hint {
+      margin-top: 16px;
+      font-size: 0.95em;
+      color: #555;
+    }
+    .register-hint a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-  <h2>登录</h2>
+  <h2>欢迎登录 ZSY AI ✨</h2>
+
   <input id="username" placeholder="用户名" />
   <input id="password" type="password" placeholder="密码" />
   <button onclick="login()">登录</button>
-  <p id="err" style="color:red;"></p>
+  <p id="err"></p>
 
-  <!-- 注册跳转链接 -->
-  <p style="margin-top: 12px;">
-    还没有账号？温馨提示：由于注册好的账号 可能过期 需要用原用户名重新注册 谢谢配合
-    <a href="/register" style="color: #007bff;">立即注册</a>
+  <!-- 注册提示区域 -->
+  <p class="register-hint">
+    还没有账号？温馨提示：由于注册好的账号可能过期，请使用原用户名重新注册。
+    <a href="/register">立即注册</a>
   </p>
 
   <script>
     async function login() {
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
-      const res = await fetch("/api/login", {  // ✅ 注意这里加了前导斜杠
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -29,7 +78,7 @@
       const data = await res.json();
       if (data.token) {
         localStorage.setItem("zsy_token", data.token);
-        localStorage.setItem("zsy_username", username);  // ✅ 保存用户名
+        localStorage.setItem("zsy_username", username);
         window.location.href = "/chat";
       } else {
         document.getElementById("err").innerText = data.error || "登录失败";
