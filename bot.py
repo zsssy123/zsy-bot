@@ -45,6 +45,9 @@ ZSY_PROMPT = """
 # 🔐 JWT & 用户数据配置
 JWT_SECRET = "zsy-secret"  # 请换成安全密钥
 users = {}  # 用户账号密码表
+# 多对话结构：每人最多 3 个会话，每个最多 50 条消息
+user_conversations = {}  # { username: [ {id: 0, history: [...]}, {...} ] }
+
 user_histories = {}  # 用户聊天历史
 
 load_dotenv()
@@ -313,79 +316,109 @@ def keepalive():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
+@app.route("/api/conversations", methods=["POST"])
+def create_conversation():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+
+        user_conversations.setdefault(username, [])
+        conversations = user_conversations[username]
+
+        # 超过 3 条就移除最旧
+        if len(conversations) >= 3:
+            conversations.pop(0)
+
+        new_conv = {
+            "id": datetime.datetime.utcnow().timestamp(),
+            "history": []
+        }
+        conversations.append(new_conv)
+        return jsonify({ "id": new_conv["id"] })
+    except Exception as e:
+        return jsonify({ "error": "创建会话失败", "detail": str(e) }), 401
+
+@app.route("/api/conversations", methods=["GET"])
+def list_conversations():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+        convs = user_conversations.get(username, [])
+        return jsonify([
+            {
+                "id": c["id"],
+                "summary": c["history"][0]["content"][:20] if c["history"] else "(新对话)"
+            } for c in convs
+        ])
+    except:
+        return jsonify([])  # 返回空列表
+
 
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
+    conversation_id = data.get("conversationId")  # 新增：会话 ID
+    use_memory = data.get("useMemory", True)
+    use_zsy_mode = data.get("useZSYMode", False)
+
+    # ⛔️ 校验 token
     auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        token = auth_header.split(" ")[1]
-        try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-            user_id = payload["user"]
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "登录已过期，请重新登录"}), 401
-        except Exception as e:
-            return jsonify({"error": f"无效令牌：{str(e)}"}), 401
-    else:
+    if not auth_header.startswith("Bearer "):
         return jsonify({"error": "未提供身份认证"}), 401
-
-    use_memory = data.get("useMemory", True)  # 获取是否启用记忆
-    use_zsy_mode = data.get("useZSYMode", False)  # 获取是否启用 ZSY 人格模式
-
-    print("✅ 接收到请求，ZSY 模式真的是否启用：", use_zsy_mode, "🔁")
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "登录已过期，请重新登录"}), 401
+    except Exception as e:
+        return jsonify({"error": f"无效令牌：{str(e)}"}), 401
 
     if not user_msg:
         return jsonify({"error": "消息为空"}), 400
 
+    # ✅ 初始化多会话结构
+    global user_conversations
+    user_conversations.setdefault(username, [])
+
+    # 🔍 查找当前会话
+    conversations = user_conversations[username]
+    conv = next((c for c in conversations if str(c["id"]) == str(conversation_id)), None)
+
+    if not conv:
+        return jsonify({"error": "未找到指定会话"}), 400
+
+    history = conv["history"]
+
+    if len(history) >= 50:
+        return jsonify({"error": "此会话已达上限（50 条），请新建对话"}, 403)
+
+    # ✅ 构造上下文
+    history.append({ "role": "user", "content": user_msg })
+
+    if use_memory:
+        trimmed = history[-12:] if len(history) > 12 else history
+    else:
+        trimmed = [{ "role": "user", "content": user_msg }]
+
+    system_prompt = ZSY_PROMPT if use_zsy_mode else "你是一个温和真实的 AI 搭子，尽力陪伴用户，理性而温柔。"
+    messages = [{ "role": "system", "content": system_prompt }] + trimmed
+
     try:
-        if use_memory:
-            # 使用 remote_addr (IP) 识别用户
-       #     user_id = request.remote_addr
-            user_histories.setdefault(user_id, [])
-            history = user_histories[user_id]
-
-            history.append({"role": "user", "content": user_msg})
-
-            # 保留最多 12 条历史消息
-            if len(history) > 12:
-                history = history[-12:]
-
-            user_histories[user_id] = history
-
-            # 使用 ZSY 模式时的系统提示
-            if use_zsy_mode:
-                system_prompt = ZSY_PROMPT  # 使用你定义的 ZSY 人格描述
-            else:
-                system_prompt = "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。"
-
-            messages = [{"role": "system", "content": system_prompt}] + history
-        else:
-            # 不使用历史，仅发送当前消息
-            if use_zsy_mode:
-                system_prompt = ZSY_PROMPT  # 使用 ZSY 模式的系统提示
-            else:
-                system_prompt = "你是一个温和真实的 AI 搭子，不记住历史信息。"
-
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_msg}
-            ]
-
-        # 调用 AI 接口
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages
         )
         reply = response.choices[0].message.content.strip()
 
-        if use_memory:
-            user_histories[user_id].append({"role": "assistant", "content": reply})
-
-        return jsonify({"reply": reply})
+        history.append({ "role": "assistant", "content": reply })
+        return jsonify({ "reply": reply })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({ "error": f"生成失败：{str(e)}" }), 500
+
 @app.route("/login")
 def login_page():
     return send_from_directory("static", "login.html")
