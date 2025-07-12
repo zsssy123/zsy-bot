@@ -56,6 +56,8 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "zsy-secret")
+V36_API_KEY = os.getenv("V36_API_KEY")
+V36_BASE_URL = os.getenv("V36_BASE_URL", "https://free.v36.cm")
 
 # ---🤖 DeepSeek 接入 ---
 client = OpenAI(
@@ -249,7 +251,9 @@ def keepalive():
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
+    model_source = data.get("modelSource", "deepseek")
     auth_header = request.headers.get("Authorization", "")
+    
     if auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
@@ -262,53 +266,49 @@ def web_chat():
     else:
         return jsonify({"error": "未提供身份认证"}), 401
 
-    use_memory = data.get("useMemory", True)  # 获取是否启用记忆
-    use_zsy_mode = data.get("useZSYMode", False)  # 获取是否启用 ZSY 人格模式
+    use_memory = data.get("useMemory", True)
+    use_zsy_mode = data.get("useZSYMode", False)
 
-    print("✅ 接收到请求，ZSY 模式真的是否启用：", use_zsy_mode, "🔁")
+    print("✅ 接收到请求，ZSY 模式启用：", use_zsy_mode, "模型选择：", model_source)
 
     if not user_msg:
         return jsonify({"error": "消息为空"}), 400
 
+    # 构造 prompt 和上下文消息
+    if use_memory:
+        user_histories.setdefault(user_id, [])
+        history = user_histories[user_id]
+        history.append({"role": "user", "content": user_msg})
+        if len(history) > 12:
+            history = history[-12:]
+        user_histories[user_id] = history
+
+        system_prompt = ZSY_PROMPT if use_zsy_mode else "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。"
+        messages = [{"role": "system", "content": system_prompt}] + history
+    else:
+        system_prompt = ZSY_PROMPT if use_zsy_mode else "你是一个温和真实的 AI 搭子，不记住历史信息。"
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_msg}
+        ]
+
+    # 🧠 模型切换处理（v36 or deepseek）
     try:
-        if use_memory:
-            # 使用 remote_addr (IP) 识别用户
-       #     user_id = request.remote_addr
-            user_histories.setdefault(user_id, [])
-            history = user_histories[user_id]
-
-            history.append({"role": "user", "content": user_msg})
-
-            # 保留最多 12 条历史消息
-            if len(history) > 12:
-                history = history[-12:]
-
-            user_histories[user_id] = history
-
-            # 使用 ZSY 模式时的系统提示
-            if use_zsy_mode:
-                system_prompt = ZSY_PROMPT  # 使用你定义的 ZSY 人格描述
-            else:
-                system_prompt = "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。"
-
-            messages = [{"role": "system", "content": system_prompt}] + history
+        if model_source == "v36":
+            v36_client = OpenAI(
+                api_key=V36_API_KEY,
+                base_url=V36_BASE_URL
+            )
+            response = v36_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
         else:
-            # 不使用历史，仅发送当前消息
-            if use_zsy_mode:
-                system_prompt = ZSY_PROMPT  # 使用 ZSY 模式的系统提示
-            else:
-                system_prompt = "你是一个温和真实的 AI 搭子，不记住历史信息。"
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=messages
+            )
 
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_msg}
-            ]
-
-        # 调用 AI 接口
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=messages
-        )
         reply = response.choices[0].message.content.strip()
 
         if use_memory:
@@ -317,6 +317,7 @@ def web_chat():
         return jsonify({"reply": reply})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 @app.route("/login")
 def login_page():
     return send_from_directory("static", "login.html")
