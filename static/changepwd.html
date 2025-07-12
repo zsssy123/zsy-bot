@@ -1,57 +1,87 @@
-
 <!DOCTYPE html>
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>修改密码 - ZSY</title>
+  <title>🔑 修改密码 - ZSY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
-      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #e1f5fe, #fce4ec);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 50px 20px;
+      justify-content: center;
+      min-height: 100vh;
     }
+
+    .box {
+      background: white;
+      padding: 30px 26px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
+    }
+
     h2 {
       color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
+
     input {
       display: block;
-      margin-bottom: 15px;
-      padding: 10px;
+      margin: 10px auto;
+      padding: 12px;
+      width: 100%;
       font-size: 1em;
-      width: 260px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
+      box-sizing: border-box;
     }
+
     button {
-      padding: 10px 20px;
-      background: #007bff;
+      margin-top: 16px;
+      padding: 12px 26px;
+      background: linear-gradient(to right, #4fc3f7, #7986cb);
       border: none;
       color: white;
       font-size: 1em;
-      border-radius: 6px;
+      font-weight: bold;
+      border-radius: 8px;
       cursor: pointer;
+      width: 100%;
     }
+
     button:hover {
-      background: #0056b3;
+      background: linear-gradient(to right, #039be5, #5c6bc0);
     }
-    p {
-      margin-top: 12px;
-      color: red;
+
+    p#message {
+      margin-top: 14px;
+      font-size: 0.95em;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 0.8em;
+      color: #777;
     }
   </style>
 </head>
 <body>
-  <h2>修改密码</h2>
-  <input id="username" placeholder="用户名">
-  <input id="oldPassword" type="password" placeholder="原密码">
-  <input id="newPassword" type="password" placeholder="新密码">
-  <button onclick="changePassword()">确认修改</button>
-  <p id="message"></p>
+  <div class="box">
+    <h2>修改密码</h2>
+    <input id="username" placeholder="用户名">
+    <input id="oldPassword" type="password" placeholder="原密码">
+    <input id="newPassword" type="password" placeholder="新密码">
+    <button onclick="changePassword()">确认修改</button>
+    <p id="message"></p>
+    <div class="footer">请确保牢记你的新密码 ✨</div>
+  </div>
 
   <script>
     async function changePassword() {
@@ -66,12 +96,13 @@
       });
 
       const data = await res.json();
+      const msgBox = document.getElementById("message");
       if (res.ok) {
-        document.getElementById("message").style.color = "green";
-        document.getElementById("message").innerText = data.message || "修改成功";
+        msgBox.style.color = "green";
+        msgBox.innerText = data.message || "修改成功";
       } else {
-        document.getElementById("message").style.color = "red";
-        document.getElementById("message").innerText = data.error || "修改失败";
+        msgBox.style.color = "red";
+        msgBox.innerText = data.error || "修改失败";
       }
     }
   </script>
