@@ -356,56 +356,64 @@ def list_conversations():
         return jsonify([])  # 返回空列表
 
 
+# 用户历史改为每人最多保留 3 轮对话，每轮最多 50 条
+all_user_histories = {}
+
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
     user_msg = data.get("message", "")
-    conversation_id = data.get("conversationId")  # 新增：会话 ID
+    auth_header = request.headers.get("Authorization", "")
+
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload["user"]
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "登录已过期，请重新登录"}), 401
+        except Exception as e:
+            return jsonify({"error": f"无效令牌：{str(e)}"}), 401
+    else:
+        return jsonify({"error": "未提供身份认证"}), 401
+
     use_memory = data.get("useMemory", True)
     use_zsy_mode = data.get("useZSYMode", False)
-
-    # ⛔️ 校验 token
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        return jsonify({"error": "未提供身份认证"}), 401
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        username = payload["user"]
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "登录已过期，请重新登录"}), 401
-    except Exception as e:
-        return jsonify({"error": f"无效令牌：{str(e)}"}), 401
 
     if not user_msg:
         return jsonify({"error": "消息为空"}), 400
 
-    # ✅ 初始化多会话结构
-    global user_conversations
-    user_conversations.setdefault(username, [])
+    # 初始化用户对话轮
+    if user_id not in all_user_histories:
+        all_user_histories[user_id] = {
+            "chat_1": [],
+        }
 
-    # 🔍 查找当前会话
-    conversations = user_conversations[username]
-    conv = next((c for c in conversations if str(c["id"]) == str(conversation_id)), None)
+    user_sessions = all_user_histories[user_id]
 
-    if not conv:
-        return jsonify({"error": "未找到指定会话"}), 400
+    # 获取当前对话编号
+    current_key = sorted(user_sessions.keys())[-1]
+    history = user_sessions[current_key]
 
-    history = conv["history"]
-
+    # 若当前对话已满 50 条，开启新对话
     if len(history) >= 50:
-        return jsonify({"error": "此会话已达上限（50 条），请新建对话"}, 403)
+        if len(user_sessions) >= 3:
+            # 删除最早的一轮
+            oldest = sorted(user_sessions.keys())[0]
+            del user_sessions[oldest]
+        new_index = max([int(k.split("_")[1]) for k in user_sessions]) + 1
+        current_key = f"chat_{new_index}"
+        user_sessions[current_key] = []
+        history = user_sessions[current_key]
 
-    # ✅ 构造上下文
-    history.append({ "role": "user", "content": user_msg })
-
-    if use_memory:
-        trimmed = history[-12:] if len(history) > 12 else history
+    # 构建上下文
+    history.append({"role": "user", "content": user_msg})
+    if use_zsy_mode:
+        system_prompt = ZSY_PROMPT
     else:
-        trimmed = [{ "role": "user", "content": user_msg }]
+        system_prompt = "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。"
 
-    system_prompt = ZSY_PROMPT if use_zsy_mode else "你是一个温和真实的 AI 搭子，尽力陪伴用户，理性而温柔。"
-    messages = [{ "role": "system", "content": system_prompt }] + trimmed
+    messages = [{"role": "system", "content": system_prompt}] + history
 
     try:
         response = client.chat.completions.create(
@@ -413,11 +421,18 @@ def web_chat():
             messages=messages
         )
         reply = response.choices[0].message.content.strip()
+        history.append({"role": "assistant", "content": reply})
 
-        history.append({ "role": "assistant", "content": reply })
-        return jsonify({ "reply": reply })
+        return jsonify({
+            "reply": reply,
+            "chatId": current_key,
+            "historyLength": len(history),
+            "sessionCount": len(user_sessions),
+            "note": "每轮最多 50 条，每人最多保留 3 轮。"
+        })
     except Exception as e:
-        return jsonify({ "error": f"生成失败：{str(e)}" }), 500
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/login")
 def login_page():
