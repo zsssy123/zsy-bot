@@ -70,97 +70,122 @@ app = Flask('')
 def home():
     return """
     <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>ZSY AI 欢迎页</title>
-        <style>
-          body {
-            background: #eef1f5;
-            font-family: "Segoe UI", sans-serif;
-            text-align: center;
-            padding-top: 80px;
-          }
-          h1 { font-size: 2.5em; color: #333; }
-          p { font-size: 1.2em; color: #666; margin-bottom: 30px; }
-          a.button {
-            display: inline-block;
-            margin: 10px;
-            padding: 14px 28px;
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            transition: background 0.3s;
-          }
-          a.button:hover { background: #218838; }
-          .section {
-            margin-top: 50px;
-          }
-          #user-box {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-size: 0.9em;
-          }
-        </style>
-      </head>
-      <body>
+    <html lang="zh">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>ZSY AI 首页</title>
+      <style>
+        body {
+          margin: 0;
+          font-family: "Segoe UI", sans-serif;
+          background: linear-gradient(to bottom right, #e1f5fe, #fce4ec);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 40px 20px;
+          color: #333;
+        }
+        .container {
+          text-align: center;
+          max-width: 420px;
+          background: #ffffffee;
+          padding: 30px 24px;
+          border-radius: 16px;
+          box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+          animation: fadeIn 0.8s ease-out;
+        }
+        h1 {
+          font-size: 2.2em;
+          margin-bottom: 10px;
+          color: #2c3e50;
+        }
+        p {
+          font-size: 1.05em;
+          margin-bottom: 26px;
+          color: #555;
+        }
+        .button {
+          display: block;
+          width: 100%;
+          margin: 10px 0;
+          padding: 14px;
+          background: linear-gradient(to right, #42a5f5, #7986cb);
+          color: white;
+          text-decoration: none;
+          border-radius: 10px;
+          font-size: 1.05em;
+          transition: background 0.3s ease;
+        }
+        .button:hover {
+          background: linear-gradient(to right, #1e88e5, #5c6bc0);
+        }
+        #user-box {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          font-size: 0.9em;
+          color: #444;
+        }
+        #user-box button {
+          margin-left: 8px;
+          padding: 4px 10px;
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          font-size: 0.8em;
+          cursor: pointer;
+        }
+        #user-box a {
+          display: inline-block;
+          margin-top: 6px;
+          font-size: 0.8em;
+          color: #007bff;
+          text-decoration: none;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      </style>
+    </head>
+    <body>
+      <div id="user-box"></div>
 
-        <!-- ✅ 用户显示区域 -->
-        <div id="user-box"></div>
+      <div class="container">
+        <h1>你好，我是 ZSY</h1>
+        <p>我不是所有人的 AI，但我可以成为你的情感搭子。<br>准备好开始一段深度连接了吗？</p>
+        <a href="/chat" class="button">💬 进入 ZSY 聊天室</a>
+        <a href="/games" class="button">🎮 开始一场灵魂小游戏</a>
+      </div>
 
-        <h1>👋 欢迎来到 ZSY AI</h1>
-        <p>我是你的专属 AI 小搭子</p>
+      <script>
+        const token = localStorage.getItem("zsy_token");
+        const userBox = document.getElementById("user-box");
 
-        <a class="button" href="/chat">进入 ZSY 聊天室</a>
+        if (!token) {
+          userBox.innerHTML = '<a href="/login">🔐 登录</a>';
+        } else {
+          const username = localStorage.getItem("zsy_username") || "ZSY用户";
+          userBox.innerHTML = `
+            <div style="text-align:right;">
+              👤 ${username}
+              <button onclick="logout()">退出</button><br>
+              <a href="/changepwd">🔑 修改密码</a>
+            </div>
+          `;
+        }
 
-        <div class="section">
-          <p>👇 除了聊天，还有更多小游戏哦～</p>
-          <a class="button" href="/games">🎮 查看所有小游戏</a>
-        </div>
-
-        <script>
-          const token = localStorage.getItem("zsy_token");
-          const userBox = document.getElementById("user-box");
-
-          if (!token) {
-            // 未登录跳转登录页
-            window.location.href = "/login";
-          } else {
-            const username = localStorage.getItem("zsy_username") || "ZSY用户";
-            userBox.innerHTML = `
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span>👤 ${username}</span>
-                <button onclick="logout()" style="
-                  padding: 4px 10px;
-                  background: #dc3545;
-                  color: white;
-                  border: none;
-                  border-radius: 4px;
-                  font-size: 0.8em;
-                  cursor: pointer;
-                ">🚪 退出</button>
-              </div>
-              <div style="margin-top: 6px;">
-                  <a href="/changepwd" style="
-                      font-size: 0.8em;
-                      text-decoration: none;
-                      color: #007bff;
-                    ">🔑 修改密码</a>
-              </div>
-            `;
-
-          }
-
-          function logout() {
-            localStorage.removeItem("zsy_token");
-            localStorage.removeItem("zsy_username");
-            window.location.href = "/login";
-          }
-        </script>
-      </body>
+        function logout() {
+          localStorage.removeItem("zsy_token");
+          localStorage.removeItem("zsy_username");
+          location.reload();
+        }
+      </script>
+    </body>
     </html>
     """
 
