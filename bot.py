@@ -181,7 +181,7 @@ def home():
           userBox.innerHTML = `
             <div class="user-row">
               <span>👤 ${username}</span>
-              <a href="/changepyd">修改密码</a>
+              <a href="/changepwd">修改密码</a>
               <button onclick="logout()">🚪 退出</button>
             </div>
           `;
