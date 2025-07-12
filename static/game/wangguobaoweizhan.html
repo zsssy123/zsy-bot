@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>王国保卫战 | 终极塔防游戏</title>
+    <title>王国保卫战 | 增强版塔防</title>
     <style>
         * {
             margin: 0;
@@ -260,7 +261,6 @@
             max-width: 200px;
         }
         
-        /* 图鉴样式 */
         .encyclopedia-btn {
             position: absolute;
             top: 20px;
@@ -406,7 +406,6 @@
             margin: 5px 0;
         }
         
-        /* 难度指示器 */
         .difficulty-indicator {
             display: flex;
             align-items: center;
@@ -426,7 +425,6 @@
             background: #FFD700;
         }
         
-        /* 状态提示 */
         .status-message {
             position: absolute;
             top: 50%;
@@ -446,7 +444,6 @@
             transition: opacity 0.5s;
         }
         
-        /* 响应式设计 */
         @media (max-width: 850px) {
             .game-container, .stats-bar, .tower-selector, .controls, .level-selector {
                 width: 95%;
@@ -470,12 +467,66 @@
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
         }
+        
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            width: 800px;
+        }
+        
+        .difficulty-option {
+            padding: 12px 25px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .difficulty-option:hover {
+            transform: translateY(-3px);
+            background: rgba(50, 50, 150, 0.6);
+        }
+        
+        .difficulty-option.selected {
+            border-color: #FFD700;
+            background: rgba(100, 100, 200, 0.7);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+        
+        .difficulty-easy {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+        }
+        
+        .difficulty-medium {
+            background: linear-gradient(to right, #2196F3, #1565C0);
+        }
+        
+        .difficulty-hard {
+            background: linear-gradient(to right, #F44336, #C62828);
+        }
+        
+        .upgrade-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+        }
     </style>
 </head>
 <body>
     <div class="game-header">
         <h1 class="game-title">王国保卫战</h1>
-        <p class="game-subtitle">终极塔防体验 - 已修复失败判定问题</p>
+        <p class="game-subtitle">增强版塔防 - 新增充能离子炮、光棱塔、尤里塔</p>
+    </div>
+    
+    <div class="difficulty-selector">
+        <div class="difficulty-option difficulty-easy selected" data-difficulty="1">简单</div>
+        <div class="difficulty-option difficulty-medium" data-difficulty="2">中等</div>
+        <div class="difficulty-option difficulty-hard" data-difficulty="3">困难</div>
     </div>
     
     <div class="level-selector">
@@ -496,7 +547,7 @@
         </div>
         <div class="stat">
             <span class="stat-icon">⚔️</span>
-            <span>波数: <span id="wave">1</span>/<span id="max-wave">10</span></span>
+            <span>波数: <span id="wave">0</span>/<span id="max-wave">10</span></span>
         </div>
         <div class="stat">
             <span class="stat-icon">🏰</span>
@@ -533,15 +584,15 @@
             <div class="tower-icon">🔮</div>
             <div class="tower-name">法师塔</div>
             <div class="tower-cost">$150</div>
-            <div class="tower-damage">伤害: 25</div>
+            <div class="tower-damage">伤害: 5</div>
             <div class="tower-range">范围: 140</div>
         </div>
         <div class="tower-option" data-type="barracks" data-cost="100">
             <div class="tower-icon">🛡️</div>
             <div class="tower-name">兵营</div>
             <div class="tower-cost">$100</div>
-            <div class="tower-damage">伤害: 100</div>
-            <div class="tower-range">范围: 80</div>
+            <div class="tower-damage">士兵: 3</div>
+            <div class="tower-range">范围: 120</div>
         </div>
         <div class="tower-option" data-type="ice" data-cost="130">
             <div class="tower-icon">❄️</div>
@@ -550,12 +601,68 @@
             <div class="tower-damage">伤害: 10</div>
             <div class="tower-range">范围: 130</div>
         </div>
+        <div class="tower-option" data-type="lightning" data-cost="180">
+            <div class="tower-icon">⚡</div>
+            <div class="tower-name">雷电塔</div>
+            <div class="tower-cost">$180</div>
+            <div class="tower-damage">伤害: 15</div>
+            <div class="tower-range">范围: 150</div>
+        </div>
+        <div class="tower-option" data-type="missile" data-cost="200">
+            <div class="tower-icon">🚀</div>
+            <div class="tower-name">导弹塔</div>
+            <div class="tower-cost">$200</div>
+            <div class="tower-damage">伤害: 80</div>
+            <div class="tower-range">范围: 140</div>
+        </div>
         <div class="tower-option" data-type="poison" data-cost="160">
             <div class="tower-icon">☠️</div>
             <div class="tower-name">毒塔</div>
             <div class="tower-cost">$160</div>
             <div class="tower-damage">伤害: 15/秒</div>
             <div class="tower-range">范围: 110</div>
+        </div>
+        <div class="tower-option" data-type="ion" data-cost="200">
+            <div class="tower-icon">🔋</div>
+            <div class="tower-name">离子炮</div>
+            <div class="tower-cost">$200</div>
+            <div class="tower-damage">伤害: 30</div>
+            <div class="tower-range">范围: 150</div>
+        </div>
+        <div class="tower-option" data-type="prism" data-cost="350">
+            <div class="tower-icon">✨</div>
+            <div class="tower-name">光棱塔</div>
+            <div class="tower-cost">$350</div>
+            <div class="tower-damage">伤害: 50</div>
+            <div class="tower-range">范围: 140</div>
+        </div>
+        <div class="tower-option" data-type="yuri" data-cost="100">
+            <div class="tower-icon">🧠</div>
+            <div class="tower-name">尤里塔</div>
+            <div class="tower-cost">$100</div>
+            <div class="tower-damage">控制: 5秒</div>
+            <div class="tower-range">范围: 120</div>
+        </div>
+		<div class="tower-option" data-type="laser" data-cost="220">
+            <div class="tower-icon">🔦</div>
+            <div class="tower-name">激光塔</div>
+            <div class="tower-cost">$220</div>
+            <div class="tower-damage">伤害: 35/秒</div>
+            <div class="tower-range">范围: 200</div>
+        </div>
+        <div class="tower-option" data-type="nuke" data-cost="1">
+            <div class="tower-icon">☢️</div>
+            <div class="tower-name">没关就是开了？</div>
+            <div class="tower-cost">$1</div>
+            <div class="tower-damage">伤害: 9999</div>
+            <div class="tower-range">范围: 全屏</div>
+        </div>
+        <div class="tower-option" data-type="energizer" data-cost="280">
+            <div class="tower-icon">⚡</div>
+            <div class="tower-name">蓄能塔</div>
+            <div class="tower-cost">$280</div>
+            <div class="tower-damage">伤害: 20-100</div>
+            <div class="tower-range">范围: 130</div>
         </div>
     </div>
     
@@ -568,14 +675,16 @@
     <div class="game-info">
         <h3 class="info-title">游戏说明</h3>
         <p class="info-content">
-            1. 选择防御塔类型，然后在地图上的<span class="highlight">绿色区域</span>放置防御塔<br>
-            2. 每种防御塔有不同攻击范围和伤害值<br>
-            3. 防御塔最多可升级<span class="highlight">3次</span>（最高等级4级）<br>
-            4. 击败敌人获得金币，用于建造和升级防御塔<br>
-            5. 不要让敌人到达城堡，否则会失去生命值<br>
-            6. 完成所有4个关卡即可获胜！<br>
-            7. 提示：寒冰塔可减速敌人，毒塔造成持续伤害<br>
-            8. 点击右上角<span class="highlight">图鉴按钮</span>查看详细信息
+            1. 新增三种防御塔：<span class="highlight">充能离子炮</span>、<span class="highlight">光棱塔</span>、<span class="highlight">尤里塔</span><br>
+            2. 充能离子炮：高伤害范围攻击，充能后发射<br>
+            3. 光棱塔：光束折射攻击多个敌人，伤害随折射衰减<br>
+            4. 尤里塔：控制敌人使其倒戈攻击其他敌人<br>
+            5. 修复：<span class="highlight">暂停/继续波数BUG</span> 和 <span class="highlight">兵营独立升级</span><br>
+            6. 选择防御塔类型，然后在地图上的<span class="highlight">绿色区域</span>放置防御塔<br>
+            7. 防御塔最多可升级<span class="highlight">3次</span>（最高等级4级）<br>
+            8. 击败敌人获得金币，用于建造和升级防御塔<br>
+            9. 不要让敌人到达城堡，否则会失去生命值<br>
+            10. 完成所有4个关卡即可获胜！
         </p>
     </div>
     
@@ -622,8 +731,9 @@
             const startBtn = document.getElementById('startBtn');
             const nextWaveBtn = document.getElementById('nextWaveBtn');
             const upgradeBtn = document.getElementById('upgradeBtn');
-            const towerOptions = document.querySelectorAll('.tower-option');
-            const levelOptions = document.querySelectorAll('.level-option');
+            const towerOption = document.querySelectorAll('.tower-option');
+            const levelOption = document.querySelectorAll('.level-option');
+            const difficultyOption = document.querySelectorAll('.difficulty-option');
             const upgradeTooltip = document.getElementById('upgradeTooltip');
             const encyclopediaBtn = document.querySelector('.encyclopedia-btn');
             const encyclopediaModal = document.querySelector('.encyclopedia-modal');
@@ -642,6 +752,7 @@
                 maxWave: 10,
                 enemies: [],
                 towers: [],
+                soldiers: [],
                 projectiles: [],
                 effects: [],
                 selectedTowerType: null,
@@ -654,7 +765,8 @@
                 currentLevel: 1,
                 maxLevel: 4,
                 levelComplete: false,
-                difficulty: 1 // 1-3 表示难度级别
+                difficulty: 1, // 1-3 表示难度级别
+                isWaveActive: false // 跟踪当前是否有波次在进行中
             };
             
             // 防御塔类型数据
@@ -679,14 +791,16 @@
                     color: "#FF5722",
                     maxLevel: 4,
                     icon: "💣",
+                    splashRadius: 80, // 爆炸范围
+                    splashDamage: 30, // 溅射伤害
                     description: "高伤害范围攻击，对付群体敌人效果显著，但攻击速度较慢。"
                 },
                 mage: {
                     name: "法师塔",
                     cost: 150,
                     range: 140,
-                    damage: 25,
-                    cooldown: 1500,
+                    damage: 5,
+                    cooldown: 150,
                     color: "#9C27B0",
                     maxLevel: 4,
                     icon: "🔮",
@@ -695,13 +809,16 @@
                 barracks: {
                     name: "兵营",
                     cost: 100,
-                    range: 80,
-                    damage: 100,
+                    range: 120, // 士兵索敌范围
                     cooldown: 3000,
                     color: "#2196F3",
                     maxLevel: 4,
                     icon: "🛡️",
-                    description: "近距离高伤害的防御塔。"
+                    description: "训练无敌士兵阻挡敌人，士兵会自动攻击附近的敌人。",
+                    maxSoldiers: 3,
+                    soldierDamage: 10,
+                    soldierAttackSpeed: 1000,
+                    soldierAttackRange: 80 // 士兵攻击范围（已修复为80）
                 },
                 ice: {
                     name: "寒冰塔",
@@ -716,21 +833,128 @@
                     icon: "❄️",
                     description: "减速敌人移动速度，使其他防御塔有更多攻击时间。"
                 },
+                lightning: {
+                    name: "雷电塔",
+                    cost: 180,
+                    range: 150,
+                    damage: 15,
+                    cooldown: 2500,
+                    color: "#FFEB3B",
+                    maxLevel: 4,
+                    chainCount: 3, // 连锁数量
+                    chainRange: 80, // 连锁范围
+                    icon: "⚡",
+                    description: "释放连锁闪电，可同时攻击多个敌人。"
+                },
+                missile: {
+                    name: "导弹塔",
+                    cost: 200,
+                    range: 140,
+                    damage: 80,
+                    cooldown: 3000,
+                    color: "#FF9800",
+                    maxLevel: 4,
+                    splashRadius: 100, // 爆炸范围
+                    splashDamage: 65, // 溅射伤害
+                    icon: "🚀",
+                    description: "发射导弹造成范围爆炸伤害，对群体敌人效果显著。"
+                },
                 poison: {
                     name: "毒塔",
                     cost: 160,
                     range: 110,
                     damage: 15, // 每秒伤害
-                    cooldown: 3000,
+                    cooldown: 1600,
                     color: "#66BB6A",
                     maxLevel: 4,
                     poisonDuration: 4000, // 中毒持续时间
+                    slowEffect: 0.3, // 减速效果
+                    percentDamage: 0.05, // 百分比伤害
                     icon: "☠️",
-                    description: "造成持续伤害，对高血量敌人特别有效。"
+                    description: "造成持续伤害并减速敌人，对高血量敌人特别有效。"
+                },
+				// 新增：激光塔
+                laser: {
+                    name: "激光塔",
+                    cost: 220,
+                    range: 200,
+                    damage: 35, // 每秒伤害
+                    cooldown: 0, // 持续攻击
+                    color: "#FF5252",
+                    maxLevel: 4,
+                    icon: "🔦",
+                    description: "持续激光攻击，对单个目标造成持续高伤害。"
+                },
+                // 新增：核弹塔
+                nuke: {
+                    name: "没关就是开了？",
+                    cost: 1,
+                    range: 9999, // 全屏
+                    damage: 9999, // 秒杀
+                    cooldown: 3,
+                    color: "#00E676",
+                    maxLevel: 1, // 不能升级
+                    icon: "☢️",
+                    description: "发射核弹，对所有敌人造成毁灭性伤害。"
+                },
+                // 新增：蓄能塔（攻击时间越长伤害越高）
+                energizer: {
+                    name: "蓄能塔",
+                    cost: 280,
+                    range: 130,
+                    damage: 20, // 基础伤害
+                    maxDamage: 100, // 最大伤害
+                    cooldown: 1000,
+                    color: "#FF4081",
+                    maxLevel: 4,
+                    icon: "⚡",
+                    description: "对同一目标连续攻击时伤害逐渐增加。"
+                },
+				
+                // 新增：充能离子炮
+                ion: {
+                    name: "充能离子炮",
+                    cost: 200,
+                    range: 150,
+                    damage: 30,
+                    cooldown: 3000,
+                    color: "#9C27B0",
+                    maxLevel: 4,
+                    splashRadius: 100,
+                    splashDamage: 30,
+                    icon: "🔋",
+                    description: "发射高能离子束，造成范围伤害。"
+                },
+                // 新增：光棱塔
+                prism: {
+                    name: "光棱塔",
+                    cost: 350,
+                    range: 140,
+                    damage: 50,
+                    cooldown: 2500,
+                    color: "#FF5252",
+                    maxLevel: 4,
+                    bounceCount: 4,
+                    bounceRange: 80,
+                    bounceDecay: 0.3,
+                    icon: "✨",
+                    description: "发射可折射的光束，攻击多个敌人。"
+                },
+                // 新增：尤里塔
+                yuri: {
+                    name: "尤里塔",
+                    cost: 100,
+                    range: 120,
+                    controlDuration: 5000,
+                    cooldown: 8000,
+                    color: "#00BCD4",
+                    maxLevel: 4,
+                    icon: "🧠",
+                    description: "控制敌人使其倒戈攻击其他敌人。"
                 }
             };
             
-            // 敌人类型数据 - 增加难度
+            // 敌人类型数据
             const enemyTypes = [
                 { 
                     type: "goblin", 
@@ -755,8 +979,8 @@
                 { 
                     type: "ogre", 
                     name: "食人魔",
-                    health: 200, 
-                    speed: 0.6, 
+                    health: 1000, 
+                    speed: 0.5, 
                     reward: 40, 
                     color: "#9C27B0",
                     icon: "👻",
@@ -765,7 +989,7 @@
                 { 
                     type: "knight", 
                     name: "骑士",
-                    health: 150, 
+                    health: 550, 
                     speed: 0.7, 
                     reward: 35, 
                     color: "#5C6BC0",
@@ -776,7 +1000,7 @@
                     type: "flying", 
                     name: "飞行恶魔",
                     health: 90, 
-                    speed: 1.2, 
+                    speed: 1.5, 
                     reward: 30, 
                     color: "#26A69A", 
                     flying: true,
@@ -786,7 +1010,7 @@
                 { 
                     type: "boss", 
                     name: "暗影领主",
-                    health: 600, 
+                    health: 8000, 
                     speed: 0.4, 
                     reward: 150, 
                     color: "#D32F2F", 
@@ -796,7 +1020,7 @@
                 }
             ];
             
-            // 关卡配置 - 增加难度
+            // 关卡配置
             const levels = {
                 1: {
                     name: "森林关卡",
@@ -933,7 +1157,7 @@
                     item.className = 'encyclopedia-item';
                     
                     let stats = `<div>价格: ${tower.cost}</div>
-                                 <div>伤害: ${tower.damage}</div>
+                                 <div>伤害: ${tower.damage || '特殊'}</div>
                                  <div>范围: ${tower.range}</div>
                                  <div>冷却: ${tower.cooldown/1000}秒</div>
                                  <div>最大等级: ${tower.maxLevel}</div>`;
@@ -944,19 +1168,35 @@
                     if (tower.poisonDuration) {
                         stats += `<div>中毒持续时间: ${tower.poisonDuration/1000}秒</div>`;
                     }
+                    if (tower.percentDamage) {
+                        stats += `<div>百分比伤害: ${tower.percentDamage * 100}%</div>`;
+                    }
+                    if (tower.splashRadius) {
+                        stats += `<div>爆炸范围: ${tower.splashRadius}</div>
+                                  <div>溅射伤害: ${tower.splashDamage}</div>`;
+                    }
+                    if (tower.chainCount) {
+                        stats += `<div>连锁数量: ${tower.chainCount}</div>
+                                  <div>连锁范围: ${tower.chainRange}</div>`;
+                    }
+                    if (tower.soldierDamage) {
+                        stats += `<div>士兵伤害: ${tower.soldierDamage}</div>
+                                  <div>士兵攻击范围: ${tower.soldierAttackRange}</div>
+                                  <div>最大士兵: ${tower.maxSoldiers}</div>`;
+                    }
+                    if (tower.bounceCount) {
+                        stats += `<div>折射次数: ${tower.bounceCount}</div>
+                                  <div>折射衰减: ${tower.bounceDecay * 100}%</div>`;
+                    }
+                    if (tower.controlDuration) {
+                        stats += `<div>控制时间: ${tower.controlDuration/1000}秒</div>`;
+                    }
                     
                     item.innerHTML = `
                         <div class="encyclopedia-icon">${tower.icon}</div>
                         <div class="encyclopedia-name">${tower.name}</div>
                         <div class="encyclopedia-stats">
                             ${stats}
-                        </div>
-                        <div class="difficulty-indicator">
-                            ${tower.difficulty ? 
-                                Array.from({length: 3}, (_, i) => 
-                                    `<div class="difficulty-dot ${i < tower.difficulty ? 'active' : ''}"></div>`
-                                ).join('') : ''
-                            }
                         </div>
                         <div style="margin-top:10px;font-size:0.9rem;color:#ddd;">${tower.description}</div>
                     `;
@@ -981,11 +1221,6 @@
                         <div class="encyclopedia-stats">
                             ${stats}
                         </div>
-                        <div class="difficulty-indicator">
-                            ${Array.from({length: 3}, (_, i) => 
-                                `<div class="difficulty-dot ${i < enemy.difficulty ? 'active' : ''}"></div>`
-                            ).join('')}
-                        </div>
                         <div style="margin-top:10px;font-size:0.9rem;color:#ddd;">${enemy.description}</div>
                     `;
                     
@@ -1008,11 +1243,6 @@
                         <div class="encyclopedia-name">${levelData.name}</div>
                         <div class="encyclopedia-stats">
                             ${stats}
-                        </div>
-                        <div class="difficulty-indicator">
-                            ${Array.from({length: 4}, (_, i) => 
-                                `<div class="difficulty-dot ${i < level ? 'active' : ''}"></div>`
-                            ).join('')}
                         </div>
                         <div style="margin-top:10px;font-size:0.9rem;color:#ddd;">${levelData.description}</div>
                     `;
@@ -1052,7 +1282,12 @@
                     name: type.name,
                     size: type.size || 15,
                     flying: type.flying || false,
-                    effects: []
+                    effects: [],
+                    isAttacking: false,
+                    currentSpeed: type.speed * speedMultiplier,
+                    isControlled: false, // 是否被尤里塔控制
+                    controlledBy: null, // 被哪个塔控制
+                    controlEndTime: 0 // 控制结束时间
                 };
                 
                 gameState.enemies.push(enemy);
@@ -1062,7 +1297,7 @@
             function createTower(x, y, type) {
                 const towerData = towerTypes[type];
                 
-                gameState.towers.push({
+                const tower = {
                     x: x,
                     y: y,
                     type: type,
@@ -1073,8 +1308,84 @@
                     color: towerData.color,
                     level: 1,
                     maxLevel: towerData.maxLevel
-                });
+                };
                 
+                // 兵营特殊属性
+                if (type === 'barracks') {
+                    tower.maxSoldiers = towerData.maxSoldiers;
+                    tower.soldiers = [];
+                    tower.lastSpawn = 0;
+                    tower.soldierDamage = towerData.soldierDamage;
+                    tower.soldierAttackSpeed = towerData.soldierAttackSpeed;
+                    tower.soldierAttackRange = towerData.soldierAttackRange;
+                }
+                
+                // 火炮塔特殊属性
+                if (type === 'cannon') {
+                    tower.splashRadius = towerData.splashRadius;
+                    tower.splashDamage = towerData.splashDamage;
+                }
+                
+                // 雷电塔特殊属性
+                if (type === 'lightning') {
+                    tower.chainCount = towerData.chainCount;
+                    tower.chainRange = towerData.chainRange;
+                }
+                
+                // 导弹塔特殊属性
+                if (type === 'missile') {
+                    tower.splashRadius = towerData.splashRadius;
+                    tower.splashDamage = towerData.splashDamage;
+                }
+                
+                // 毒塔特殊属性
+                if (type === 'poison') {
+                    tower.poisonDuration = towerData.poisonDuration;
+                    tower.slowEffect = towerData.slowEffect;
+                    tower.percentDamage = towerData.percentDamage;
+                }
+                
+                // 离子炮特殊属性
+                if (type === 'ion') {
+                    tower.splashRadius = towerData.splashRadius;
+                    tower.splashDamage = towerData.splashDamage;
+                    tower.charge = 0; // 充能进度
+                    tower.maxCharge = 100; // 最大充能
+                }
+                
+                // 光棱塔特殊属性
+                if (type === 'prism') {
+                    tower.bounceCount = towerData.bounceCount;
+                    tower.bounceRange = towerData.bounceRange;
+                    tower.bounceDecay = towerData.bounceDecay;
+                }
+                
+                // 尤里塔特殊属性
+                if (type === 'yuri') {
+                    tower.controlDuration = towerData.controlDuration;
+                    tower.controlledEnemies = []; // 当前控制的敌人
+                }
+                
+				// 激光塔特殊属性
+                if (type === 'laser') {
+                    tower.target = null;
+                    tower.attackTime = 0;
+                }
+                
+                // 核弹塔特殊属性
+                if (type === 'nuke') {
+                    tower.lastNukeTime = 0;
+                }
+                
+                // 蓄能塔特殊属性
+                if (type === 'energizer') {
+                    tower.target = null;
+                    tower.combo = 0;
+                    tower.maxCombo = 10;
+                    tower.maxDamage = towerData.maxDamage;
+                }
+				
+                gameState.towers.push(tower);
                 gameState.gold -= towerData.cost;
                 updateStats();
                 
@@ -1087,13 +1398,221 @@
                 if (gameState.gold < 100) return;
                 if (gameState.selectedTower.level >= gameState.selectedTower.maxLevel) return;
                 
+                // 基础属性升级
                 gameState.selectedTower.damage += gameState.selectedTower.type === "poison" ? 4 : 10;
                 gameState.selectedTower.range += 15;
                 gameState.selectedTower.level++;
+                
+                // 兵营特殊升级（修复：独立升级）
+                if (gameState.selectedTower.type === "barracks") {
+                    gameState.selectedTower.soldierAttackRange += 10; // 增加士兵攻击范围
+                    gameState.selectedTower.range += 15; // 增加兵营索敌范围
+                    gameState.selectedTower.soldierDamage += 5; // 增加士兵伤害
+                    gameState.selectedTower.maxSoldiers++; // 增加最大士兵数
+                }
+                
+                // 火炮塔特殊升级
+                if (gameState.selectedTower.type === "cannon") {
+                    gameState.selectedTower.splashRadius += 10;
+                    gameState.selectedTower.splashDamage += 5;
+                }
+                
+                // 雷电塔特殊升级
+                if (gameState.selectedTower.type === "lightning") {
+                    gameState.selectedTower.chainCount++;
+                    gameState.selectedTower.chainRange += 10;
+                }
+                
+                // 导弹塔特殊升级
+                if (gameState.selectedTower.type === "missile") {
+                    gameState.selectedTower.splashRadius += 10;
+                    gameState.selectedTower.splashDamage += 5;
+                }
+                
+                // 毒塔特殊升级
+                if (gameState.selectedTower.type === "poison") {
+                    gameState.selectedTower.damage += 4;
+                    gameState.selectedTower.slowEffect *= 0.9;
+                    gameState.selectedTower.percentDamage += 0.005;
+                }
+                
+                // 离子炮特殊升级
+                if (gameState.selectedTower.type === "ion") {
+                    gameState.selectedTower.damage += 15;
+                    gameState.selectedTower.splashRadius += 10;
+                    gameState.selectedTower.splashDamage += 10;
+                }
+                
+				// 激光塔特殊升级
+                if (gameState.selectedTower.type === "laser") {
+                    gameState.selectedTower.damage += 8;
+                }
+                
+                // 蓄能塔特殊升级
+                if (gameState.selectedTower.type === "energizer") {
+                    gameState.selectedTower.damage += 5;
+                    gameState.selectedTower.maxDamage += 20;
+                    gameState.selectedTower.maxCombo += 2;
+                }
+				
+                // 光棱塔特殊升级
+                if (gameState.selectedTower.type === "prism") {
+                    gameState.selectedTower.damage += 10;
+                    gameState.selectedTower.bounceCount++;
+                    gameState.selectedTower.bounceRange += 10;
+                    gameState.selectedTower.bounceDecay *= 0.9;
+                }
+                
+                // 尤里塔特殊升级
+                if (gameState.selectedTower.type === "yuri") {
+                    gameState.selectedTower.controlDuration += 1000;
+                    gameState.selectedTower.cooldown -= 500;
+                }
+                
                 gameState.gold -= 100;
                 updateStats();
                 
+                // 添加升级特效
+                createUpgradeEffect(gameState.selectedTower.x, gameState.selectedTower.y);
+                
                 showStatusMessage(`升级成功! Lv.${gameState.selectedTower.level}`, "#29B6F6");
+            }
+            
+            // 创建升级特效
+            function createUpgradeEffect(x, y) {
+                const effect = {
+                    type: 'upgrade',
+                    x: x,
+                    y: y,
+                    radius: 20,
+                    color: "#FFD700",
+                    duration: 1000,
+                    startTime: Date.now(),
+                    particles: []
+                };
+                
+                // 创建粒子
+                for (let i = 0; i < 20; i++) {
+                    effect.particles.push({
+                        angle: Math.random() * Math.PI * 2,
+                        distance: Math.random() * 20,
+                        speed: 0.5 + Math.random() * 1,
+                        size: 2 + Math.random() * 4,
+                        color: `hsl(${Math.random() * 60 + 40}, 100%, 60%)`
+                    });
+                }
+                
+                gameState.effects.push(effect);
+            }
+            
+            // 兵营生成士兵
+            function spawnSoldier(barracks) {
+                if (barracks.soldiers.length >= barracks.maxSoldiers) return;
+                
+                // 在兵营周围生成士兵
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 30;
+                const soldier = {
+                    x: barracks.x + Math.cos(angle) * distance,
+                    y: barracks.y + Math.sin(angle) * distance,
+                    damage: barracks.soldierDamage,
+                    attackSpeed: barracks.soldierAttackSpeed,
+                    range: barracks.soldierAttackRange, // 士兵攻击范围
+                    sightRange: barracks.range, // 士兵索敌范围
+                    lastAttack: 0,
+                    target: null,
+                    barracks: barracks,
+                    color: "#2196F3"
+                };
+                
+                // 士兵生成后立即寻找目标（修复第一个兵不索敌问题）
+                let minDist = soldier.sightRange;
+                soldier.target = null;
+                
+                for (const enemy of gameState.enemies) {
+                    const dx = enemy.x - soldier.x;
+                    const dy = enemy.y - soldier.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < minDist) {
+                        minDist = dist;
+                        soldier.target = enemy;
+                    }
+                }
+                
+                barracks.soldiers.push(soldier);
+            }
+            
+            // 更新士兵状态
+            function updateSoldiers(timestamp) {
+                for (const tower of gameState.towers) {
+                    if (tower.type !== 'barracks') continue;
+                    
+                    // 定期生成士兵
+                    if (timestamp - tower.lastSpawn > tower.cooldown) {
+                        spawnSoldier(tower);
+                        tower.lastSpawn = timestamp;
+                    }
+                    
+                    // 更新士兵行为
+                    for (const soldier of tower.soldiers) {
+                        // 寻找目标敌人
+                        if (!soldier.target || soldier.target.health <= 0) {
+                            let minDist = soldier.sightRange; // 使用索敌范围
+                            soldier.target = null;
+                            
+                            for (const enemy of gameState.enemies) {
+                                const dx = enemy.x - soldier.x;
+                                const dy = enemy.y - soldier.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    soldier.target = enemy;
+                                }
+                            }
+                        }
+                        
+                        // 攻击目标
+                        if (soldier.target && timestamp - soldier.lastAttack > soldier.attackSpeed) {
+                            soldier.target.health -= soldier.damage;
+                            soldier.lastAttack = timestamp;
+                            
+                            // 创建攻击效果
+                            gameState.effects.push({
+                                type: 'melee',
+                                x: soldier.target.x,
+                                y: soldier.target.y,
+                                radius: 10,
+                                color: "#FF5252",
+                                duration: 200,
+                                startTime: timestamp
+                            });
+                        }
+                        
+                        // 向目标移动
+                        if (soldier.target) {
+                            const dx = soldier.target.x - soldier.x;
+                            const dy = soldier.target.y - soldier.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (dist > soldier.range * 0.8) {
+                                soldier.x += (dx / dist) * 0.5;
+                                soldier.y += (dy / dist) * 0.5;
+                            }
+                        } else {
+                            // 返回兵营
+                            const dx = tower.x - soldier.x;
+                            const dy = tower.y - soldier.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (dist > 30) {
+                                soldier.x += (dx / dist) * 0.3;
+                                soldier.y += (dy / dist) * 0.3;
+                            }
+                        }
+                    }
+                }
             }
             
             // 应用效果（减速、中毒）
@@ -1110,18 +1629,17 @@
                     type: effectType,
                     startTime: Date.now(),
                     duration: towerTypes[tower.type][effectType === "slow" ? "slowDuration" : "poisonDuration"],
-                    value: effectType === "slow" ? towerTypes[tower.type].slowEffect : tower.damage
+                    value: effectType === "slow" ? towerTypes[tower.type].slowEffect : tower.damage,
+                    percentDamage: tower.percentDamage // 毒塔百分比伤害
                 });
             }
             
             // 更新敌人效果
-            function updateEnemyEffects() {
-                const now = Date.now();
-                
+            function updateEnemyEffects(timestamp) {
                 for (const enemy of gameState.enemies) {
                     // 移除过期效果
                     enemy.effects = enemy.effects.filter(effect => {
-                        return now - effect.startTime < effect.duration;
+                        return timestamp - effect.startTime < effect.duration;
                     });
                     
                     // 应用效果
@@ -1132,7 +1650,8 @@
                         if (effect.type === "slow") {
                             speedMultiplier = Math.min(speedMultiplier, effect.value);
                         } else if (effect.type === "poison") {
-                            poisonDamage += effect.value / 60; // 每帧伤害
+                            // 固定伤害 + 百分比伤害
+                            poisonDamage += (effect.value + enemy.maxHealth * effect.percentDamage) / 60; // 每帧伤害
                         }
                     }
                     
@@ -1145,11 +1664,17 @@
                             gameState.gold += enemy.reward;
                         }
                     }
+                    
+                    // 检查控制效果
+                    if (enemy.isControlled && timestamp > enemy.controlEndTime) {
+                        enemy.isControlled = false;
+                        enemy.controlledBy = null;
+                    }
                 }
             }
             
-            // 更新敌人位置 - 修复失败判定bug
-            function updateEnemies(deltaTime) {
+            // 更新敌人位置
+            function updateEnemies(deltaTime, timestamp) {
                 for (let i = gameState.enemies.length - 1; i >= 0; i--) {
                     const enemy = gameState.enemies[i];
                     
@@ -1158,7 +1683,6 @@
                         gameState.lives--;
                         gameState.enemies.splice(i, 1);
                         
-                        // 修复bug：立即检查生命值是否<=0
                         if (gameState.lives <= 0) {
                             gameState.gameOver = true;
                             gameState.gameRunning = false;
@@ -1171,7 +1695,72 @@
                     // 敌人死亡
                     if (enemy.health <= 0) {
                         gameState.gold += enemy.reward;
+                        
+                        // 添加死亡特效
+                        gameState.effects.push({
+                            type: 'death',
+                            x: enemy.x,
+                            y: enemy.y,
+                            radius: enemy.size,
+                            color: enemy.color,
+                            duration: 500,
+                            startTime: Date.now()
+                        });
+                        
                         gameState.enemies.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // 被控制的敌人行为
+                    if (enemy.isControlled) {
+                        // 被控制的敌人会攻击其他敌人
+                        if (!enemy.target || enemy.target.health <= 0) {
+                            let minDist = enemy.size * 10;
+                            enemy.target = null;
+                            
+                            for (const otherEnemy of gameState.enemies) {
+                                if (otherEnemy === enemy || otherEnemy.isControlled) continue;
+                                
+                                const dx = otherEnemy.x - enemy.x;
+                                const dy = otherEnemy.y - enemy.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    enemy.target = otherEnemy;
+                                }
+                            }
+                        }
+                        
+                        // 攻击目标
+                        if (enemy.target && timestamp - enemy.lastAttack > 1000) {
+                            enemy.target.health -= 10;
+                            enemy.lastAttack = timestamp;
+                            
+                            // 创建攻击效果
+                            gameState.effects.push({
+                                type: 'melee',
+                                x: enemy.target.x,
+                                y: enemy.target.y,
+                                radius: 10,
+                                color: "#00BCD4",
+                                duration: 200,
+                                startTime: timestamp
+                            });
+                        }
+                        
+                        // 向目标移动
+                        if (enemy.target) {
+                            const dx = enemy.target.x - enemy.x;
+                            const dy = enemy.target.y - enemy.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (dist > enemy.size * 2) {
+                                enemy.x += (dx / dist) * enemy.currentSpeed * deltaTime;
+                                enemy.y += (dy / dist) * enemy.currentSpeed * deltaTime;
+                            }
+                        }
+                        
                         continue;
                     }
                     
@@ -1183,17 +1772,15 @@
                     const dy = targetY - enemy.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     
-                    const speed = enemy.currentSpeed || enemy.speed;
-                    
-                    if (dist < speed * deltaTime) {
+                    if (dist < enemy.currentSpeed * deltaTime) {
                         // 到达目标点，进入下一个路径点
                         enemy.x = targetX;
                         enemy.y = targetY;
                         enemy.pathIndex++;
                     } else {
                         // 否则正常移动
-                        enemy.x += (dx / dist) * speed * deltaTime;
-                        enemy.y += (dy / dist) * speed * deltaTime;
+                        enemy.x += (dx / dist) * enemy.currentSpeed * deltaTime;
+                        enemy.y += (dy / dist) * enemy.currentSpeed * deltaTime;
                     }
                 }
                 
@@ -1204,11 +1791,17 @@
             // 更新防御塔状态
             function updateTowers(timestamp, deltaTime) {
                 for (const tower of gameState.towers) {
+                    // 兵营由专门的函数处理
+                    if (tower.type === 'barracks') continue;
+                    
                     // 查找范围内的敌人
                     let target = null;
                     let minDist = tower.range;
                     
                     for (const enemy of gameState.enemies) {
+                        // 跳过被控制的敌人
+                        if (enemy.isControlled) continue;
+                        
                         const dx = enemy.x - tower.x;
                         const dy = enemy.y - tower.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -1219,8 +1812,211 @@
                         }
                     }
                     
-                    // 攻击敌人
-                    if (target && timestamp - tower.lastShot > tower.cooldown) {
+                    // 离子炮特殊处理
+                    if (tower.type === "ion") {
+                        // 充能
+                        tower.charge = Math.min(tower.maxCharge, tower.charge + deltaTime*0.5);
+                        
+                        if (target && tower.charge >= tower.maxCharge && timestamp - tower.lastShot > tower.cooldown) {
+                            // 发射离子炮
+                            gameState.projectiles.push({
+                                x: tower.x,
+                                y: tower.y,
+                                target: target,
+                                damage: tower.damage,
+                                splashRadius: tower.splashRadius,
+                                splashDamage: tower.splashDamage,
+                                color: "#9C27B0",
+                                speed: 6,
+                                effect: "ion"
+                            });
+                            
+                            tower.charge = 0;
+                            tower.lastShot = timestamp;
+                        }
+                    }
+					
+                    // 光棱塔特殊处理
+                    else if (tower.type === "prism") {
+                        if (target && timestamp - tower.lastShot > tower.cooldown) {
+                            // 创建光棱光束
+                            const bounceTargets = [target];
+                            let currentTarget = target;
+                            
+                            // 寻找折射目标
+                            for (let i = 1; i < tower.bounceCount; i++) {
+                                let nextTarget = null;
+                                let minBounceDist = tower.bounceRange;
+                                
+                                for (const enemy of gameState.enemies) {
+                                    if (bounceTargets.includes(enemy)) continue;
+                                    
+                                    const dx = enemy.x - currentTarget.x;
+                                    const dy = enemy.y - currentTarget.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    
+                                    if (dist < minBounceDist) {
+                                        minBounceDist = dist;
+                                        nextTarget = enemy;
+                                    }
+                                }
+                                
+                                if (nextTarget) {
+                                    bounceTargets.push(nextTarget);
+                                    currentTarget = nextTarget;
+                                } else {
+                                    break;
+                                }
+                            }
+                            
+                            // 对所有折射目标造成伤害
+                            let damage = tower.damage;
+                            for (const t of bounceTargets) {
+                                t.health -= damage;
+                                
+                                // 创建光束效果
+                                gameState.effects.push({
+                                    type: 'prism',
+                                    startX: tower.x,
+                                    startY: tower.y,
+                                    endX: t.x,
+                                    endY: t.y,
+                                    color: "#FF5252",
+                                    duration: 300,
+                                    startTime: timestamp
+                                });
+                                
+                                // 伤害衰减
+                                damage *= (1 - tower.bounceDecay);
+                            }
+                            
+                            tower.lastShot = timestamp;
+                        }
+                    }
+					
+					// 激光塔特殊处理
+                    else if (tower.type === "laser") {
+                        if (target) {
+                            // 如果目标存在，持续攻击
+                            if (tower.target !== target) {
+                                tower.target = target;
+                                tower.attackTime = 0;
+                            }
+                            
+                            // 每帧造成伤害
+                            target.health -= tower.damage * deltaTime / 60;
+                            tower.attackTime += deltaTime;
+                            
+                            // 创建激光效果
+                            gameState.effects.push({
+                                type: 'laser',
+                                startX: tower.x,
+                                startY: tower.y,
+                                endX: target.x,
+                                endY: target.y,
+                                color: "#FF5252",
+                                duration: 100,
+                                startTime: timestamp
+                            });
+                        } else {
+                            tower.target = null;
+                            tower.attackTime = 0;
+                        }
+                    } 
+                    // 核弹塔特殊处理
+                    else if (tower.type === "nuke") {
+                        if (timestamp - tower.lastShot > tower.cooldown) {
+                            // 对全屏敌人造成伤害
+                            for (const enemy of gameState.enemies) {
+                                enemy.health -= tower.damage;
+                            }
+                            
+                            // 创建核爆效果
+                            gameState.effects.push({
+                                type: 'nuke',
+                                x: canvas.width / 2,
+                                y: canvas.height / 2,
+                                radius: 500,
+                                color: "#00E676",
+                                duration: 2000,
+                                startTime: timestamp
+                            });
+                            
+                            tower.lastShot = timestamp;
+                            showStatusMessage("背背背背起了行囊!", "#00E676", 1500);
+                        }
+                    }
+                    // 蓄能塔特殊处理
+                    else if (tower.type === "energizer") {
+                        if (target) {
+                            if (tower.target !== target) {
+                                tower.target = target;
+                                tower.combo = 0;
+                            }
+                            
+                            // 攻击敌人
+                            if (timestamp - tower.lastShot > tower.cooldown) {
+                                // 计算伤害（基础伤害 + 连击加成）
+                                const bonusDamage = tower.combo * (tower.maxDamage - tower.damage) / tower.maxCombo;
+                                const totalDamage = tower.damage + bonusDamage;
+                                
+                                target.health -= totalDamage;
+                                tower.lastShot = timestamp;
+                                
+                                // 增加连击数（最多10次）
+                                if (tower.combo < tower.maxCombo) {
+                                    tower.combo++;
+                                }
+                                
+                                // 创建攻击效果
+                                gameState.projectiles.push({
+                                    x: tower.x,
+                                    y: tower.y,
+                                    target: target,
+                                    damage: totalDamage,
+                                    color: "#FF4081",
+                                    speed: 5
+                                });
+                            }
+                        } else {
+                            tower.target = null;
+                            tower.combo = 0;
+                        }
+                    }
+					
+                    // 尤里塔特殊处理
+                    else if (tower.type === "yuri") {
+                        if (target && timestamp - tower.lastShot > tower.cooldown) {
+                            // 控制敌人
+                            target.isControlled = true;
+                            target.controlledBy = tower;
+                            target.controlEndTime = timestamp + tower.controlDuration;
+                            
+                            // 添加到控制列表
+                            tower.controlledEnemies.push(target);
+                            
+                            // 创建控制效果
+                            gameState.effects.push({
+                                type: 'control',
+                                x: target.x,
+                                y: target.y,
+                                radius: 20,
+                                color: "#00BCD4",
+                                duration: 1000,
+                                startTime: timestamp
+                            });
+                            
+                            tower.lastShot = timestamp;
+                        }
+                        
+                        // 清理控制列表中的无效敌人
+                        tower.controlledEnemies = tower.controlledEnemies.filter(e => 
+                            e.isControlled && e.controlEndTime > timestamp
+                        );
+                    }
+                    // 其他防御塔
+                    else if (target && timestamp - tower.lastShot > tower.cooldown) {
+                        // 寒冰塔
                         if (tower.type === "ice") {
                             // 寒冰塔应用减速效果
                             applyEffect(target, "slow", tower);
@@ -1235,22 +2031,106 @@
                                 speed: 4,
                                 effect: "ice"
                             });
-                        } else if (tower.type === "poison") {
-                            // 毒塔应用中毒效果
+                        } 
+                        // 火炮塔
+                        else if (tower.type === "cannon") {
+                            // 创建炮弹效果
+                            gameState.projectiles.push({
+                                x: tower.x,
+                                y: tower.y,
+                                target: target,
+                                damage: tower.damage,
+                                splashRadius: tower.splashRadius,
+                                splashDamage: tower.splashDamage,
+                                color: tower.color,
+                                speed: 3,
+                                effect: "cannon"
+                            });
+                        }
+                        // 雷电塔
+                        else if (tower.type === "lightning") {
+                            // 创建闪电链效果
+                            const chainTargets = [target];
+                            let currentTarget = target;
+                            
+                            // 寻找连锁目标
+                            for (let i = 1; i < tower.chainCount; i++) {
+                                let nextTarget = null;
+                                let minChainDist = tower.chainRange;
+                                
+                                for (const enemy of gameState.enemies) {
+                                    if (chainTargets.includes(enemy)) continue;
+                                    
+                                    const dx = enemy.x - currentTarget.x;
+                                    const dy = enemy.y - currentTarget.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    
+                                    if (dist < minChainDist) {
+                                        minChainDist = dist;
+                                        nextTarget = enemy;
+                                    }
+                                }
+                                
+                                if (nextTarget) {
+                                    chainTargets.push(nextTarget);
+                                    currentTarget = nextTarget;
+                                } else {
+                                    break;
+                                }
+                            }
+                            
+                            // 对所有连锁目标造成伤害
+                            for (const t of chainTargets) {
+                                t.health -= tower.damage;
+                                
+                                // 创建闪电效果
+                                gameState.effects.push({
+                                    type: 'lightning',
+                                    startX: tower.x,
+                                    startY: tower.y,
+                                    endX: t.x,
+                                    endY: t.y,
+                                    color: "#FFEB3B",
+                                    duration: 200,
+                                    startTime: timestamp
+                                });
+                            }
+                        } 
+                        // 导弹塔
+                        else if (tower.type === "missile") {
+                            // 创建导弹
+                            gameState.projectiles.push({
+                                x: tower.x,
+                                y: tower.y,
+                                target: target,
+                                damage: tower.damage,
+                                splashRadius: tower.splashRadius,
+                                splashDamage: tower.splashDamage,
+                                color: "#FF9800",
+                                speed: 3,
+                                effect: "missile"
+                            });
+                        }
+                        // 毒塔
+                        else if (tower.type === "poison") {
+                            // 应用中毒效果
                             applyEffect(target, "poison", tower);
+                            applyEffect(target, "slow", tower);
                             
                             // 创建毒云效果
                             gameState.effects.push({
+                                type: 'poison',
                                 x: target.x,
                                 y: target.y,
-                                radius: 20,
+                                radius: 40,
                                 color: "#66BB6A",
                                 duration: 1000,
                                 startTime: timestamp,
                                 target: target
                             });
-                        } else {
-                            // 其他防御塔正常攻击
+                        } 
+                        // 其他防御塔
+                        else {
                             gameState.projectiles.push({
                                 x: tower.x,
                                 y: tower.y,
@@ -1288,6 +2168,84 @@
                                 radius: 30,
                                 color: "#29B6F6",
                                 duration: 500,
+                                startTime: Date.now()
+                            });
+                        } 
+                        // 火炮爆炸效果
+                        else if (proj.effect === "cannon") {
+                            // 对爆炸范围内的敌人造成伤害
+                            for (const enemy of gameState.enemies) {
+                                const dx = enemy.x - proj.target.x;
+                                const dy = enemy.y - proj.target.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist < proj.splashRadius) {
+                                    // 伤害随距离衰减
+                                    const damageMultiplier = 1 - (dist / proj.splashRadius);
+                                    enemy.health -= proj.splashDamage * damageMultiplier;
+                                }
+                            }
+                            
+                            // 创建爆炸效果
+                            gameState.effects.push({
+                                type: 'explosion',
+                                x: proj.target.x,
+                                y: proj.target.y,
+                                radius: proj.splashRadius,
+                                color: "#FF5722",
+                                duration: 1000,
+                                startTime: Date.now()
+                            });
+                        }
+                        // 导弹爆炸效果
+                        else if (proj.effect === "missile") {
+                            // 对爆炸范围内的敌人造成伤害
+                            for (const enemy of gameState.enemies) {
+                                const dx = enemy.x - proj.target.x;
+                                const dy = enemy.y - proj.target.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist < proj.splashRadius) {
+                                    // 伤害随距离衰减
+                                    const damageMultiplier = 1 - (dist / proj.splashRadius);
+                                    enemy.health -= proj.splashDamage * damageMultiplier;
+                                }
+                            }
+                            
+                            // 创建爆炸效果
+                            gameState.effects.push({
+                                type: 'explosion',
+                                x: proj.target.x,
+                                y: proj.target.y,
+                                radius: proj.splashRadius,
+                                color: "#FF5722",
+                                duration: 1000,
+                                startTime: Date.now()
+                            });
+                        }
+                        // 离子炮爆炸效果
+                        else if (proj.effect === "ion") {
+                            // 对爆炸范围内的敌人造成伤害
+                            for (const enemy of gameState.enemies) {
+                                const dx = enemy.x - proj.target.x;
+                                const dy = enemy.y - proj.target.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (dist < proj.splashRadius) {
+                                    // 伤害随距离衰减
+                                    const damageMultiplier = 1;
+                                    enemy.health -= proj.splashDamage * damageMultiplier;
+                                }
+                            }
+                            
+                            // 创建爆炸效果
+                            gameState.effects.push({
+                                type: 'ion-explosion',
+                                x: proj.target.x,
+                                y: proj.target.y,
+                                radius: proj.splashRadius,
+                                color: "#9C27B0",
+                                duration: 1000,
                                 startTime: Date.now()
                             });
                         }
@@ -1445,6 +2403,12 @@
                             effectY -= 20;
                         }
                     }
+                    
+                    // 被控制的敌人
+                    if (enemy.isControlled) {
+                        ctx.fillStyle = '#00BCD4';
+                        ctx.fillText('🧠', enemy.x, effectY);
+                    }
                 }
             }
             
@@ -1469,7 +2433,12 @@
                     else if (tower.type === "mage") icon = "🔮";
                     else if (tower.type === "barracks") icon = "🛡️";
                     else if (tower.type === "ice") icon = "❄️";
+                    else if (tower.type === "lightning") icon = "⚡";
+                    else if (tower.type === "missile") icon = "🚀";
                     else if (tower.type === "poison") icon = "☠️";
+                    else if (tower.type === "ion") icon = "🔋";
+                    else if (tower.type === "prism") icon = "✨";
+                    else if (tower.type === "yuri") icon = "🧠";
                     
                     ctx.fillStyle = '#000';
                     ctx.font = '20px Arial';
@@ -1480,6 +2449,22 @@
                     ctx.fillStyle = '#FFD700';
                     ctx.font = 'bold 12px Arial';
                     ctx.fillText(`Lv.${tower.level}`, tower.x, tower.y - 25);
+                    
+                    // 离子炮绘制充能条
+                    if (tower.type === "ion") {
+                        const chargePercent = tower.charge / tower.maxCharge;
+                        ctx.fillStyle = '#555';
+                        ctx.fillRect(tower.x - 25, tower.y - 45, 50, 8);
+                        ctx.fillStyle = chargePercent < 1 ? '#9C27B0' : '#FFD700';
+                        ctx.fillRect(tower.x - 25, tower.y - 45, 50 * chargePercent, 8);
+                    }
+                    
+                    // 尤里塔绘制控制数量
+                    if (tower.type === "yuri") {
+                        ctx.fillStyle = '#00BCD4';
+                        ctx.font = 'bold 12px Arial';
+                        ctx.fillText(`控制: ${tower.controlledEnemies.length}`, tower.x, tower.y - 60);
+                    }
                     
                     // 如果选中，绘制攻击范围
                     if (gameState.selectedTower === tower) {
@@ -1492,21 +2477,80 @@
                 }
             }
             
+            // 绘制士兵
+            function drawSoldiers() {
+                for (const tower of gameState.towers) {
+                    if (tower.type !== 'barracks') continue;
+                    
+                    for (const soldier of tower.soldiers) {
+                        // 绘制士兵
+                        ctx.fillStyle = soldier.color;
+                        ctx.beginPath();
+                        ctx.arc(soldier.x, soldier.y, 10, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 绘制士兵图标
+                        ctx.fillStyle = '#000';
+                        ctx.font = '15px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('💂', soldier.x, soldier.y + 3);
+                        
+                        // 绘制攻击范围（当有目标时）
+                        if (soldier.target) {
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.arc(soldier.x, soldier.y, soldier.range, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
             // 绘制子弹
             function drawProjectiles() {
                 for (const proj of gameState.projectiles) {
-                    ctx.strokeStyle = proj.color;
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(proj.x, proj.y);
-                    ctx.lineTo(proj.target.x, proj.target.y);
-                    ctx.stroke();
-                    
-                    // 绘制子弹头
-                    ctx.fillStyle = proj.color;
-                    ctx.beginPath();
-                    ctx.arc(proj.x, proj.y, 4, 0, Math.PI * 2);
-                    ctx.fill();
+                    // 导弹绘制
+                    if (proj.effect === "missile") {
+                        ctx.fillStyle = proj.color;
+                        ctx.beginPath();
+                        ctx.arc(proj.x, proj.y, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 导弹尾焰
+                        ctx.strokeStyle = "#FF5722";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(proj.x, proj.y);
+                        
+                        // 计算导弹方向
+                        const dx = proj.target.x - proj.x;
+                        const dy = proj.target.y - proj.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist > 0) {
+                            ctx.lineTo(
+                                proj.x - (dx / dist) * 15,
+                                proj.y - (dy / dist) * 15
+                            );
+                        }
+                        ctx.stroke();
+                    } 
+                    // 其他子弹
+                    else {
+                        ctx.strokeStyle = proj.color;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(proj.x, proj.y);
+                        ctx.lineTo(proj.target.x, proj.target.y);
+                        ctx.stroke();
+                        
+                        // 绘制子弹头
+                        ctx.fillStyle = proj.color;
+                        ctx.beginPath();
+                        ctx.arc(proj.x, proj.y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
             }
             
@@ -1516,24 +2560,253 @@
                 
                 for (const effect of gameState.effects) {
                     const elapsed = now - effect.startTime;
-                    const progress = elapsed / effect.duration;
+                    const progress = Math.min(1, elapsed / effect.duration); // 确保progress不超过1
                     
                     // 绘制毒云效果
-                    if (effect.color === "#66BB6A") {
+                    if (effect.type === 'poison') {
                         ctx.globalAlpha = 1 - progress * 0.8;
-                        ctx.fillStyle = effect.color;
+                        ctx.fillStyle = "#66BB6A";
                         ctx.beginPath();
                         ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
                         ctx.fill();
                     }
                     // 绘制冰弹效果
-                    else if (effect.color === "#29B6F6") {
+                    else if (effect.type === 'ice') {
                         ctx.globalAlpha = 1 - progress;
-                        ctx.strokeStyle = effect.color;
+                        ctx.strokeStyle = "#29B6F6";
                         ctx.lineWidth = 3;
                         ctx.beginPath();
                         ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
                         ctx.stroke();
+                    }
+                    // 绘制闪电效果
+                    else if (effect.type === 'lightning') {
+                        ctx.globalAlpha = 1;
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(effect.startX, effect.startY);
+                        
+                        // 创建锯齿状闪电效果
+                        const dx = effect.endX - effect.startX;
+                        const dy = effect.endY - effect.startY;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const segments = 8;
+                        
+                        for (let i = 0; i <= segments; i++) {
+                            const t = i / segments;
+                            const offsetX = (Math.random() - 0.5) * 10;
+                            const offsetY = (Math.random() - 0.5) * 10;
+                            const x = effect.startX + dx * t + offsetX;
+                            const y = effect.startY + dy * t + offsetY;
+                            
+                            if (i === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        }
+                        
+                        ctx.stroke();
+                    }
+                    // 绘制爆炸效果
+                    else if (effect.type === 'explosion') {
+                        // 爆炸闪光效果
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.fillStyle = effect.color;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * progress, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 爆炸冲击波
+                        ctx.globalAlpha = (1 - progress) * 0.5;
+                        ctx.strokeStyle = "#FFEB3B";
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * progress * 1.2, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // 爆炸碎片
+                        if (progress < 0.3) {
+                            ctx.globalAlpha = 1 - progress * 3;
+                            ctx.fillStyle = "#FF9800";
+                            for (let i = 0; i < 8; i++) {
+                                const angle = Math.PI * 2 * i / 8;
+                                const distance = effect.radius * progress * 1.5;
+                                const x = effect.x + Math.cos(angle) * distance;
+                                const y = effect.y + Math.sin(angle) * distance;
+                                
+                                ctx.beginPath();
+                                ctx.arc(
+                                    x, y,
+                                    3 + Math.random() * 4,
+                                    0,
+                                    Math.PI * 2
+                                );
+                                ctx.fill();
+                            }
+                        }
+                    }
+					
+					// 绘制激光效果
+                    else if (effect.type === 'laser') {
+                        ctx.strokeStyle = "#FF5252";
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.moveTo(effect.startX, effect.startY);
+                        ctx.lineTo(effect.endX, effect.endY);
+                        ctx.stroke();
+                        
+                        // 绘制激光光晕
+                        ctx.globalAlpha = 0.3;
+                        ctx.lineWidth = 12;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1.0;
+                    }
+                    // 绘制核爆效果
+                    else if (effect.type === 'nuke') {
+                        ctx.globalAlpha = 1 - progress * 0.8;
+                        
+                        // 绘制冲击波
+                        ctx.strokeStyle = "#00E676";
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * progress, 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // 绘制蘑菇云
+                        ctx.fillStyle = "#00E676";
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y - effect.radius * progress * 0.3, effect.radius * progress * 0.4, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y - effect.radius * progress * 0.6, effect.radius * progress * 0.3, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.globalAlpha = 1.0;
+                    }
+					
+                    // 绘制近战攻击效果
+                    else if (effect.type === 'melee') {
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.fillStyle = effect.color;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    // 绘制升级特效
+                    else if (effect.type === 'upgrade') {
+                        ctx.globalAlpha = 1 - progress;
+                        
+                        // 绘制中心光环
+                        ctx.fillStyle = effect.color;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * (1 + progress), 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 绘制粒子
+                        for (const particle of effect.particles) {
+                            const angle = particle.angle;
+                            const distance = particle.distance + particle.speed * elapsed / 20;
+                            
+                            ctx.fillStyle = particle.color;
+                            ctx.beginPath();
+                            ctx.arc(
+                                effect.x + Math.cos(angle) * distance,
+                                effect.y + Math.sin(angle) * distance,
+                                particle.size,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.fill();
+                        }
+                    }
+                    // 绘制死亡特效
+                    else if (effect.type === 'death') {
+                        ctx.globalAlpha = 1 - progress;
+                        
+                        // 绘制爆炸环
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * (1 + progress * 2), 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        // 绘制内部爆炸
+                        ctx.fillStyle = effect.color;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * progress, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 绘制粒子
+                        ctx.fillStyle = "#FFD700";
+                        for (let i = 0; i < 10; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const distance = effect.radius * progress * 2;
+                            ctx.beginPath();
+                            ctx.arc(
+                                effect.x + Math.cos(angle) * distance,
+                                effect.y + Math.sin(angle) * distance,
+                                2,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.fill();
+                        }
+                    }
+                    // 绘制光棱效果
+                    else if (effect.type === 'prism') {
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.moveTo(effect.startX, effect.startY);
+                        ctx.lineTo(effect.endX, effect.endY);
+                        ctx.stroke();
+                        
+                        // 绘制光晕
+                        ctx.globalAlpha = 0.3;
+                        ctx.lineWidth = 12;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1.0;
+                    }
+                    // 绘制控制效果
+                    else if (effect.type === 'control') {
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * (1 + progress), 0, Math.PI * 2);
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = effect.color;
+                        ctx.font = '20px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🧠', effect.x, effect.y + 5);
+                    }
+                    // 绘制离子炮爆炸效果
+                    else if (effect.type === 'ion-explosion') {
+                        // 爆炸闪光效果
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.fillStyle = effect.color;
+                        ctx.beginPath();
+                        ctx.arc(effect.x, effect.y, effect.radius * progress, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // 绘制离子效果
+                        for (let i = 0; i < 10; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const distance = effect.radius * progress * 1.5;
+                            ctx.beginPath();
+                            ctx.arc(
+                                effect.x + Math.cos(angle) * distance,
+                                effect.y + Math.sin(angle) * distance,
+                                3,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.fill();
+                        }
                     }
                 }
                 
@@ -1579,6 +2852,13 @@
                     ctx.fillText('你的城堡被敌人攻陷了', canvas.width / 2, canvas.height / 2 + 30);
                     
                     ctx.fillText('点击屏幕重新开始', canvas.width / 2, canvas.height / 2 + 80);
+                    
+                    // 添加失败动画
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, 100 + Math.sin(Date.now()/200)*20, 0, Math.PI * 2);
+                    ctx.stroke();
                 }
                 
                 // 游戏胜利信息
@@ -1596,6 +2876,26 @@
                     ctx.fillText('你成功保卫了王国！', canvas.width / 2, canvas.height / 2 + 30);
                     
                     ctx.fillText('点击屏幕重新开始', canvas.width / 2, canvas.height / 2 + 80);
+                    
+                    // 添加胜利动画
+                    ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, 100 + Math.sin(Date.now()/200)*20, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // 添加烟花粒子
+                    ctx.fillStyle = "#FFD700";
+                    for (let i = 0; i < 20; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = 150 + Math.random() * 50;
+                        const x = canvas.width / 2 + Math.cos(angle) * distance;
+                        const y = canvas.height / 2 + Math.sin(angle) * distance;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 2 + Math.random() * 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
                 
                 // 关卡完成信息
@@ -1609,7 +2909,7 @@
                     ctx.fillText('关卡完成!', canvas.width / 2, canvas.height / 2 - 50);
                     
                     ctx.fillStyle = '#FFF';
-                    ctx.font = '24px Arial';
+                    ctx.font = '24极 Arial';
                     ctx.fillText(`恭喜通过第${gameState.currentLevel}关`, canvas.width / 2, canvas.height / 2);
                     
                     if (gameState.currentLevel < gameState.maxLevel) {
@@ -1617,6 +2917,13 @@
                     } else {
                         ctx.fillText('你已完成所有关卡！', canvas.width / 2, canvas.height / 2 + 50);
                     }
+                    
+                    // 添加庆祝动画
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(canvas.width / 2, canvas.height / 2, 100 + Math.sin(Date.now()/200)*20, 0, Math.PI * 2);
+                    ctx.stroke();
                 }
             }
             
@@ -1624,12 +2931,12 @@
             function updateStats() {
                 goldDisplay.textContent = gameState.gold;
                 livesDisplay.textContent = gameState.lives;
-                waveDisplay.textContent = gameState.wave;
+                waveDisplay.textContent = gameState.wave-1;
                 maxWaveDisplay.textContent = gameState.maxWave;
                 levelDisplay.textContent = gameState.currentLevel;
                 
                 // 更新按钮状态
-                nextWaveBtn.disabled = !gameState.gameRunning || gameState.enemies.length > 0;
+                nextWaveBtn.disabled = !gameState.gameRunning || gameState.enemies.length > 0 || gameState.isWaveActive;
                 
                 // 更新升级按钮状态
                 if (gameState.selectedTower) {
@@ -1642,6 +2949,8 @@
             
             // 开始下一波敌人
             function startNextWave() {
+                // 修复：只在游戏运行时才触发下一波
+                if (!gameState.gameRunning) return;
                 if (gameState.gameOver || gameState.gameWon || gameState.levelComplete) return;
                 
                 if (gameState.wave > gameState.maxWave) return;
@@ -1651,15 +2960,24 @@
                 
                 if (!waveConfig) return;
                 
+                // 标记波次开始
+                gameState.isWaveActive = true;
+                
                 // 生成敌人
                 for (let i = 0; i < waveConfig.count; i++) {
-                    setTimeout(() => createEnemy(waveConfig.type), i * waveConfig.delay);
+                    setTimeout(() => {
+                        createEnemy(waveConfig.type);
+                        // 检查是否所有敌人都已生成
+                        if (i === waveConfig.count - 1) {
+                            gameState.isWaveActive = false;
+                        }
+                    }, i * waveConfig.delay);
                 }
                 
                 gameState.wave++;
                 
                 // 检查是否完成所有波次
-                if (gameState.wave > gameState.maxWave) {
+                if (gameState.wave > gameState.maxWave+1) {
                     setTimeout(() => {
                         // 完成当前关卡
                         gameState.levelComplete = true;
@@ -1678,10 +2996,12 @@
                 gameState.wave = 1;
                 gameState.enemies = [];
                 gameState.towers = [];
+                gameState.soldiers = [];
                 gameState.projectiles = [];
                 gameState.effects = [];
                 gameState.selectedTowerType = null;
                 gameState.selectedTower = null;
+                gameState.isWaveActive = false;
                 
                 // 根据难度调整初始金币和生命值
                 const difficultyFactor = 1 - (gameState.difficulty - 1) * 0.1;
@@ -1689,7 +3009,7 @@
                 gameState.lives = Math.floor(5 * difficultyFactor);
                 
                 // 取消所有选中的防御塔
-                towerOptions.forEach(option => option.classList.remove('selected'));
+                towerOption.forEach(option => option.classList.remove('selected'));
                 
                 initPath();
                 updateStats();
@@ -1713,23 +3033,25 @@
                 drawEffects();
                 drawEnemies();
                 drawTowers();
+                drawSoldiers();
                 drawProjectiles();
                 drawUI();
                 
                 // 更新游戏状态
                 if (gameState.gameRunning && !gameState.gameOver && !gameState.gameWon && !gameState.levelComplete) {
-                    updateEnemyEffects();
-                    updateEnemies(deltaTime);
+                    updateEnemyEffects(timestamp);
+                    updateEnemies(deltaTime, timestamp);
                     
                     // 如果游戏结束则不再更新其他状态
                     if (gameState.gameOver) return;
                     
                     updateTowers(timestamp, deltaTime);
+                    updateSoldiers(timestamp);
                     updateProjectiles(deltaTime);
                     updateEffects(timestamp);
                     updateStats();
                     
-                    // 检查游戏失败条件（作为备份）
+                    // 检查游戏失败条件
                     if (gameState.lives <= 0) {
                         gameState.gameOver = true;
                         gameState.gameRunning = false;
@@ -1737,7 +3059,7 @@
                     }
                     
                     // 检查是否完成所有波次
-                    if (gameState.wave > gameState.maxWave && gameState.enemies.length === 0) {
+                    if (gameState.wave > gameState.maxWave+1 && gameState.enemies.length === 0 && !gameState.isWaveActive) {
                         gameState.levelComplete = true;
                         gameState.gameRunning = false;
                         startBtn.textContent = gameState.currentLevel < gameState.maxLevel ? "下一关" : "重新开始";
@@ -1755,6 +3077,7 @@
                 gameState.wave = 1;
                 gameState.enemies = [];
                 gameState.towers = [];
+                gameState.soldiers = [];
                 gameState.projectiles = [];
                 gameState.effects = [];
                 gameState.selectedTowerType = null;
@@ -1766,13 +3089,14 @@
                 gameState.lastTime = 0;
                 gameState.currentLevel = 1;
                 gameState.difficulty = 1;
+                gameState.isWaveActive = false;
                 
                 initPath();
                 updateStats();
                 
                 // 取消所有选中的防御塔
-                towerOptions.forEach(option => option.classList.remove('selected'));
-                levelOptions.forEach((opt, i) => {
+                towerOption.forEach(option => option.classList.remove('selected'));
+                levelOption.forEach((opt, i) => {
                     opt.classList.toggle('selected', i === 0);
                 });
                 
@@ -1810,10 +3134,10 @@
             
             upgradeBtn.addEventListener('click', upgradeTower);
             
-            towerOptions.forEach(option => {
+            towerOption.forEach(option => {
                 option.addEventListener('click', () => {
                     // 取消所有选中的防御塔
-                    towerOptions.forEach(opt => opt.classList.remove('selected'));
+                    towerOption.forEach(opt => opt.classList.remove('selected'));
                     
                     // 选中当前防御塔
                     option.classList.add('selected');
@@ -1831,21 +3155,33 @@
                 });
             });
             
-            levelOptions.forEach(option => {
+            levelOption.forEach(option => {
                 option.addEventListener('click', () => {
                     // 取消所有选中的关卡
-                    levelOptions.forEach(opt => opt.classList.remove('selected'));
+                    levelOption.forEach(opt => opt.classList.remove('selected'));
                     
                     // 选中当前关卡
                     option.classList.add('selected');
                     gameState.currentLevel = parseInt(option.dataset.level);
                     
-                    // 每关增加难度
-                    gameState.difficulty = gameState.currentLevel;
-                    
                     // 重新开始游戏
                     startNewLevel();
                     showStatusMessage(`已选择: ${levels[gameState.currentLevel].name}`, "#29B6F6");
+                });
+            });
+            
+            difficultyOption.forEach(option => {
+                option.addEventListener('click', () => {
+                    // 取消所有选中的难度
+                    difficultyOption.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // 选中当前难度
+                    option.classList.add('selected');
+                    gameState.difficulty = parseInt(option.dataset.difficulty);
+                    
+                    // 重新开始游戏
+                    startNewLevel();
+                    showStatusMessage(`已选择: ${option.textContent}难度`, "#FFD700");
                 });
             });
             
@@ -1919,7 +3255,7 @@
                 gameState.selectedTower = null;
                 
                 // 尝试放置防御塔
-                if (gameState.selectedTowerType && gameState.gold >= towerTypes[gameState.selectedTowerType].cost) {
+                if (gameState.selectedTowerType && towerTypes[gameState.selectedTowerType] && gameState.gold >= towerTypes[gameState.selectedTowerType].cost) {
                     // 检查是否在路径上
                     let onPath = false;
                     for (let i = 0; i < gameState.path.length - 1; i++) {
@@ -1966,7 +3302,7 @@
                     // 不在路径上才能放置
                     if (!onPath) {
                         createTower(x, y, gameState.selectedTowerType);
-                        towerOptions.forEach(opt => opt.classList.remove('selected'));
+                        towerOption.forEach(opt => opt.classList.remove('selected'));
                         gameState.selectedTowerType = null;
                     } else {
                         showStatusMessage("不能建造在路径上!", "#F44336");
@@ -1993,17 +3329,154 @@
                         const canUpgrade = tower.level < tower.maxLevel;
                         const upgradeCost = 100;
                         
-                        upgradeTooltip.innerHTML = `
-                            <div>${towerTypes[tower.type].name} Lv.${tower.level}</div>
-                            <div>伤害: ${tower.damage}</div>
+                        let upgradeInfo = `<div>${towerTypes[tower.type].name} Lv.${tower.level}</div>
+                            <div>伤害: ${tower.damage || '特殊'}</div>
                             <div>范围: ${tower.range}</div>
-                            <div>最大等级: ${tower.maxLevel}</div>
-                            ${canUpgrade ? 
-                                `<div>升级费用: $${upgradeCost}</div>
-                                 <div>升级后伤害: ${tower.damage + (tower.type === "poison" ? 4 : 10)}</div>
-                                 <div>升级后范围: ${tower.range + 15}</div>` : 
-                                `<div style="color:#FFD700;">已达最大等级</div>`}
-                        `;
+                            <div>最大等级: ${tower.maxLevel}</div>`;
+                        
+                        // 兵营特殊信息
+                        if (tower.type === 'barracks') {
+                            upgradeInfo += `<div>士兵数量: ${tower.soldiers.length}/${tower.maxSoldiers}</div>
+                                            <div>士兵伤害: ${tower.soldierDamage}</div>
+                                            <div>士兵攻击范围: ${tower.soldierAttackRange}</div>`;
+                        }
+                        
+                        // 火炮塔特殊信息
+                        if (tower.type === 'cannon') {
+                            upgradeInfo += `<div>爆炸范围: ${tower.splashRadius}</div>
+                                           <div>溅射伤害: ${tower.splashDamage}</div>`;
+                        }
+                        
+                        // 雷电塔特殊信息
+                        if (tower.type === 'lightning') {
+                            upgradeInfo += `<div>连锁数量: ${tower.chainCount}</div>
+                                           <div>连锁范围: ${tower.chainRange}</div>`;
+                        }
+                        
+                        // 导弹塔特殊信息
+                        if (tower.type === 'missile') {
+                            upgradeInfo += `<div>爆炸范围: ${tower.splashRadius}</div>
+                                           <div>溅射伤害: ${tower.splashDamage}</div>`;
+                        }
+                        
+                        // 毒塔特殊信息
+                        if (tower.type === 'poison') {
+                            upgradeInfo += `<div>每秒伤害: ${tower.damage}</div>
+                                           <div>百分比伤害: ${tower.percentDamage * 100}%</div>
+                                           <div>减速效果: ${(1 - tower.slowEffect) * 100}%</div>`;
+                        }
+                        
+                        // 离子炮特殊信息
+                        if (tower.type === 'ion') {
+                            upgradeInfo += `<div>充能伤害: ${tower.damage}</div>
+                                           <div>爆炸范围: ${tower.splashRadius}</div>
+                                           <div>溅射伤害: ${tower.splashDamage}</div>`;
+                        }
+                        
+                        // 光棱塔特殊信息
+                        if (tower.type === 'prism') {
+                            upgradeInfo += `<div>折射次数: ${tower.bounceCount}</div>
+                                           <div>折射范围: ${tower.bounceRange}</div>
+                                           <div>伤害衰减: ${tower.bounceDecay * 100}%</div>`;
+                        }
+                        
+                        // 尤里塔特殊信息
+                        if (tower.type === 'yuri') {
+                            upgradeInfo += `<div>控制时间: ${tower.controlDuration/1000}秒</div>
+                                           <div>冷却时间: ${tower.cooldown/1000}秒</div>
+                                           <div>当前控制: ${tower.controlledEnemies.length}</div>`;
+                        }
+						
+						// 激光塔特殊信息
+                        if (tower.type === 'laser') {
+                            upgradeInfo += `<div>每秒伤害: ${tower.damage}</div>`;
+                        }
+                        
+                        // 核弹塔特殊信息
+                        if (tower.type === 'nuke') {
+                            upgradeInfo += `<div>冷却时间: ${tower.cooldown/1000}秒</div>
+                                           <div>全屏伤害: ${tower.damage}</div>`;
+                        }
+                        
+                        // 蓄能塔特殊信息
+                        if (tower.type === 'energizer') {
+                            upgradeInfo += `<div>基础伤害: ${tower.damage}</div>
+                                           <div>最大伤害: ${tower.maxDamage}</div>
+                                           <div>当前连击: ${tower.combo}</div>`;
+										   
+                        
+                        if (canUpgrade) {
+                            upgradeInfo += `<div>升级费用: $${upgradeCost}</div>
+                                           <div>升级后伤害: ${tower.damage ? tower.damage + 10 : '增强'}</div>
+                                           <div>升级后范围: ${tower.range + 15}</div>`;
+                            
+                            // 兵营特殊升级信息
+                            if (tower.type === 'barracks') {
+                                upgradeInfo += `<div>升级后士兵数量: ${tower.maxSoldiers + 1}</div>
+                                               <div>升级后士兵伤害: ${tower.soldierDamage + 5}</div>
+                                               <div>升级后士兵攻击范围: ${tower.soldierAttackRange + 10}</div>`;
+                            }
+                            
+                            // 火炮塔特殊升级信息
+                            if (tower.type === 'cannon') {
+                                upgradeInfo += `<div>升级后爆炸范围: ${tower.splashRadius + 10}</div>
+                                               <div>升级后溅射伤害: ${tower.splashDamage + 5}</div>`;
+                            }
+                            
+                            // 雷电塔特殊升级信息
+                            if (tower.type === 'lightning') {
+                                upgradeInfo += `<div>升级后连锁数量: ${tower.chainCount + 1}</div>
+                                               <div>升级后连锁范围: ${tower.chainRange + 10}</div>`;
+                            }
+                            
+                            // 导弹塔特殊升级信息
+                            if (tower.type === 'missile') {
+                                upgradeInfo += `<div>升级后爆炸范围: ${tower.splashRadius + 10}</div>
+                                               <div>升级后溅射伤害: ${tower.splashDamage + 5}</div>`;
+                            }
+                            
+                            // 毒塔特殊升级信息
+                            if (tower.type === 'poison') {
+                                upgradeInfo += `<div>升级后每秒伤害: ${tower.damage + 4}</div>
+                                               <div>升级后百分比伤害: ${(tower.percentDamage + 0.005) * 100}%</div>
+                                               <div>升级后减速效果: ${(1 - tower.slowEffect * 0.9) * 100}%</div>`;
+                            }
+                            
+                            // 离子炮特殊升级信息
+                            if (tower.type === 'ion') {
+                                upgradeInfo += `<div>升级后充能伤害: ${tower.damage + 15}</div>
+                                               <div>升级后爆炸范围: ${tower.splashRadius + 10}</div>
+                                               <div>升级后溅射伤害: ${tower.splashDamage + 10}</div>`;
+                            }
+                            
+                            // 光棱塔特殊升级信息
+                            if (tower.type === 'prism') {
+                                upgradeInfo += `<div>升级后折射次数: ${tower.bounceCount + 1}</div>
+                                               <div>升级后折射范围: ${tower.bounceRange + 10}</div>
+                                               <div>升级后伤害衰减: ${(tower.bounceDecay * 0.9) * 100}%</div>`;
+                            }
+                            
+							// 激光塔特殊升级信息
+                            if (tower.type === 'laser') {
+                                upgradeInfo += `<div>升级后每秒伤害: ${tower.damage + 8}</div>`;
+                            }
+                            
+                            // 蓄能塔特殊升级信息
+                            if (tower.type === 'energizer') {
+                                upgradeInfo += `<div>升级后基础伤害: ${tower.damage + 5}</div>
+                                               <div>升级后最大伤害: ${tower.maxDamage + 20}</div>
+                                               <div>升级后最大连击: ${tower.maxCombo + 2}</div>`;
+							}}
+                            // 尤里塔特殊升级信息
+                            if (tower.type === 'yuri') {
+                                upgradeInfo += `<div>升级后控制时间: ${(tower.controlDuration + 1000)/1000}秒</div>
+                                               <div>升级后冷却时间: ${(tower.cooldown - 500)/1000}秒</div>`;
+                            }
+                        } else {
+                            upgradeInfo += `<div style="color:#FFD700;">已达最大等级</div>`;
+                        }
+                        
+                        upgradeTooltip.innerHTML = upgradeInfo;
                         return;
                     }
                 }
