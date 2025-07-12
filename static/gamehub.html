@@ -64,5 +64,21 @@
   <div style="margin-top: 50px;">
     <a href="/" style="text-decoration:none; color:#555;">← 返回首页</a>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const token = localStorage.getItem("zsy_token");
+      if (!token) {
+        document.querySelectorAll("a").forEach(a => {
+          a.addEventListener("click", function(e) {
+            e.preventDefault();
+            alert("请先登录再进入游戏！");
+          });
+          a.style.pointerEvents = "auto";
+          a.style.opacity = "0.5";
+        });
+      }
+    });
+  </script>
 </body>
 </html>
