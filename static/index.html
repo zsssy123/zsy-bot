@@ -158,7 +158,7 @@
   <script>
     const chatEl = document.getElementById("chat");
     const input = document.getElementById("msg");
-
+    const MAX_CHATS = 3;  // ✅ 保证先定义
     let chats = JSON.parse(localStorage.getItem("zsy_chats") || "[]");
     let currentChatId = chats.length > 0 ? chats[chats.length - 1].id : createNewChat(true);
     const MAX_MESSAGES = 50;
