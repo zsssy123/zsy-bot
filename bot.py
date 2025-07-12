@@ -231,6 +231,20 @@ def register():
     return jsonify({"token": token})
 from flask import send_from_directory
 
+@app.route("/keepalive")
+def keepalive():
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/users?limit=1"
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+        }
+        res = requests.get(url, headers=headers)
+        return "OK" if res.status_code == 200 else f"Fail: {res.status_code}"
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+
+
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
