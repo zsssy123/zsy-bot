@@ -1,20 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <title>注册账号</title>
+  <title>注册 ZSY AI 账号 ✨</title>
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    h2 {
+      font-size: 2em;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 12px;
+      width: 220px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 26px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #218838;
+    }
+    #err {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h2>注册</h2>
+  <h2>注册 ZSY AI 账号 ✨</h2>
+
   <input id="username" placeholder="用户名" />
   <input id="password" type="password" placeholder="密码" />
+  <input id="captcha" placeholder="验证码（固定值：zsyai）" />
+
   <button onclick="register()">注册</button>
-  <p id="err" style="color: red;"></p>
+  <p id="err"></p>
 
   <script>
     async function register() {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const captcha = document.getElementById("captcha").value.trim();
+
+      if (captcha !== "zsyai") {
+        document.getElementById("err").innerText = "验证码错误，请输入 zsyai";
+        return;
+      }
 
       const res = await fetch("/api/register", {
         method: "POST",
@@ -25,7 +73,7 @@
       const data = await res.json();
       if (res.ok) {
         alert("✅ 注册成功！");
-        localStorage.setItem("zsy_username", username);  // ✅ 保存用户名
+        localStorage.setItem("zsy_username", username);
         localStorage.setItem("zsy_token", data.token);
         window.location.href = "/chat";
       } else {
