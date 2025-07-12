@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>🔑 修改密码 - ZSY</title>
+  <title>🔐 修改密码 - ZSY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -18,7 +18,7 @@
     }
 
     .box {
-      background: white;
+      background: #fff;
       padding: 30px 26px;
       border-radius: 12px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
@@ -29,7 +29,7 @@
 
     h2 {
       color: #333;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     input {
@@ -45,7 +45,7 @@
 
     button {
       margin-top: 16px;
-      padding: 12px 26px;
+      padding: 12px;
       background: linear-gradient(to right, #4fc3f7, #7986cb);
       border: none;
       color: white;
@@ -60,34 +60,58 @@
       background: linear-gradient(to right, #039be5, #5c6bc0);
     }
 
-    p#message {
-      margin-top: 14px;
+    #message {
+      margin-top: 12px;
       font-size: 0.95em;
     }
 
     .footer {
-      margin-top: 20px;
-      font-size: 0.8em;
+      margin-top: 14px;
+      font-size: 0.85em;
       color: #777;
+    }
+
+    .back-home {
+      margin-top: 20px;
+    }
+
+    .back-home a {
+      text-decoration: none;
+      color: #007bff;
+      font-size: 0.9em;
+    }
+
+    .back-home a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="box">
-    <h2>修改密码</h2>
+    <h2>🔑 修改密码</h2>
     <input id="username" placeholder="用户名">
     <input id="oldPassword" type="password" placeholder="原密码">
     <input id="newPassword" type="password" placeholder="新密码">
     <button onclick="changePassword()">确认修改</button>
     <p id="message"></p>
-    <div class="footer">请确保牢记你的新密码 ✨</div>
+    <div class="footer">📝 温馨提醒：请牢记你的新密码，不要让 ZSY 为你担心 💙</div>
+    <div class="back-home">
+      <a href="/">← 返回首页</a>
+    </div>
   </div>
 
   <script>
     async function changePassword() {
-      const username = document.getElementById("username").value;
-      const oldPassword = document.getElementById("oldPassword").value;
-      const newPassword = document.getElementById("newPassword").value;
+      const username = document.getElementById("username").value.trim();
+      const oldPassword = document.getElementById("oldPassword").value.trim();
+      const newPassword = document.getElementById("newPassword").value.trim();
+      const msgBox = document.getElementById("message");
+
+      if (!username || !oldPassword || !newPassword) {
+        msgBox.style.color = "red";
+        msgBox.innerText = "请完整填写所有字段";
+        return;
+      }
 
       const res = await fetch("/api/change-password", {
         method: "POST",
@@ -96,7 +120,6 @@
       });
 
       const data = await res.json();
-      const msgBox = document.getElementById("message");
       if (res.ok) {
         msgBox.style.color = "green";
         msgBox.innerText = data.message || "修改成功";
