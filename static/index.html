@@ -162,7 +162,6 @@
     let chats = JSON.parse(localStorage.getItem("zsy_chats") || "[]");
     let currentChatId = chats.length > 0 ? chats[chats.length - 1].id : createNewChat(true);
     const MAX_MESSAGES = 50;
-    const MAX_CHATS = 3;
 
     function renderChatList() {
       const list = document.getElementById("chat-list");
