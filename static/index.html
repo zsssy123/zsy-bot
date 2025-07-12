@@ -234,43 +234,41 @@
   }
 
   async function send() {
-    const text = input.value.trim();
-    if (!text) return;
-    addMessage(text, "user");
-    input.value = "";
-    showTyping();
+  const text = input.value.trim();
+  if (!text) return;
+  addMessage(text, "user");
+  input.value = "";
+  showTyping();
 
-    const useMemory = document.getElementById("use-memory").checked;
-    const useZSYMode = document.getElementById("zsy-mode").checked;
+  const useMemory = document.getElementById("use-memory").checked;
+  const useZSYMode = document.getElementById("zsy-mode").checked;
+  const modelSource = document.getElementById("model-select").value;  // ✅ 放在这里！
 
-
-    try {
-     const token = localStorage.getItem("zsy_token");
-     const res = await fetch("/api/chat", {
+  try {
+    const token = localStorage.getItem("zsy_token");
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-      const modelSource = document.getElementById("model-select").value;
-
-      body: JSON.stringify({ 
-      message: text, 
-      useMemory, 
-      useZSYMode, 
-      modelSource     // ✅ 加上模型来源
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        message: text,
+        useMemory,
+        useZSYMode,
+        modelSource   // ✅ 正确地放入 body 中
       })
-
     });
 
-      const data = await res.json();
-      removeTyping();
-      addMessage(data.reply || "出错了，请检查登录情况 https://zsyai.onrender.com/login …", "bot");
-    } catch {
-      removeTyping();
-      addMessage("❌ 网络错误", "bot");
-    }
+    const data = await res.json();
+    removeTyping();
+    addMessage(data.reply || "出错了，请检查登录情况 https://zsyai.onrender.com/login …", "bot");
+  } catch {
+    removeTyping();
+    addMessage("❌ 网络错误", "bot");
   }
+}
+
 
   // 绑定发送按钮点击事件
   document.getElementById("send-btn").addEventListener("click", send);
