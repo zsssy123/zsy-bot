@@ -316,44 +316,86 @@ def keepalive():
     except Exception as e:
         return f"Error: {str(e)}", 500
 
-@app.route("/api/conversations", methods=["POST"])
-def create_conversation():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+@app.route("/api/chat-list", methods=["GET"])
+def get_chat_list():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "未认证"}), 401
+    token = auth.split(" ")[1]
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         username = payload["user"]
-
-        user_conversations.setdefault(username, [])
-        conversations = user_conversations[username]
-
-        # 超过 3 条就移除最旧
-        if len(conversations) >= 3:
-            conversations.pop(0)
-
-        new_conv = {
-            "id": datetime.datetime.utcnow().timestamp(),
-            "history": []
-        }
-        conversations.append(new_conv)
-        return jsonify({ "id": new_conv["id"] })
-    except Exception as e:
-        return jsonify({ "error": "创建会话失败", "detail": str(e) }), 401
-
-@app.route("/api/conversations", methods=["GET"])
-def list_conversations():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        username = payload["user"]
-        convs = user_conversations.get(username, [])
-        return jsonify([
-            {
-                "id": c["id"],
-                "summary": c["history"][0]["content"][:20] if c["history"] else "(新对话)"
-            } for c in convs
-        ])
     except:
-        return jsonify([])  # 返回空列表
+        return jsonify({"error": "无效令牌"}), 401
+
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{username}&order=created_at.desc"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+    res = requests.get(url, headers=headers)
+    return res.json(), res.status_code
+
+@app.route("/api/chat-create", methods=["POST"])
+def create_chat():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "未认证"}), 401
+    token = auth.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except:
+        return jsonify({"error": "无效令牌"}), 401
+
+    data = request.get_json()
+    title = data.get("title", "对话")
+    messages = data.get("messages", [])
+
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+    payload = {
+        "username": username,
+        "title": title,
+        "messages": messages
+    }
+
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions"
+    res = requests.post(url, headers=headers, json=payload)
+    return res.json(), res.status_code
+
+@app.route("/api/chat-update", methods=["POST"])
+def update_chat():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "未认证"}), 401
+    token = auth.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except:
+        return jsonify({"error": "无效令牌"}), 401
+
+    data = request.get_json()
+    chat_id = data.get("id")
+    messages = data.get("messages", [])
+
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{chat_id}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = { "messages": messages }
+
+    res = requests.patch(url, headers=headers, json=payload)
+    return res.json(), res.status_code
+
 
 
 # 用户历史改为每人最多保留 3 轮对话，每轮最多 50 条
