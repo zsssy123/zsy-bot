@@ -176,6 +176,34 @@ def login():
     else:
         return jsonify({"error": "用户名或密码错误"}), 401
 
+@app.route("/api/change-password", methods=["POST"])
+def change_password():
+    data = request.get_json()
+    username = data.get("username")
+    old_password = data.get("oldPassword")
+    new_password = data.get("newPassword")
+
+    users = fetch_users()
+    if users.get(username) != old_password:
+        return jsonify({"error": "原密码错误"}), 403
+
+    # 更新密码
+    url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json"
+    }
+    patch_data = { "password": new_password }
+    res = requests.patch(url, headers=headers, json=patch_data)
+
+    if res.status_code == 204:
+        return jsonify({ "message": "密码修改成功" })
+    else:
+        return jsonify({ "error": "修改失败" }), 500
+@app.route("/changepwd")
+def changepwd_page():
+    return send_from_directory("static", "changepwd.html")
 
 
 def fetch_users():
