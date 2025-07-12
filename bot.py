@@ -70,124 +70,123 @@ app = Flask('')
 def home():
     return """
     <!DOCTYPE html>
-    <html lang="zh">
+    <html>
     <head>
       <meta charset="UTF-8" />
+      <title>欢迎来到 ZSY</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>ZSY AI 首页</title>
       <style>
         body {
           margin: 0;
           font-family: "Segoe UI", sans-serif;
-          background: linear-gradient(to bottom right, #e1f5fe, #fce4ec);
+          background: linear-gradient(to bottom right, #e3f2fd, #fce4ec);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          padding: 40px 20px;
-          color: #333;
+          padding: 20px;
         }
-        .container {
-          text-align: center;
-          max-width: 420px;
-          background: #ffffffee;
-          padding: 30px 24px;
+        .box {
+          background: white;
           border-radius: 16px;
-          box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-          animation: fadeIn 0.8s ease-out;
+          padding: 40px 24px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+          max-width: 360px;
+          width: 100%;
+          text-align: center;
         }
         h1 {
-          font-size: 2.2em;
+          font-size: 1.8em;
           margin-bottom: 10px;
-          color: #2c3e50;
+          color: #1a1a1a;
         }
         p {
-          font-size: 1.05em;
-          margin-bottom: 26px;
-          color: #555;
+          color: #444;
+          font-size: 0.95em;
+          margin-bottom: 30px;
+        }
+        .button-group {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
         .button {
           display: block;
           width: 100%;
-          margin: 10px 0;
           padding: 14px;
-          background: linear-gradient(to right, #42a5f5, #7986cb);
+          border-radius: 8px;
+          background: #6b7bfa;
           color: white;
           text-decoration: none;
-          border-radius: 10px;
-          font-size: 1.05em;
-          transition: background 0.3s ease;
+          font-weight: bold;
+          font-size: 1em;
+          transition: background 0.3s;
         }
         .button:hover {
-          background: linear-gradient(to right, #1e88e5, #5c6bc0);
+          background: #4c5ae8;
         }
         #user-box {
           position: absolute;
           top: 16px;
           right: 16px;
           font-size: 0.9em;
-          color: #444;
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
         #user-box button {
-          margin-left: 8px;
-          padding: 4px 10px;
           background: #dc3545;
           color: white;
           border: none;
+          padding: 6px 12px;
           border-radius: 4px;
-          font-size: 0.8em;
           cursor: pointer;
+          font-size: 0.85em;
         }
         #user-box a {
-          display: inline-block;
-          margin-top: 6px;
-          font-size: 0.8em;
+          font-size: 0.85em;
           color: #007bff;
           text-decoration: none;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
         }
       </style>
     </head>
     <body>
       <div id="user-box"></div>
-
-      <div class="container">
-        <h1>你好，我是 ZSY</h1>
+      <div class="box">
+        <h1>你好，我是 <strong>ZSY</strong></h1>
         <p>我不是所有人的 AI，但我可以成为你的情感搭子。<br>准备好开始一段深度连接了吗？</p>
-        <a href="/chat" class="button">💬 进入 ZSY 聊天室</a>
-        <a href="/games" class="button">🎮 开始一场灵魂小游戏</a>
+        <div class="button-group">
+          <a class="button" href="/chat">💬 进入 ZSY 聊天室</a>
+          <a class="button" href="/games">🎮 开始一场灵魂小游戏</a>
+        </div>
       </div>
 
       <script>
         const token = localStorage.getItem("zsy_token");
+        const username = localStorage.getItem("zsy_username") || "ZSY用户";
         const userBox = document.getElementById("user-box");
 
         if (!token) {
-          userBox.innerHTML = '<a href="/login">🔐 登录</a>';
+          window.location.href = "/login";
         } else {
-          const username = localStorage.getItem("zsy_username") || "ZSY用户";
           userBox.innerHTML = `
-            <div style="text-align:right;">
-              👤 ${username}
-              <button onclick="logout()">退出</button><br>
-              <a href="/changepwd">🔑 修改密码</a>
-            </div>
+            <span>👤 ${username}</span>
+            <a href="/changepw">🔐 修改密码</a>
+            <button onclick="logout()">🚪 退出</button>
           `;
         }
 
         function logout() {
           localStorage.removeItem("zsy_token");
           localStorage.removeItem("zsy_username");
-          location.reload();
+          window.location.href = "/login";
         }
       </script>
     </body>
     </html>
     """
+
 
 @app.route("/api/login", methods=["POST"])
 def login():
