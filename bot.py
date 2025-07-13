@@ -348,53 +348,46 @@ import uuid  # 使用 uuid 替代 timestamp
 
 @app.route("/api/chat-create", methods=["POST"])
 def create_chat():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "未认证"}), 401
+    token = auth.split(" ")[1]
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user"]
-    except Exception as e:
-        return jsonify({"error": "未认证"}), 401
+        username = payload["user"]
+    except:
+        return jsonify({"error": "无效令牌"}), 401
 
-    # 获取当前用户历史会话
-    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{user_id}&order=id.asc"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
     }
-    
-    try:
-        res = requests.get(url, headers=headers)
-        chats = res.json()
-    except Exception as e:
-        return jsonify({"error": "获取会话失败"}), 500
 
-    # 删除最早一条
-    if len(chats) >= 3:
-        oldest_id = chats[0]["id"]
+    # 获取当前用户会话数量
+    count_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{username}&select=id"
+    count_res = requests.get(count_url, headers=headers)
+    existing = count_res.json()
+    if len(existing) >= 3:
+        # 删除最旧的
+        oldest_id = existing[0]["id"]
         del_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{oldest_id}"
         requests.delete(del_url, headers=headers)
 
-    # 插入新会话
-    new_chat_id = str(uuid.uuid4())  # 使用 uuid 代替 timestamp
-    new_chat = {
-        "id": new_chat_id,
-        "username": user_id,
-        "title": "New Chat",  # 可选，设置会话的标题
-        "messages": []  # 初始化消息为空列表
+    payload = {
+        "username": username,
+        "title": "新对话",
+        "messages": []
     }
-    headers["Prefer"] = "return=representation"  # 确保返回插入的记录
 
-    try:
-        res = requests.post(f"{SUPABASE_URL}/rest/v1/chat_sessions", headers=headers, json=new_chat)
-        if res.status_code == 201:
-            return jsonify({"chatId": new_chat_id})
-        else:
-            return jsonify({"error": "创建失败"}), 500
-    except Exception as e:
-        return jsonify({"error": f"请求错误：{str(e)}"}), 500
-
-
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions"
+    res = requests.post(url, headers=headers, json=payload)
+    if res.status_code == 201:
+        new_chat = res.json()[0]
+        return jsonify({ "chatId": new_chat["id"] })  # 使用返回的 UUID
+    else:
+        return jsonify({ "error": res.text }), 500
 @app.route("/api/chat-update", methods=["POST"])
 def update_chat():
     auth = request.headers.get("Authorization", "")
