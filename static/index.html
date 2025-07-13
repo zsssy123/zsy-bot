@@ -236,10 +236,22 @@
     const modelSelector = document.getElementById("model-selector");
     const savedModel = localStorage.getItem("zsy_model") || "deepseek";
     modelSelector.value = savedModel;
-    
-    modelSelector.addEventListener("change", () => {
-      localStorage.setItem("zsy_model", modelSelector.value);
-    });
+    const modelSelector = document.getElementById("model-selector");
+    const username = localStorage.getItem("zsy_username") || "";
+
+    if (username === "guest") {
+      // 如果是游客，只能使用 deepseek，禁用模型选择器
+      modelSelector.value = "deepseek";
+      modelSelector.disabled = true;
+    } else {
+      // 正常用户可以使用保存的模型
+      const savedModel = localStorage.getItem("zsy_model") || "deepseek";
+      modelSelector.value = savedModel;
+
+      modelSelector.addEventListener("change", () => {
+        localStorage.setItem("zsy_model", modelSelector.value);
+      });
+    }
 
     async function loadChatHistory() {
       chat.innerHTML = "";
