@@ -544,7 +544,20 @@ def web_chat():
             else:
                 reply = f"FreeGPT 接口出错：{resp.status_code}：{resp.text}"
 
-
+        elif model == "gpt4o-mini":
+            resp = requests.post(
+                "https://api.chatanywhere.tech/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {FREEGPT_KEY}"
+                },
+                json={"messages": messages}
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                reply = f"GPT-4o-mini 接口出错：{resp.status_code}"
+        
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
