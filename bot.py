@@ -554,7 +554,7 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "gpt-4o",  # 注意这里仍然是 gpt-4o
+                    "model": "gpt-4o-mini",  # 注意这里仍然是 gpt-4o
                     "messages": messages,
                     "temperature": 0.7,     # 加入默认参数
                     "stream": False         # 不要流式返回
