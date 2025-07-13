@@ -520,7 +520,7 @@ def web_chat():
       model = data.get("model", "deepseek")  # 默认 deepseek
 
       if model == "deepseek":
-      response = client.chat.completions.create(
+         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages
         )
