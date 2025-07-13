@@ -237,7 +237,6 @@
     const savedModel = localStorage.getItem("zsy_model") || "deepseek";
     modelSelector.value = savedModel;
     
-    const username = localStorage.getItem("zsy_username") || "";
 
     if (username === "guest") {
       // 如果是游客，只能使用 deepseek，禁用模型选择器
