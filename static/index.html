@@ -189,6 +189,9 @@
       const bubble = document.createElement("div");
       bubble.className = "bubble";
       bubble.innerText = "ZSY 正在输入中...";
+      bubble.style.backgroundColor = "#f0f0f0";  // 浅灰色背景
+      bubble.style.color = "#888";               // 浅灰文字
+      bubble.style.fontStyle = "italic";         // 斜体效果
       typing.appendChild(avatar);
       typing.appendChild(bubble);
       chat.appendChild(typing);
@@ -320,6 +323,7 @@
       const btn = document.getElementById("new-chat-btn");
       btn.disabled = list.length >= 3;
       btn.innerText = list.length >= 3 ? "📌 最多3个会话" : "➕ 新建会话";
+      btn.onclick = newChat;
     }
 
 
