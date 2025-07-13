@@ -158,7 +158,8 @@
         模型选择：
         <select id="model-selector">
           <option value="deepseek">🌊 DeepSeek</option>
-          <option value="freegpt">✨ FreeGPT (GPT-3.5)</option>
+          <option value="freegpt">✨ GPT-3.5</option>
+          <option value="gpt4o-mini">GPT-4o Mini</option>
         </select>
       </label>
 
@@ -232,7 +233,9 @@
     }
     const modelSelector = document.getElementById("model-selector");
     const savedModel = localStorage.getItem("zsy_model") || "deepseek";
-    modelSelector.value = savedModel;
+    document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("model-select").value = savedModel;
+    });
     
     modelSelector.addEventListener("change", () => {
       localStorage.setItem("zsy_model", modelSelector.value);
@@ -411,6 +414,8 @@
 
      // ✅ 加上模型选择
      const model = document.getElementById("model-selector").value;
+     const selectedModel = document.getElementById("model-select").value;
+     localStorage.setItem("zsy_model", selectedModel);
 
      const res = await fetch("/api/chat", {
        method: "POST",
@@ -423,7 +428,7 @@
          chatId: currentChatId,
          useMemory,
          useZSYMode,
-         model   // ✅ 传给后端的 key
+         model: selectedModel   // ✅ 传给后端的 key
        })
      });
 
