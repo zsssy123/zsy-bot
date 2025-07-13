@@ -345,6 +345,32 @@ def get_chat_list():
         print("❌ 获取 Supabase 会话失败:", e)
         return jsonify([]), 401
 
+@app.route("/api/chat-get")
+def chat_get():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "未认证"}), 401
+
+    token = auth.replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except:
+        return jsonify({"error": "无效 token"}), 401
+
+    chat_id = request.args.get("id")
+    if not chat_id:
+        return jsonify({"error": "缺少 chat_id 参数"}), 400
+
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{chat_id}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200 and res.json():
+        return jsonify(res.json()[0])
+    else:
+        return jsonify({"error": "获取失败"}), 404
 
 import uuid  # 使用 uuid 替代 timestamp
 
