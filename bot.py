@@ -13,6 +13,8 @@ from threading import Thread
 from dotenv import load_dotenv
 import requests  # 如果你还没有这个
 from dotenv import load_dotenv
+import os
+os.getenv("FREEGPT_KEY")
 
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -527,15 +529,21 @@ def web_chat():
             reply = response.choices[0].message.content.strip()
         
         elif model == "freegpt":
+            freegpt_key = os.getenv("FREEGPT_KEY")  # ✅ 推荐用环境变量管理
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {freegpt_key}"  # ✅ 加上 token
+            }
             resp = requests.post(
                 "https://free.v36.cm/api/gpt35",
-                headers={"Content-Type": "application/json"},
+                headers=headers,
                 json={"messages": messages}
             )
             if resp.status_code == 200:
                 reply = resp.json()["choices"][0]["message"]["content"]
             else:
-                reply = f"FreeGPT 接口出错：{resp.status_code}"
+                reply = f"FreeGPT 接口出错：{resp.status_code}：{resp.text}"
+
 
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
