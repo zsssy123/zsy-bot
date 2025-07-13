@@ -161,31 +161,27 @@
     const token = localStorage.getItem("zsy_token");
     let currentChatId = localStorage.getItem("current_chat_id");
 
+    const userInfoBox = document.getElementById("user-info");
     const username = localStorage.getItem("zsy_username") || "ZSY用户";
+
     userInfoBox.innerHTML = `
-    <a href="/" style="
-      font-size: 0.9em;
-      background: #007bff;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      text-decoration: none;
-      margin-right: 10px;
-    ">🏠 返回首页</a>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png" width="32" height="32" style="border-radius: 50%;" />
+        <span>👤 ${username}</span>
+        <button onclick="logout()" style="
+          padding: 4px 10px;
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          font-size: 0.8em;
+          cursor: pointer;
+        ">🚪 退出</button>
+        <a href="/" style="font-size: 0.8em; text-decoration: none; color: #007bff;">🏠 返回首页</a>
+        <a href="/changepwd" style="font-size: 0.8em; text-decoration: none; color: #ffc107;">🔑 修改密码</a>
+      </div>
+    `;
 
-    <a href="/changepwd" style="
-      font-size: 0.9em;
-      background: #ffc107;
-      color: black;
-      padding: 6px 12px;
-      border-radius: 6px;
-      text-decoration: none;
-      margin-right: 10px;
-    ">🔑 修改密码</a>
-
-    <span style="margin-left: 6px;">👤 ${username}</span>
-    <button onclick="logout()" style="margin-left: 8px;">退出</button>
-  `;
 
     function logout() {
       localStorage.clear();
