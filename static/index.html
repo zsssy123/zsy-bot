@@ -257,10 +257,31 @@
       if (data.chatId) {
         currentChatId = data.chatId;
         localStorage.setItem("current_chat_id", currentChatId);
-        chat.innerHTML = "";
-        loadChatList();
+        await loadChatList();
+        return data.chatId;  // ✅ 返回新 chatId
+      } else {
+        alert("新建失败");
+        return null;
       }
     }
+
+    
+    async function loadChatHistory() {
+      if (!currentChatId) return;
+
+      chat.innerHTML = "";  // 清空界面
+
+      const res = await fetch(`/api/chat-get?id=${currentChatId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const session = await res.json();
+      const messages = session?.messages || [];
+
+      for (const m of messages) {
+        addMessage(m.content, m.role === "user" ? "user" : "bot");
+      }
+    }
+
 
     async function send() {
       const text = input.value.trim();
@@ -291,17 +312,24 @@
       if (e.key === "Enter") send();
     });
 
-    window.addEventListener("DOMContentLoaded", () => {  
-      loadChatList().then(() => {  
-        const lastChatId = localStorage.getItem("current_chat_id");  // 获取上次的聊天 ID
-        if (!lastChatId) {
-          newChat();  // 如果没有记录，创建新聊天
-        } else {
-          currentChatId = lastChatId;
-          loadChatHistory(lastChatId);  // 如果有历史聊天记录，加载聊天记录
+    window.addEventListener("DOMContentLoaded", async () => {
+      await loadChatList();
+
+      const lastChatId = localStorage.getItem("current_chat_id");
+
+      if (!lastChatId) {
+        const created = await newChat(); // 等待创建成功并返回 chatId
+        if (created) {
+          currentChatId = created;
+          localStorage.setItem("current_chat_id", created);
+          await loadChatHistory();
         }
-    });  
-  });
+      } else {
+        currentChatId = lastChatId;
+        await loadChatHistory();
+      }
+    });
+
 
   </script>
 
