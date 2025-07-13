@@ -399,34 +399,39 @@
 
 
     async function send() {
-      const text = input.value.trim();
-      if (!text || !currentChatId) return;
-      addMessage(text, "user");
-      input.value = "";
-      addTyping();
-      const useMemory = document.getElementById("use-memory").checked;
-      const useZSYMode = document.getElementById("zsy-mode").checked;
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-       const model = modelSelector.value;
+     const text = input.value.trim();
+     if (!text || !currentChatId) return;
+     addMessage(text, "user");
+     input.value = "";
 
-      body: JSON.stringify({
-        message: text,
-        chatId: currentChatId,
-        useMemory,
-        useZSYMode,
-        model  // ✅ 模型也发过去
-      })
+     addTyping();
 
-      });
-      removeTyping();
-      const result = await res.json();
-      addMessage(result.reply || "[无响应]", "bot");
-    }
+     const useMemory = document.getElementById("use-memory").checked;
+     const useZSYMode = document.getElementById("zsy-mode").checked;
+
+     // ✅ 加上模型选择
+     const model = document.getElementById("model-selector").value;
+
+     const res = await fetch("/api/chat", {
+       method: "POST",
+       headers: {
+         "Authorization": `Bearer ${token}`,
+         "Content-Type": "application/json"
+       },
+       body: JSON.stringify({
+         message: text,
+         chatId: currentChatId,
+         useMemory,
+         useZSYMode,
+         model   // ✅ 传给后端的 key
+       })
+     });
+
+     removeTyping();
+     const result = await res.json();
+     addMessage(result.reply || "[无响应]", "bot");
+   }
+
 
     document.getElementById("send-btn").onclick = send;
     input.addEventListener("keydown", e => {
