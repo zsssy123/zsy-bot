@@ -123,26 +123,7 @@
       <div class="title">ZSY AI 机器人</div>
       <div id="user-info"></div>
     </div>
-    <div style="text-align: right; padding: 0 16px 10px;">
-        <a href="/" style="
-          font-size: 0.9em;
-          background: #007bff;
-          color: white;
-          padding: 6px 12px;
-          border-radius: 6px;
-          text-decoration: none;
-          margin-right: 10px;
-        ">🏠 返回首页</a>
-
-        <a href="/changepwd" style="
-          font-size: 0.9em;
-          background: #ffc107;
-          color: black;
-          padding: 6px 12px;
-          border-radius: 6px;
-          text-decoration: none;
-        ">🔑 修改密码</a>
-      </div>
+   
     <!-- 功能开关区 -->
     <div style="display: flex; justify-content: flex-end; gap: 16px; padding: 10px 16px; background: #fff;">
       <label style="font-size: 0.9em; color: #444;">
@@ -180,12 +161,32 @@
     const token = localStorage.getItem("zsy_token");
     let currentChatId = localStorage.getItem("current_chat_id");
 
-    const userInfoBox = document.getElementById("user-info");
-    const username = localStorage.getItem("zsy_username") || "ZSY用户";
-    userInfoBox.innerHTML = `
-      <span style="margin-left: 12px;">👤 ${username}</span>
-      <button onclick="logout()" style="margin-left: 8px;">退出</button>
-    `;
+   const username = localStorage.getItem("zsy_username") || "ZSY用户";
+  userInfoBox.innerHTML = `
+    <a href="/" style="
+      font-size: 0.9em;
+      background: #007bff;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-right: 10px;
+    ">🏠 返回首页</a>
+
+    <a href="/changepwd" style="
+      font-size: 0.9em;
+      background: #ffc107;
+      color: black;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-right: 10px;
+    ">🔑 修改密码</a>
+
+    <span style="margin-left: 6px;">👤 ${username}</span>
+    <button onclick="logout()" style="margin-left: 8px;">退出</button>
+  `;
+
     function logout() {
       localStorage.clear();
       window.location.href = "/login";
