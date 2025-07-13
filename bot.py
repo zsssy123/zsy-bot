@@ -348,46 +348,34 @@ import uuid  # 使用 uuid 替代 timestamp
 
 @app.route("/api/chat-create", methods=["POST"])
 def create_chat():
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return jsonify({"error": "未认证"}), 401
-    token = auth.split(" ")[1]
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        username = payload["user"]
-    except:
-        return jsonify({"error": "无效令牌"}), 401
+        user_id = payload["user"]
+    except Exception as e:
+        return jsonify({ "error": "未认证" }), 401
 
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
         "Content-Type": "application/json",
         "Prefer": "return=representation"
     }
-
-    # 获取当前用户会话数量
-    count_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{username}&select=id"
-    count_res = requests.get(count_url, headers=headers)
-    existing = count_res.json()
-    if len(existing) >= 3:
-        # 删除最旧的
-        oldest_id = existing[0]["id"]
-        del_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{oldest_id}"
-        requests.delete(del_url, headers=headers)
-
     payload = {
-        "username": username,
-        "title": "新对话",
-        "messages": []
+        "username": user_id,
+        "messages": [],
+        "title": "新对话"  # ← 如果你表中没有 title 字段，可以删掉这行
     }
-
-    url = f"{SUPABASE_URL}/rest/v1/chat_sessions"
-    res = requests.post(url, headers=headers, json=payload)
-    if res.status_code == 201:
-        new_chat = res.json()[0]
-        return jsonify({ "chatId": new_chat["id"] })  # 使用返回的 UUID
-    else:
-        return jsonify({ "error": res.text }), 500
+    try:
+        res = requests.post(url, headers=headers, json=payload)
+        print("🛠️ Supabase 响应:", res.status_code, res.text)
+        if res.status_code == 201:
+            return jsonify({ "chatId": res.json()[0]["id"] })
+        else:
+            return jsonify({ "error": "创建失败" }), 500
+    except Exception as e:
+        return jsonify({ "error": str(e) }), 500
 @app.route("/api/chat-update", methods=["POST"])
 def update_chat():
     auth = request.headers.get("Authorization", "")
