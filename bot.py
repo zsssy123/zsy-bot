@@ -520,7 +520,7 @@ def web_chat():
       model = data.get("model", "deepseek")  # 默认 deepseek
 
       if model == "deepseek":
-        response = client.chat.completions.create(
+      response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages
         )
@@ -531,12 +531,12 @@ def web_chat():
                 headers={"Content-Type": "application/json"},
             json={"messages": messages}
         )
-          if resp.status_code == 200:
-              reply = resp.json()["choices"][0]["message"]["content"]
-          else:
-            reply = f"FreeGPT 接口出错：{resp.status_code}"
+           if resp.status_code == 200:
+               reply = resp.json()["choices"][0]["message"]["content"]
+           else:
+               reply = f"FreeGPT 接口出错：{resp.status_code}"
       else:
-        return jsonify({ "error": "不支持的模型" }), 400
+         return jsonify({ "error": "不支持的模型" }), 400
 
         history.append({ "role": "assistant", "content": reply })
 
