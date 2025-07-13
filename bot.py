@@ -346,27 +346,58 @@ def get_chat_list():
 
 @app.route("/api/chat-create", methods=["POST"])
 def create_chat():
-    
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         user_id = payload["user"]
-
-        chat_sessions.setdefault(user_id, [])
-
-        if len(chat_sessions[user_id]) >= 3:
-            chat_sessions[user_id].pop(0)
-
-        new_chat = {
-            "id": datetime.datetime.utcnow().timestamp(),
-            "history": []
-        }
-        chat_sessions[user_id].append(new_chat)
-        insert_chat_session(user_id, new_chat["id"])  # ✅ 插入 Supabase
-
-        return jsonify({ "chatId": new_chat["id"] })
     except Exception as e:
-        return jsonify({ "error": "创建失败" }), 401
+        print("❌ token 无效:", e)
+        return jsonify({ "error": "未认证" }), 401
+
+    # 获取当前用户历史会话
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{user_id}&order=id.asc"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json"
+    }
+    try:
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        chats = res.json()
+    except Exception as e:
+        print("❌ 获取历史会话失败:", e)
+        return jsonify({ "error": "读取会话失败" }), 500
+
+    # 删除最早的一条（如果超出3条）
+    if len(chats) >= 3:
+        oldest_chat_id = chats[0]["id"]
+        del_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{oldest_chat_id}"
+        del_res = requests.delete(del_url, headers=headers)
+        print("🗑️ 删除旧会话状态:", del_res.status_code)
+
+    # 插入新会话
+    new_chat_id = str(datetime.datetime.utcnow().timestamp())
+    new_chat = {
+        "id": new_chat_id,
+        "username": user_id,
+        "messages": []
+    }
+    try:
+        ins_res = requests.post(
+            f"{SUPABASE_URL}/rest/v1/chat_sessions",
+            headers=headers,
+            json=new_chat
+        )
+        if ins_res.status_code == 201:
+            return jsonify({ "chatId": new_chat_id })
+        else:
+            print("❌ 插入失败:", ins_res.text)
+            return jsonify({ "error": "创建失败" }), 500
+    except Exception as e:
+        print("❌ 请求 Supabase 出错:", e)
+        return jsonify({ "error": "创建异常" }), 500
+
 @app.route("/api/chat-update", methods=["POST"])
 def update_chat():
     auth = request.headers.get("Authorization", "")
