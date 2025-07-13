@@ -521,7 +521,8 @@ def web_chat():
     # ✅ 请求 AI 回复
     try:
         model = data.get("model", "deepseek")  # 默认使用 deepseek
-
+        if user_id == "guest":
+            model = "deepseek"
         if model == "deepseek":
             response = client.chat.completions.create(
                 model="deepseek-chat",
