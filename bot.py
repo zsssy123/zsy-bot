@@ -524,7 +524,7 @@ def web_chat():
             model="deepseek-chat",
             messages=messages
         )
-        reply = response.choices[0].message.content.strip()
+         reply = response.choices[0].message.content.strip()
       elif model == "freegpt":
             resp = requests.post(
                 "https://free.v36.cm/api/gpt35",
