@@ -123,6 +123,17 @@
       <div class="title">ZSY AI 机器人</div>
       <div id="user-info"></div>
     </div>
+    <!-- 功能开关区 -->
+    <div style="display: flex; justify-content: flex-end; gap: 16px; padding: 10px 16px; background: #fff;">
+      <label style="font-size: 0.9em; color: #444;">
+        <input type="checkbox" id="use-memory" checked />
+        使用记忆功能
+      </label>
+      <label style="font-size: 0.9em; color: #444;">
+        <input type="checkbox" id="zsy-mode" />
+        使用 ZSY 人格
+      </label>
+    </div>
 
     <div id="chat"></div>
 
@@ -256,7 +267,8 @@
       if (!text || !currentChatId) return;
       addMessage(text, "user");
       input.value = "";
-      const useMemory = true, useZSYMode = true;
+      const useMemory = document.getElementById("use-memory").checked;
+      const useZSYMode = document.getElementById("zsy-mode").checked;
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
