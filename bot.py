@@ -428,38 +428,58 @@ def web_chat():
     except Exception as e:
         return jsonify({"error": "无效身份认证"}), 401
 
-    # 找到当前会话
-    chat_sessions.setdefault(user_id, [])
-    current_chat = next((c for c in chat_sessions[user_id] if str(c["id"]) == str(chat_id)), None)
-    if not current_chat:
+    # ✅ 从 Supabase 获取会话记录
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{chat_id}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+    res = requests.get(url, headers=headers)
+    if res.status_code != 200 or not res.json():
         return jsonify({ "error": "会话不存在" }), 404
 
-    if len(current_chat["history"]) >= 50:
+    session = res.json()[0]
+    history = session.get("messages", [])
+    if len(history) >= 50:
         return jsonify({ "error": "本轮对话已满 50 条，请新建对话" }), 403
 
-    current_chat["history"].append({ "role": "user", "content": user_msg })
+    # ✅ 添加用户消息
+    history.append({ "role": "user", "content": user_msg })
 
     system_prompt = ZSY_PROMPT if use_zsy_mode else (
         "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。" if use_memory
         else "你是一个温和真实的 AI 搭子，不记住历史信息。"
     )
-
     messages = [{"role": "system", "content": system_prompt}] + (
-        current_chat["history"] if use_memory else [{"role": "user", "content": user_msg}]
+        history if use_memory else [{"role": "user", "content": user_msg}]
     )
 
+    # ✅ 请求 AI 回复
     try:
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages
         )
         reply = response.choices[0].message.content.strip()
-        current_chat["history"].append({ "role": "assistant", "content": reply })
-        update_chat_session(user_id, current_chat["id"], current_chat["history"])  # ✅ 更新到 Supabase
+        history.append({ "role": "assistant", "content": reply })
+
+        # ✅ 更新 Supabase 中的 messages
+        patch_headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json"
+        }
+        patch_data = { "messages": history }
+        patch_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{chat_id}"
+        patch_res = requests.patch(patch_url, headers=patch_headers, json=patch_data)
+
+        if patch_res.status_code not in [200, 204]:
+            print("⚠️ 更新会话失败:", patch_res.text)
 
         return jsonify({ "reply": reply })
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
+
         
 @app.route("/login")
 def login_page():
