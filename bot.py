@@ -535,7 +535,7 @@ def web_chat():
                 "Authorization": f"Bearer {freegpt_key}"  # ✅ 加上 token
             }
             resp = requests.post(
-                "https://api.chatanywhere.tech",
+                "https://api.chatanywhere.tech/v1/chat/completions",
                 headers=headers,
                 json={"messages": messages}
             )
