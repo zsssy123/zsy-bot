@@ -2,251 +2,227 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZSY AI 聊天室</title>
+  <title>ZSY 聊天室</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    html, body {
-      height: 100%;
-      max-width: 100vw;
-      overflow-x: hidden;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Segoe UI", sans-serif;
-      background: #eef1f5;
+      display: flex;
+      height: 100vh;
+      background: #f7f9fc;
+    }
+    .sidebar {
+      width: 240px;
+      background: #f0f0f5;
+      padding: 16px;
+      border-right: 1px solid #ccc;
       display: flex;
       flex-direction: column;
-      height: 100vh;
     }
-    #header {
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .chat-list div {
+      background: white;
+      margin-bottom: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .chat-list div.active {
+      background: #d6eaff;
+    }
+    .main {
+      flex: 1;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+    }
+    .top {
       padding: 12px 16px;
-      background: #ffffff;
       border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    #header img {
-      border-radius: 50%;
-      margin-right: 12px;
-    }
-    #header .title {
-      font-weight: bold;
-      font-size: 1.1em;
-    }
-    #chat {
+    .chat {
       flex: 1;
       padding: 16px;
       overflow-y: auto;
+    }
+    .input-bar {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .message {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 10px;
-      word-break: break-word;
-    }
-    .message.user {
-      align-self: flex-end;
-      flex-direction: row-reverse;
-    }
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .bubble {
-      background: #e3f3e3;
-      border-radius: 10px;
-      padding: 10px 14px;
-      max-width: 80%;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-    .message.bot .bubble {
-      background: #e2f5d3;
-    }
-    .bubble .name {
-      font-size: 0.75em;
-      color: #666;
-      margin-bottom: 2px;
-    }
-    #input-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
       padding: 12px;
-      background: #fff;
       border-top: 1px solid #ccc;
+      background: white;
     }
-    #msg {
+    .input-bar input {
       flex: 1;
-      padding: 10px 14px;
+      padding: 10px;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 20px;
       font-size: 1em;
-      outline: none;
     }
-    #send-btn {
+    .input-bar button {
       margin-left: 10px;
-      padding: 8px 20px;
+      padding: 10px 16px;
       font-size: 1em;
       border: none;
-      border-radius: 20px;
-      background: #28a745;
-      color: #fff;
+      background: #4fc3f7;
+      color: white;
+      border-radius: 6px;
       cursor: pointer;
     }
-    .typing {
-      font-style: italic;
-      color: #888;
+    .message {
+      margin-bottom: 10px;
+    }
+    .toggle {
+      padding: 0 16px 10px;
       font-size: 0.9em;
     }
   </style>
 </head>
 <body>
+  <div class="sidebar">
+    <h3>🗂️ 我的会话</h3>
+    <div id="chat-list" class="chat-list"></div>
+    <button id="new-chat-btn">➕ 新建会话</button>
+    <small style="color: #888;">最多保留 3 个对话</small>
+  </div>
 
-  <!-- 顶部信息 -->
-  <div id="header">
-    <img src="https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png" width="40" height="40" />
-    <div>
-      <div class="title">ZSY AI 机器人</div>
-      <div style="font-size: 0.85em; color: #777;">你的专属 AI 小搭子 🤖</div>
+  <div class="main">
+    <div class="top">
+      <div id="user-info"></div>
+      <div>
+        <a href="/changepwd" style="margin-right: 10px;">🔐 修改密码</a>
+        <button onclick="logout()">🚪 退出</button>
+      </div>
     </div>
-    <a href="/" style="margin-left: auto;">🏠 返回首页</a>
-    <div id="user-info" style="margin-left: 10px;"></div>
+
+    <div class="toggle">
+      <label><input type="checkbox" id="use-memory" checked /> 使用记忆</label>
+      <label style="margin-left: 20px;"><input type="checkbox" id="zsy-mode" /> ZSY 模式</label>
+    </div>
+
+    <div id="chat" class="chat"></div>
+
+    <div class="input-bar">
+      <input id="msg" placeholder="说点什么…" />
+      <button onclick="send()">发送</button>
+    </div>
   </div>
 
-  <!-- 模式开关 -->
-  <div style="text-align: right; padding: 0 16px 10px;">
-    <label><input type="checkbox" id="use-memory" checked /> 记忆模式</label>
-    <label><input type="checkbox" id="zsy-mode" /> ZSY 模式</label>
-  </div>
+<script>
+const chatBox = document.getElementById("chat");
+const input = document.getElementById("msg");
+let currentChatId = localStorage.getItem("current_chat_id") || null;
 
-  <!-- 聊天框 -->
-  <div id="chat"></div>
+// 👤 登录状态
+const token = localStorage.getItem("zsy_token");
+const username = localStorage.getItem("zsy_username");
+document.getElementById("user-info").innerText = "👤 " + (username || "ZSY用户");
 
-  <!-- 输入栏 -->
-  <div id="input-bar">
-    <input id="msg" placeholder="输入你的消息…" autocomplete="off" />
-    <button id="send-btn">发送</button>
-  </div>
+if (!token) window.location.href = "/login";
 
-  <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("msg");
+// ✅ 发送消息
+async function send() {
+  const text = input.value.trim();
+  if (!text || !currentChatId) return;
+  addMessage(text, "你");
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, m => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;",
-        '"': "&quot;", "'": "&#39;"
-      }[m]));
-    }
+  input.value = "";
 
-    function addMessage(text, sender = "bot") {
-      const msg = document.createElement("div");
-      msg.className = `message ${sender}`;
-      const avatar = document.createElement("img");
-      avatar.className = "avatar";
-      avatar.src = sender === "bot"
-        ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
-        : "https://cdn.pixabay.com/photo/2022/10/07/11/02/autumn-7504820_1280.jpg";
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.innerHTML = `<div class="name">${sender === "bot" ? "ZSY AI" : "你"}</div>${escapeHtml(text)}`;
-      msg.appendChild(avatar);
-      msg.appendChild(bubble);
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
-    }
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: text,
+      chatId: currentChatId,
+      useMemory: document.getElementById("use-memory").checked,
+      useZSYMode: document.getElementById("zsy-mode").checked
+    })
+  });
 
-    function showTyping() {
-      const typing = document.createElement("div");
-      typing.className = "message bot typing-indicator";
-      typing.innerHTML = `
-        <img class="avatar" src="https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png" />
-        <div class="bubble"><div class="name">ZSY AI</div><span class="typing">ZSY 正在输入中...</span></div>
-      `;
-      chat.appendChild(typing);
-      chat.scrollTop = chat.scrollHeight;
-    }
+  const data = await res.json();
+  if (data.reply) {
+    addMessage(data.reply, "ZSY");
+  } else {
+    addMessage("⚠️ 错误：" + (data.error || "未知错误"), "系统");
+  }
+}
 
-    function removeTyping() {
-      const t = chat.querySelector(".typing-indicator");
-      if (t) t.remove();
-    }
+// ✅ 添加到对话框
+function addMessage(text, who = "你") {
+  const div = document.createElement("div");
+  div.className = "message";
+  div.innerHTML = `<b>${who}：</b>${escapeHtml(text)}`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, s => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;",
+    '"': "&quot;", "'": "&#39;"
+  }[s]));
+}
 
-    async function send() {
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage(text, "user");
-      input.value = "";
-      showTyping();
+// ✅ 加载左侧会话列表
+async function loadChatList() {
+  const res = await fetch("/api/chat-list", {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  const list = await res.json();
+  const box = document.getElementById("chat-list");
+  box.innerHTML = "";
+  list.forEach(item => {
+    const div = document.createElement("div");
+    div.textContent = `💬 ${item.summary || "未命名对话"}`;
+    if (item.id === currentChatId) div.classList.add("active");
+    div.onclick = () => {
+      currentChatId = item.id;
+      localStorage.setItem("current_chat_id", item.id);
+      chatBox.innerHTML = "";
+      loadChatList();
+    };
+    box.appendChild(div);
+  });
 
-      const useMemory = document.getElementById("use-memory").checked;
-      const useZSYMode = document.getElementById("zsy-mode").checked;
-      const token = localStorage.getItem("zsy_token");
-      const chatId = localStorage.getItem("current_chat_id");
+  const btn = document.getElementById("new-chat-btn");
+  btn.disabled = list.length >= 3;
+  btn.innerText = list.length >= 3 ? "📌 最多3个对话" : "➕ 新建会话";
+}
 
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ message: text, useMemory, useZSYMode, chatId })
-        });
+// ✅ 新建会话
+async function newChat() {
+  const res = await fetch("/api/chat-create", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (data.chatId) {
+    currentChatId = data.chatId;
+    localStorage.setItem("current_chat_id", currentChatId);
+    chatBox.innerHTML = "";
+    loadChatList();
+  } else {
+    alert("❌ 新建失败：" + (data.error || "未知错误"));
+  }
+}
 
-        const data = await res.json();
-        removeTyping();
-        if (data.reply) {
-          addMessage(data.reply, "bot");
-        } else {
-          addMessage("⚠️ 出错了：" + (data.error || "请重新登录"), "bot");
-        }
-      } catch {
-        removeTyping();
-        addMessage("❌ 网络错误", "bot");
-      }
-    }
+function logout() {
+  localStorage.removeItem("zsy_token");
+  localStorage.removeItem("zsy_username");
+  localStorage.removeItem("current_chat_id");
+  window.location.href = "/login";
+}
 
-    document.getElementById("send-btn").addEventListener("click", send);
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") send();
-    });
-
-    // 登录信息
-    const userInfoBox = document.getElementById("user-info");
-    const token = localStorage.getItem("zsy_token");
-    if (token) {
-      const username = localStorage.getItem("zsy_username") || "ZSY用户";
-      userInfoBox.innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span>👤 ${username}</span>
-          <a href="/changepwd">修改密码</a>
-          <button onclick="logout()" style="
-            padding: 4px 10px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8em;">🚪 退出</button>
-        </div>
-      `;
-    } else {
-      location.href = "/login";
-    }
-
-    function logout() {
-      localStorage.removeItem("zsy_token");
-      localStorage.removeItem("zsy_username");
-      location.href = "/login";
-    }
-  </script>
+document.getElementById("new-chat-btn").addEventListener("click", newChat);
+window.addEventListener("DOMContentLoaded", loadChatList);
+</script>
 </body>
 </html>
