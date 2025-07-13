@@ -161,8 +161,8 @@
     const token = localStorage.getItem("zsy_token");
     let currentChatId = localStorage.getItem("current_chat_id");
 
-   const username = localStorage.getItem("zsy_username") || "ZSY用户";
-  userInfoBox.innerHTML = `
+    const username = localStorage.getItem("zsy_username") || "ZSY用户";
+    userInfoBox.innerHTML = `
     <a href="/" style="
       font-size: 0.9em;
       background: #007bff;
@@ -236,7 +236,7 @@
     const modelSelector = document.getElementById("model-selector");
     const savedModel = localStorage.getItem("zsy_model") || "deepseek";
     modelSelector.value = savedModel;
-    const modelSelector = document.getElementById("model-selector");
+    
     const username = localStorage.getItem("zsy_username") || "";
 
     if (username === "guest") {
