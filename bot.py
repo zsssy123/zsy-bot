@@ -545,13 +545,17 @@ def web_chat():
                 reply = f"FreeGPT 接口出错：{resp.status_code}：{resp.text}"
 
         elif model == "gpt4o-mini":
+        # ✅ 注意，这里传的是 "gpt-4o"，是 ChatAnywhere 所接受的固定值
             resp = requests.post(
                 "https://api.chatanywhere.tech/v1/chat/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {FREEGPT_KEY}"
                 },
-                json={"messages": messages}
+                json={
+                    "model": "gpt-4o",  # ✅ 固定写法
+                    "messages": messages
+                }
             )
             if resp.status_code == 200:
                 reply = resp.json()["choices"][0]["message"]["content"]
