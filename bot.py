@@ -525,7 +525,7 @@ def web_chat():
             messages=messages
         )
         reply = response.choices[0].message.content.strip()
-        elif model == "freegpt":
+      elif model == "freegpt":
             resp = requests.post(
                 "https://free.v36.cm/api/gpt35",
                 headers={"Content-Type": "application/json"},
@@ -535,7 +535,7 @@ def web_chat():
             reply = resp.json()["choices"][0]["message"]["content"]
         else:
             reply = f"FreeGPT 接口出错：{resp.status_code}"
-    else:
+       else:
         return jsonify({ "error": "不支持的模型" }), 400
 
         history.append({ "role": "assistant", "content": reply })
