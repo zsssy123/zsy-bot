@@ -300,20 +300,40 @@
         delBtn.style.cursor = "pointer";
         delBtn.style.fontSize = "1em";
         delBtn.onclick = async (e) => {
-          e.stopPropagation();  // 防止触发 title 的点击事件
+          e.stopPropagation();
           if (confirm("确定要删除这个会话吗？")) {
             await fetch(`/api/chat-delete?id=${item.id}`, {
               method: "DELETE",
               headers: { "Authorization": `Bearer ${token}` }
             });
+
+            const res = await fetch("/api/chat-list", {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+            const list = await res.json();
+
             if (currentChatId == item.id) {
               localStorage.removeItem("current_chat_id");
               currentChatId = null;
             }
-            loadChatList();
-            chat.innerHTML = "";
+
+            if (list.length > 0) {
+              currentChatId = list[0].id;
+              localStorage.setItem("current_chat_id", currentChatId);
+              await loadChatList();
+              await loadChatHistory(currentChatId);
+            } else {
+              const created = await newChat();  // 自动创建新会话
+              if (created) {
+                currentChatId = created;
+                localStorage.setItem("current_chat_id", created);
+                await loadChatList();
+                await loadChatHistory(created);
+              }
+            }
           }
         };
+
 
         div.appendChild(title);
         div.appendChild(delBtn);
