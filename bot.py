@@ -546,11 +546,12 @@ def web_chat():
                 reply = f"FreeGPT 接口出错：{resp.status_code}：{resp.text}"
 
         elif model == "gpt4o-mini":
+            freegpt_key = os.getenv("FREEGPT_KEY")
             resp = requests.post(
                 "https://api.chatanywhere.tech/v1/chat/completions",
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {FREEGPT_KEY}"
+                    "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
                     "model": "gpt-4o",  # 注意这里仍然是 gpt-4o
