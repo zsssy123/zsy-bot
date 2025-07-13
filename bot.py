@@ -517,11 +517,27 @@ def web_chat():
 
     # ✅ 请求 AI 回复
     try:
+      model = data.get("model", "deepseek")  # 默认 deepseek
+
+      if model == "deepseek":
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages
         )
         reply = response.choices[0].message.content.strip()
+        elif model == "freegpt":
+            resp = requests.post(
+                "https://free.v36.cm/api/gpt35",
+                headers={"Content-Type": "application/json"},
+            json={"messages": messages}
+        )
+        if resp.status_code == 200:
+            reply = resp.json()["choices"][0]["message"]["content"]
+        else:
+            reply = f"FreeGPT 接口出错：{resp.status_code}"
+    else:
+        return jsonify({ "error": "不支持的模型" }), 400
+
         history.append({ "role": "assistant", "content": reply })
 
         # ✅ 更新 Supabase 中的 messages
