@@ -531,11 +531,11 @@ def web_chat():
                 headers={"Content-Type": "application/json"},
             json={"messages": messages}
         )
-        if resp.status_code == 200:
-            reply = resp.json()["choices"][0]["message"]["content"]
-        else:
+          if resp.status_code == 200:
+              reply = resp.json()["choices"][0]["message"]["content"]
+          else:
             reply = f"FreeGPT 接口出错：{resp.status_code}"
-       else:
+      else:
         return jsonify({ "error": "不支持的模型" }), 400
 
         history.append({ "role": "assistant", "content": reply })
