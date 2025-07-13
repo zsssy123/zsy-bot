@@ -86,7 +86,6 @@
       font-size: 0.9em;
       margin-right: 10px;
     }
-
     @media (max-width: 768px) {
       body { flex-direction: column; }
       .sidebar { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid #ddd; }
@@ -111,7 +110,7 @@
       </div>
       <div>
         <button onclick="logout()">🚪 退出</button>
-        <button onclick="location.href='/changepwd.html'">🔐 修改密码</button>
+        <button onclick="location.href='/changepwd'">🔐 修改密码</button>
       </div>
     </div>
 
@@ -138,19 +137,24 @@
     let currentChatId = null;
 
     async function loadChats() {
-      const res = await fetch("/api/chat-list", {
-        headers: { Authorization: "Bearer " + token }
-      });
-      const chats = await res.json();
-      const list = document.getElementById("chatList");
-      list.innerHTML = "";
-      chats.forEach((chat, i) => {
-        const btn = document.createElement("button");
-        btn.textContent = `会话 ${i + 1}`;
-        btn.onclick = () => selectChat(chat.id);
-        if (chat.id === currentChatId) btn.classList.add("active");
-        list.appendChild(btn);
-      });
+      try {
+        const res = await fetch("/api/chat-list", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        if (res.status === 401) return logout();
+        const chats = await res.json();
+        const list = document.getElementById("chatList");
+        list.innerHTML = "";
+        chats.forEach((chat, i) => {
+          const btn = document.createElement("button");
+          btn.textContent = `会话 ${i + 1}`;
+          btn.onclick = () => selectChat(chat.id);
+          if (chat.id === currentChatId) btn.classList.add("active");
+          list.appendChild(btn);
+        });
+      } catch (e) {
+        alert("加载会话失败");
+      }
     }
 
     async function newChat() {
@@ -158,6 +162,7 @@
         method: "POST",
         headers: { Authorization: "Bearer " + token }
       });
+      if (res.status === 401) return logout();
       const data = await res.json();
       currentChatId = data.chatId;
       document.getElementById("chatBox").innerHTML = "";
@@ -208,7 +213,7 @@
 
     window.onload = async () => {
       await loadChats();
-      if (!currentChatId) await newChat(); // 初始化新会话
+      if (!currentChatId) await newChat();
     };
   </script>
 </body>
