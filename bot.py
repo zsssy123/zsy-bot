@@ -46,6 +46,7 @@ ZSY_PROMPT = """
 JWT_SECRET = "zsy-secret"  # 请换成安全密钥
 users = {}  # 用户账号密码表
 chat_sessions = {}  # ← 加上这行
+
 # 多对话结构：每人最多 3 个会话，每个最多 50 条消息
 user_conversations = {}  # { username: [ {id: 0, history: [...]}, {...} ] }
 
@@ -211,7 +212,7 @@ def login():
 
     users = fetch_users()
     print("📄 当前用户列表:", users)
-
+    
     if users.get(username) == password:
         token = jwt.encode({
             "user": username,
@@ -324,20 +325,28 @@ def get_chat_list():
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         user_id = payload["user"]
 
-        chat_sessions.setdefault(user_id, [])
-        chats = chat_sessions[user_id]
+        url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{user_id}&order=id.desc"
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+        }
+        res = requests.get(url, headers=headers)
+        chats = res.json()
 
         return jsonify([
             {
                 "id": c["id"],
-                "summary": c["history"][0]["content"][:20] if c["history"] else "(新对话)"
+                "summary": c["messages"][0]["content"][:20] if c.get("messages") else "(新对话)"
             } for c in chats
         ])
     except Exception as e:
+        print("❌ 获取 Supabase 会话失败:", e)
         return jsonify([]), 401
+
 
 @app.route("/api/chat-create", methods=["POST"])
 def create_chat():
+    
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
@@ -353,6 +362,7 @@ def create_chat():
             "history": []
         }
         chat_sessions[user_id].append(new_chat)
+        insert_chat_session(user_id, new_chat["id"])  # ✅ 插入 Supabase
 
         return jsonify({ "chatId": new_chat["id"] })
     except Exception as e:
@@ -435,6 +445,7 @@ def web_chat():
         )
         reply = response.choices[0].message.content.strip()
         current_chat["history"].append({ "role": "assistant", "content": reply })
+        update_chat_session(user_id, current_chat["id"], current_chat["history"])  # ✅ 更新到 Supabase
 
         return jsonify({ "reply": reply })
     except Exception as e:
