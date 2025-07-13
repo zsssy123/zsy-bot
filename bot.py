@@ -325,7 +325,9 @@ def get_chat_list():
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         user_id = payload["user"]
 
-        url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{user_id}&order=id.desc"
+        # 如果你 Supabase 表中有 created_at 字段（类型为 timestamp），可这样改：
+        url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{user_id}&order=created_at.desc"
+
         headers = {
             "apikey": SUPABASE_ANON_KEY,
             "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
@@ -368,6 +370,12 @@ def create_chat():
         "title": "新对话"  # ← 如果你表中没有 title 字段，可以删掉这行
     }
     try:
+        # ✅ 新增：限制每个用户最多只能有3个会话
+        check_url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{user_id}"
+        check_res = requests.get(check_url, headers=headers)
+        if check_res.status_code == 200 and len(check_res.json()) >= 3:
+            return jsonify({ "error": "最多只能创建 3 个会话" }), 403
+
         res = requests.post(url, headers=headers, json=payload)
         print("🛠️ Supabase 响应:", res.status_code, res.text)
         if res.status_code == 201:
@@ -402,7 +410,11 @@ def update_chat():
     payload = { "messages": messages }
 
     res = requests.patch(url, headers=headers, json=payload)
-    return res.json(), res.status_code
+    if res.status_code in [200, 204]:
+        return jsonify({ "message": "更新成功" })
+    else:
+        return jsonify({ "error": res.text }), res.status_code
+
 
 
 
