@@ -535,7 +535,7 @@ def web_chat():
                 "Authorization": f"Bearer {freegpt_key}"  # ✅ 加上 token
             }
             resp = requests.post(
-                "https://free.v36.cm/api/gpt35",
+                "https://api.chatanywhere.tech/v1",
                 headers=headers,
                 json={"messages": messages}
             )
