@@ -66,6 +66,18 @@
   <input id="username" placeholder="用户名" />
   <input id="password" type="password" placeholder="密码" />
   <button onclick="login()">登录</button>
+  <!-- 游客登录按钮 -->
+  <div style="margin-top: 20px; text-align: center;">
+    <button onclick="loginAsGuest()" style="
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    ">🕶 游客体验</button>
+  </div>
+
   <p id="err"></p>
 
   <p class="hint">
@@ -88,6 +100,22 @@
         window.location.href = "/chat";
       } else {
         document.getElementById("err").innerText = data.error || "登录失败";
+      }
+    }
+    async function loginAsGuest() {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "guest", password: "guestguest" })
+      });
+
+      const result = await res.json();
+      if (result.token) {
+        localStorage.setItem("zsy_token", result.token);
+        localStorage.setItem("zsy_username", "guest");
+        window.location.href = "/chat";
+      } else {
+        alert("游客登录失败，请联系管理员");
       }
     }
   </script>
