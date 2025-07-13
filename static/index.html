@@ -228,6 +228,7 @@
           localStorage.setItem("current_chat_id", currentChatId);
           loadChatHistory();
           loadChatList();
+          loadChatHistory（item.id）;
         };
         box.appendChild(div);
       });
@@ -278,12 +279,18 @@
       if (e.key === "Enter") send();
     });
 
-    window.addEventListener("DOMContentLoaded", () => {
-      loadChatList().then(() => {
-        if (!currentChatId) newChat();
-        else loadChatHistory();
-      });
-    });
+    window.addEventListener("DOMContentLoaded", () => {  
+      loadChatList().then(() => {  
+        const lastChatId = localStorage.getItem("current_chat_id");  // 获取上次的聊天 ID
+        if (!lastChatId) {
+          newChat();  // 如果没有记录，创建新聊天
+        } else {
+          currentChatId = lastChatId;
+          loadChatHistory(lastChatId);  // 如果有历史聊天记录，加载聊天记录
+        }
+    });  
+  });
+
   </script>
 
 </body>
