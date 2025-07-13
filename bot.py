@@ -13,6 +13,7 @@ from threading import Thread
 from dotenv import load_dotenv
 import requests  # 如果你还没有这个
 from dotenv import load_dotenv
+
 import os
 os.getenv("FREEGPT_KEY")
 
