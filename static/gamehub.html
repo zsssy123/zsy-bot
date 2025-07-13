@@ -89,45 +89,59 @@
           a.style.opacity = "0.5";
         });
         userBox.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-          <a href="/login" style="color:#007bff;">🔐 请先登录</a>
-          <button onclick="guestLogin()" style="
-            padding: 6px 12px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85em;
-          ">🎮 以游客身份继续</button>
-        </div>
-      `;
-
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+            <a href="/login" style="color:#007bff;">🔐 请先登录</a>
+            <button onclick="guestLogin()" style="
+              padding: 6px 12px;
+              background: #28a745;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 0.85em;
+            ">🎮 以游客身份继续</button>
+          </div>
+        `;
       } else {
         const username = localStorage.getItem("zsy_username") || "ZSY用户";
-        userBox.innerHTML = `
-  <div style="display: flex; align-items: center; gap: 10px;">
-    <span>👤 ${username}</span>
-    <button onclick="logout()" style="
-      padding: 4px 10px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.8em;
-      cursor: pointer;
-    ">🚪 退出</button>
-  </div>
-  <div style="margin-top: 6px;">
-    <a href="/changepwd" style="
-      font-size: 0.8em;
-      text-decoration: none;
-      color: #007bff;
-    ">🔑 修改密码</a>
-  </div>
-`;
 
+        // ✅ 限制 guest 用户只能玩第一个游戏（打砖块）
+        if (username === "guest") {
+          document.querySelectorAll(".game-card a").forEach((a, index) => {
+            if (index > 0) {
+              a.addEventListener("click", function(e) {
+                e.preventDefault();
+                alert("游客只能体验第一个游戏，请注册后解锁更多内容！");
+              });
+              a.style.pointerEvents = "auto";
+              a.style.opacity = "0.5";
+            }
+          });
+        }
+
+        userBox.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span>👤 ${username}</span>
+            <button onclick="logout()" style="
+              padding: 4px 10px;
+              background: #dc3545;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              font-size: 0.8em;
+              cursor: pointer;
+            ">🚪 退出</button>
+          </div>
+          <div style="margin-top: 6px;">
+            <a href="/changepwd" style="
+              font-size: 0.8em;
+              text-decoration: none;
+              color: #007bff;
+            ">🔑 修改密码</a>
+          </div>
+        `;
       }
+
     });
 
     function logout() {
