@@ -179,8 +179,28 @@
       localStorage.clear();
       window.location.href = "/login";
     }
+    function addTyping() {
+      const typing = document.createElement("div");
+      typing.id = "zsy-typing";
+      typing.className = "message bot";
+      const avatar = document.createElement("img");
+      avatar.className = "avatar";
+      avatar.src = "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png";
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerText = "ZSY 正在输入中...";
+      typing.appendChild(avatar);
+      typing.appendChild(bubble);
+      chat.appendChild(typing);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
-    function addMessage(text, sender = "bot") {
+    function removeTyping() {
+      const typing = document.getElementById("zsy-typing");
+      if (typing) typing.remove();
+    }
+
+   function addMessage(text, sender = "bot") {
       const msg = document.createElement("div");
       msg.className = `message ${sender}`;
       const avatar = document.createElement("img");
@@ -308,6 +328,7 @@
       if (!text || !currentChatId) return;
       addMessage(text, "user");
       input.value = "";
+      addTyping();
       const useMemory = document.getElementById("use-memory").checked;
       const useZSYMode = document.getElementById("zsy-mode").checked;
       const res = await fetch("/api/chat", {
@@ -323,6 +344,7 @@
           useZSYMode
         })
       });
+      removeTyping();
       const result = await res.json();
       addMessage(result.reply || "[无响应]", "bot");
     }
