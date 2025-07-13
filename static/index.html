@@ -16,8 +16,8 @@
     .sidebar {
       width: 240px;
       background: #f0f0f5;
-      padding: 16px;
-      border-right: 1px solid #ccc;
+      padding: 20px;
+      border-right: 1px solid #ddd;
       display: flex;
       flex-direction: column;
     }
@@ -26,203 +26,225 @@
       overflow-y: auto;
     }
     .chat-list div {
-      background: white;
-      margin-bottom: 8px;
-      padding: 8px;
-      border-radius: 6px;
       cursor: pointer;
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ccc;
     }
     .chat-list div.active {
-      background: #d6eaff;
+      background: #d0e1ff;
     }
     .main {
       flex: 1;
       display: flex;
       flex-direction: column;
+      padding: 20px;
     }
-    .top {
-      padding: 12px 16px;
-      border-bottom: 1px solid #ccc;
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .chat {
+    .chat-box {
       flex: 1;
-      padding: 16px;
+      margin-top: 20px;
       overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 6px;
+      background: #fff;
     }
-    .input-bar {
+    .controls {
       display: flex;
-      padding: 12px;
-      border-top: 1px solid #ccc;
-      background: white;
+      gap: 10px;
+      margin-top: 10px;
     }
-    .input-bar input {
+    textarea {
       flex: 1;
+      height: 60px;
       padding: 10px;
+      resize: none;
       border-radius: 6px;
       border: 1px solid #ccc;
       font-size: 1em;
     }
-    .input-bar button {
-      margin-left: 10px;
+    button.send {
       padding: 10px 16px;
-      font-size: 1em;
-      border: none;
       background: #4fc3f7;
+      border: none;
       color: white;
+      font-size: 1em;
       border-radius: 6px;
       cursor: pointer;
     }
-    .message {
-      margin-bottom: 10px;
-    }
-    .toggle {
-      padding: 0 16px 10px;
-      font-size: 0.9em;
+
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; border-bottom: 1px solid #ddd; border-right: none; }
+      .chat-list { display: flex; gap: 10px; }
     }
   </style>
 </head>
 <body>
+
   <div class="sidebar">
-    <h3>🗂️ 我的会话</h3>
-    <div id="chat-list" class="chat-list"></div>
+    <div style="margin-bottom: 10px; font-weight: bold;">🗂️ 我的对话</div>
+    <div class="chat-list" id="chat-list"></div>
     <button id="new-chat-btn">➕ 新建会话</button>
-    <small style="color: #888;">最多保留 3 个对话</small>
+    <small style="color: #888; margin-top: 12px;">最多保留 3 个会话</small>
   </div>
 
   <div class="main">
-    <div class="top">
-      <div id="user-info"></div>
+    <div class="top-bar">
+      <span id="usernameLabel">ZSY 用户</span>
       <div>
-        <a href="/changepwd" style="margin-right: 10px;">🔐 修改密码</a>
-        <button onclick="logout()">🚪 退出</button>
+        <button onclick="logout()">退出</button>
+        <button onclick="location.href='/changepwd'">修改密码</button>
       </div>
     </div>
 
-    <div class="toggle">
-      <label><input type="checkbox" id="use-memory" checked /> 使用记忆</label>
-      <label style="margin-left: 20px;"><input type="checkbox" id="zsy-mode" /> ZSY 模式</label>
+    <div class="chat-box" id="chat-box"></div>
+
+    <div class="controls">
+      <textarea id="messageInput" placeholder="输入你的消息..."></textarea>
+      <button class="send" onclick="sendMessage()">发送</button>
     </div>
 
-    <div id="chat" class="chat"></div>
-
-    <div class="input-bar">
-      <input id="msg" placeholder="说点什么…" />
-      <button onclick="send()">发送</button>
+    <div style="margin-top: 10px;">
+      <label><input type="checkbox" id="zsyMode" checked /> ZSY 模式</label>
+      <label><input type="checkbox" id="useMemory" checked /> 记忆模式</label>
     </div>
   </div>
 
-<script>
-const chatBox = document.getElementById("chat");
-const input = document.getElementById("msg");
-let currentChatId = localStorage.getItem("current_chat_id") || null;
+  <script>
+    const token = localStorage.getItem("zsy_token");
+    const username = localStorage.getItem("zsy_username");
+    if (!token) window.location.href = "/login";
+    document.getElementById("usernameLabel").innerText = "👤 " + (username || "ZSY 用户");
 
-// 👤 登录状态
-const token = localStorage.getItem("zsy_token");
-const username = localStorage.getItem("zsy_username");
-document.getElementById("user-info").innerText = "👤 " + (username || "ZSY用户");
+    const chatBox = document.getElementById("chat-box");
+    let currentChatId = localStorage.getItem("current_chat_id");
 
-if (!token) window.location.href = "/login";
+    async function loadChatList() {
+      const res = await fetch("/api/chat-list", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const chats = await res.json();
+      const list = document.getElementById("chat-list");
+      list.innerHTML = "";
+      chats.forEach(chat => {
+        const item = document.createElement("div");
+        item.innerText = chat.summary;
+        item.className = chat.id === currentChatId ? "active" : "";
+        item.onclick = () => selectChat(chat.id);
+        list.appendChild(item);
+      });
+      document.getElementById("new-chat-btn").disabled = chats.length >= 3;
+    }
 
-// ✅ 发送消息
-async function send() {
-  const text = input.value.trim();
-  if (!text || !currentChatId) return;
-  addMessage(text, "你");
+    async function selectChat(id) {
+      currentChatId = id;
+      localStorage.setItem("current_chat_id", id);
+      await loadChatList();
+      await loadChatHistory();
+    }
 
-  input.value = "";
+    async function loadChatHistory() {
+      chatBox.innerHTML = "<div style='color:#888;'>⏳ 正在加载历史...</div>";
+      const res = await fetch("/api/chat-list", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const chats = await res.json();
+      const chat = chats.find(c => c.id == currentChatId);
+      if (!chat) {
+        chatBox.innerHTML = "<div style='color:red;'>❌ 当前会话不存在</div>";
+        return;
+      }
 
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      message: text,
-      chatId: currentChatId,
-      useMemory: document.getElementById("use-memory").checked,
-      useZSYMode: document.getElementById("zsy-mode").checked
-    })
-  });
+      const resDetail = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: "", chatId: currentChatId, useMemory: true, useZSYMode: false
+        })
+      });
 
-  const data = await res.json();
-  if (data.reply) {
-    addMessage(data.reply, "ZSY");
-  } else {
-    addMessage("⚠️ 错误：" + (data.error || "未知错误"), "系统");
-  }
-}
+      const data = await resDetail.json();
+      chatBox.innerHTML = data.reply ? `<div><b>ZSY：</b>${escapeHTML(data.reply)}</div>` : "暂无消息";
+    }
 
-// ✅ 添加到对话框
-function addMessage(text, who = "你") {
-  const div = document.createElement("div");
-  div.className = "message";
-  div.innerHTML = `<b>${who}：</b>${escapeHtml(text)}`;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, s => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;"
-  }[s]));
-}
+    async function newChat() {
+      const res = await fetch("/api/chat-create", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json();
+      if (data.chatId) {
+        currentChatId = data.chatId;
+        localStorage.setItem("current_chat_id", data.chatId);
+        await loadChatList();
+        chatBox.innerHTML = "";
+      } else {
+        alert("创建失败");
+      }
+    }
 
-// ✅ 加载左侧会话列表
-async function loadChatList() {
-  const res = await fetch("/api/chat-list", {
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-  const list = await res.json();
-  const box = document.getElementById("chat-list");
-  box.innerHTML = "";
-  list.forEach(item => {
-    const div = document.createElement("div");
-    div.textContent = `💬 ${item.summary || "未命名对话"}`;
-    if (item.id === currentChatId) div.classList.add("active");
-    div.onclick = () => {
-      currentChatId = item.id;
-      localStorage.setItem("current_chat_id", item.id);
-      chatBox.innerHTML = "";
-      loadChatList();
+    async function sendMessage() {
+      const msg = document.getElementById("messageInput").value.trim();
+      if (!msg || !currentChatId) return;
+
+      const useMemory = document.getElementById("useMemory").checked;
+      const useZSYMode = document.getElementById("zsyMode").checked;
+
+      chatBox.innerHTML += `<div><b>你：</b>${escapeHTML(msg)}</div>`;
+      document.getElementById("messageInput").value = "";
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: msg,
+          chatId: currentChatId,
+          useMemory,
+          useZSYMode
+        })
+      });
+
+      const data = await res.json();
+      if (data.reply) {
+        chatBox.innerHTML += `<div><b>ZSY：</b>${escapeHTML(data.reply)}</div>`;
+      } else if (data.error) {
+        chatBox.innerHTML += `<div style="color:red;">❌ ${data.error}</div>`;
+      }
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;",
+        "'": "&#39;", '"': "&quot;"
+      }[tag]));
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "/login";
+    }
+
+    window.onload = async () => {
+      await loadChatList();
+      if (!currentChatId) await newChat(); else await loadChatHistory();
     };
-    box.appendChild(div);
-  });
+  </script>
 
-  const btn = document.getElementById("new-chat-btn");
-  btn.disabled = list.length >= 3;
-  btn.innerText = list.length >= 3 ? "📌 最多3个对话" : "➕ 新建会话";
-}
-
-// ✅ 新建会话
-async function newChat() {
-  const res = await fetch("/api/chat-create", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-  const data = await res.json();
-  if (data.chatId) {
-    currentChatId = data.chatId;
-    localStorage.setItem("current_chat_id", currentChatId);
-    chatBox.innerHTML = "";
-    loadChatList();
-  } else {
-    alert("❌ 新建失败：" + (data.error || "未知错误"));
-  }
-}
-
-function logout() {
-  localStorage.removeItem("zsy_token");
-  localStorage.removeItem("zsy_username");
-  localStorage.removeItem("current_chat_id");
-  window.location.href = "/login";
-}
-
-document.getElementById("new-chat-btn").addEventListener("click", newChat);
-window.addEventListener("DOMContentLoaded", loadChatList);
-</script>
 </body>
 </html>
