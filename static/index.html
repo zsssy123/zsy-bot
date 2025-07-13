@@ -153,6 +153,15 @@
         <input type="checkbox" id="zsy-mode" />
         使用 ZSY 人格
       </label>
+      
+      <label style="font-size: 0.9em; color: #444;">
+        模型选择：
+        <select id="model-selector">
+          <option value="deepseek">🌊 DeepSeek</option>
+          <option value="freegpt">✨ FreeGPT (GPT-3.5)</option>
+        </select>
+      </label>
+
     </div>
 
     <div id="chat"></div>
@@ -221,6 +230,13 @@
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
     }
+    const modelSelector = document.getElementById("model-selector");
+    const savedModel = localStorage.getItem("zsy_model") || "deepseek";
+    modelSelector.value = savedModel;
+    
+    modelSelector.addEventListener("change", () => {
+      localStorage.setItem("zsy_model", modelSelector.value);
+    });
 
     async function loadChatHistory() {
       chat.innerHTML = "";
@@ -396,12 +412,16 @@
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          message: text,
-          chatId: currentChatId,
-          useMemory,
-          useZSYMode
-        })
+       const model = modelSelector.value;
+
+      body: JSON.stringify({
+        message: text,
+        chatId: currentChatId,
+        useMemory,
+        useZSYMode,
+        model  // ✅ 模型也发过去
+      })
+
       });
       removeTyping();
       const result = await res.json();
