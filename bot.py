@@ -318,56 +318,44 @@ def keepalive():
 
 @app.route("/api/chat-list", methods=["GET"])
 def get_chat_list():
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return jsonify({"error": "未认证"}), 401
-    token = auth.split(" ")[1]
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        username = payload["user"]
-    except:
-        return jsonify({"error": "无效令牌"}), 401
+        user_id = payload["user"]
 
-    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?username=eq.{username}&order=created_at.desc"
-    headers = {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
-    }
-    res = requests.get(url, headers=headers)
-    return res.json(), res.status_code
+        chat_sessions.setdefault(user_id, [])
+        chats = chat_sessions[user_id]
+
+        return jsonify([
+            {
+                "id": c["id"],
+                "summary": c["history"][0]["content"][:20] if c["history"] else "(新对话)"
+            } for c in chats
+        ])
+    except Exception as e:
+        return jsonify([]), 401
 
 @app.route("/api/chat-create", methods=["POST"])
 def create_chat():
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return jsonify({"error": "未认证"}), 401
-    token = auth.split(" ")[1]
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        username = payload["user"]
-    except:
-        return jsonify({"error": "无效令牌"}), 401
+        user_id = payload["user"]
 
-    data = request.get_json()
-    title = data.get("title", "对话")
-    messages = data.get("messages", [])
+        chat_sessions.setdefault(user_id, [])
 
-    headers = {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
-    }
-    payload = {
-        "username": username,
-        "title": title,
-        "messages": messages
-    }
+        if len(chat_sessions[user_id]) >= 3:
+            chat_sessions[user_id].pop(0)
 
-    url = f"{SUPABASE_URL}/rest/v1/chat_sessions"
-    res = requests.post(url, headers=headers, json=payload)
-    return res.json(), res.status_code
+        new_chat = {
+            "id": datetime.datetime.utcnow().timestamp(),
+            "history": []
+        }
+        chat_sessions[user_id].append(new_chat)
 
+        return jsonify({ "chatId": new_chat["id"] })
+    except Exception as e:
+        return jsonify({ "error": "创建失败" }), 401
 @app.route("/api/chat-update", methods=["POST"])
 def update_chat():
     auth = request.headers.get("Authorization", "")
@@ -400,62 +388,44 @@ def update_chat():
 
 # 用户历史改为每人最多保留 3 轮对话，每轮最多 50 条
 all_user_histories = {}
-
 @app.route("/api/chat", methods=["POST"])
 def web_chat():
     data = request.get_json()
-    user_msg = data.get("message", "")
-    auth_header = request.headers.get("Authorization", "")
-
-    if auth_header.startswith("Bearer "):
-        token = auth_header.split(" ")[1]
-        try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-            user_id = payload["user"]
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "登录已过期，请重新登录"}), 401
-        except Exception as e:
-            return jsonify({"error": f"无效令牌：{str(e)}"}), 401
-    else:
-        return jsonify({"error": "未提供身份认证"}), 401
-
+    user_msg = data.get("message", "").strip()
+    chat_id = data.get("chatId")
     use_memory = data.get("useMemory", True)
     use_zsy_mode = data.get("useZSYMode", False)
 
-    if not user_msg:
-        return jsonify({"error": "消息为空"}), 400
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "未提供身份认证"}), 401
 
-    # 初始化用户对话轮
-    if user_id not in all_user_histories:
-        all_user_histories[user_id] = {
-            "chat_1": [],
-        }
+    token = auth_header.replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user"]
+    except Exception as e:
+        return jsonify({"error": "无效身份认证"}), 401
 
-    user_sessions = all_user_histories[user_id]
+    # 找到当前会话
+    chat_sessions.setdefault(user_id, [])
+    current_chat = next((c for c in chat_sessions[user_id] if str(c["id"]) == str(chat_id)), None)
+    if not current_chat:
+        return jsonify({ "error": "会话不存在" }), 404
 
-    # 获取当前对话编号
-    current_key = sorted(user_sessions.keys())[-1]
-    history = user_sessions[current_key]
+    if len(current_chat["history"]) >= 50:
+        return jsonify({ "error": "本轮对话已满 50 条，请新建对话" }), 403
 
-    # 若当前对话已满 50 条，开启新对话
-    if len(history) >= 50:
-        if len(user_sessions) >= 3:
-            # 删除最早的一轮
-            oldest = sorted(user_sessions.keys())[0]
-            del user_sessions[oldest]
-        new_index = max([int(k.split("_")[1]) for k in user_sessions]) + 1
-        current_key = f"chat_{new_index}"
-        user_sessions[current_key] = []
-        history = user_sessions[current_key]
+    current_chat["history"].append({ "role": "user", "content": user_msg })
 
-    # 构建上下文
-    history.append({"role": "user", "content": user_msg})
-    if use_zsy_mode:
-        system_prompt = ZSY_PROMPT
-    else:
-        system_prompt = "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。"
+    system_prompt = ZSY_PROMPT if use_zsy_mode else (
+        "你是一个温和真实的 AI 搭子，会记住用户说过的重要信息并自然回应。" if use_memory
+        else "你是一个温和真实的 AI 搭子，不记住历史信息。"
+    )
 
-    messages = [{"role": "system", "content": system_prompt}] + history
+    messages = [{"role": "system", "content": system_prompt}] + (
+        current_chat["history"] if use_memory else [{"role": "user", "content": user_msg}]
+    )
 
     try:
         response = client.chat.completions.create(
@@ -463,19 +433,12 @@ def web_chat():
             messages=messages
         )
         reply = response.choices[0].message.content.strip()
-        history.append({"role": "assistant", "content": reply})
+        current_chat["history"].append({ "role": "assistant", "content": reply })
 
-        return jsonify({
-            "reply": reply,
-            "chatId": current_key,
-            "historyLength": len(history),
-            "sessionCount": len(user_sessions),
-            "note": "每轮最多 50 条，每人最多保留 3 轮。"
-        })
+        return jsonify({ "reply": reply })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
+        return jsonify({ "error": str(e) }), 500
+        
 @app.route("/login")
 def login_page():
     return send_from_directory("static", "login.html")
