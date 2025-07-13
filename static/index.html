@@ -394,22 +394,28 @@
     });
 
     window.addEventListener("DOMContentLoaded", async () => {
-      await loadChatList();
+      const res = await fetch("/api/chat-list", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const list = await res.json();
 
-      const lastChatId = localStorage.getItem("current_chat_id");
-
-      if (!lastChatId) {
-        const created = await newChat(); // 等待创建成功并返回 chatId
+      if (list.length >= 1) {
+        // ✅ 默认选择最新的第一个会话
+        currentChatId = list[0].id;
+        localStorage.setItem("current_chat_id", currentChatId);
+      } else {
+        // ✅ 如果没有会话就自动创建一个
+        const created = await newChat();
         if (created) {
           currentChatId = created;
           localStorage.setItem("current_chat_id", created);
-          await loadChatHistory();
         }
-      } else {
-        currentChatId = lastChatId;
-        await loadChatHistory();
       }
+
+      await loadChatList();
+      await loadChatHistory();
     });
+
 
 
   </script>
