@@ -88,7 +88,21 @@
           a.style.pointerEvents = "auto";
           a.style.opacity = "0.5";
         });
-        userBox.innerHTML = '<a href="/login" style="color:#007bff;">🔐 请先登录</a>';
+        userBox.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+          <a href="/login" style="color:#007bff;">🔐 请先登录</a>
+          <button onclick="guestLogin()" style="
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+          ">🎮 以游客身份继续</button>
+        </div>
+      `;
+
       } else {
         const username = localStorage.getItem("zsy_username") || "ZSY用户";
         userBox.innerHTML = `
@@ -121,6 +135,12 @@
       localStorage.removeItem("zsy_username");
       location.reload();
     }
+    function guestLogin() {
+      localStorage.setItem("zsy_token", "guest-token");
+      localStorage.setItem("zsy_username", "guest");
+      location.reload(); // 刷新进入游戏界面
+    }
+
   </script>
 </body>
 </html>
