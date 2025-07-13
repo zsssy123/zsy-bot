@@ -441,6 +441,30 @@ def update_chat():
     else:
         return jsonify({ "error": res.text }), res.status_code
 
+@app.route("/api/chat-delete", methods=["DELETE"])
+def delete_chat():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except Exception:
+        return jsonify({"error": "未认证"}), 401
+
+    chat_id = request.args.get("id")
+    if not chat_id:
+        return jsonify({"error": "缺少 id 参数"}), 400
+
+    url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{chat_id}&username=eq.{username}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+    }
+
+    res = requests.delete(url, headers=headers)
+    if res.status_code in [200, 204]:
+        return jsonify({"message": "删除成功"})
+    else:
+        return jsonify({"error": res.text}), res.status_code
 
 
 
