@@ -136,6 +136,45 @@
         font-size: 0.8em;
       }
     }
+    @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    height: auto;
+  }
+
+  #sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  #chat-list {
+    max-height: 120px;
+    overflow-y: auto;
+    flex: 1 1 100%;
+  }
+
+  #main {
+    width: 100%;
+  }
+
+  #input-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #msg {
+    width: 100%;
+  }
+
+  #send-btn {
+    width: 100%;
+  }
+    }
   </style>
 </head>
 <body>
