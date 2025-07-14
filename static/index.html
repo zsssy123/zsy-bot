@@ -7,10 +7,12 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      display: flex;
-      height: 100vh;
-      font-family: "Segoe UI", sans-serif;
-    }
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  font-family: "Segoe UI", sans-serif;
+}
     #sidebar {
       width: 260px;
       background: #f5f7fa;
@@ -26,11 +28,11 @@
       overflow-y: auto;
     }
     #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: #eef1f5;
-    }
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
     #header {
       display: flex;
       align-items: center;
@@ -47,13 +49,15 @@
       font-size: 1.1em;
     }
     #chat {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 90px;      /* 留出 header 的空间 */
+  margin-bottom: 70px;   /* 留出 input-bar 的空间 */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
     .message {
       display: flex;
       align-items: flex-start;
