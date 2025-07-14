@@ -412,6 +412,7 @@
         currentChatId = data.chatId;
         localStorage.setItem("current_chat_id", currentChatId);
         await loadChatList();
+        await loadChatHistory(currentChatId);  // ✅ 加这一句，让页面自动跳转加载新会话内容
         return data.chatId;  // ✅ 返回新 chatId
       } else {
         alert("新建失败");
