@@ -108,6 +108,34 @@
     .chat-item:hover {
       background: #e3f2fd;
     }
+    @media (max-width: 600px) {
+      #header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      #header .title {
+        font-size: 1em;
+        margin-bottom: 4px;
+      }
+
+      #user-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-left: 0;
+      }
+
+      #user-info a, #user-info button, #user-info span {
+        font-size: 0.9em;
+      }
+
+      #user-info button {
+        padding: 4px 8px;
+        font-size: 0.8em;
+      }
+    }
   </style>
 </head>
 <body>
