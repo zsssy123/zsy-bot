@@ -97,7 +97,8 @@
       if (data.token) {
         localStorage.setItem("zsy_username", username);
         localStorage.setItem("zsy_token", data.token);
-        window.location.href = "/chat";
+        
+        window.location.href = "/";
       } else {
         document.getElementById("err").innerText = data.error || "登录失败";
       }
@@ -113,7 +114,7 @@
       if (result.token) {
         localStorage.setItem("zsy_token", result.token);
         localStorage.setItem("zsy_username", "guest");
-        window.location.href = "/chat";
+        window.location.href = "/";
       } else {
         alert("游客登录失败，请联系管理员");
       }
