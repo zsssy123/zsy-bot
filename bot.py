@@ -641,7 +641,7 @@ def upload_avatar():
     # 更新数据库 users 表中的 avatar_url 字段
     update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
     headers = {
-        "apikey": SUPABASE_ANON_KEY,
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/json"
     }
