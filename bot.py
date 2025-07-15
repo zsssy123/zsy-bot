@@ -641,7 +641,7 @@ def upload_avatar():
         print("❌ 上传失败:", str(e))
         return jsonify({"error": f"上传失败: {str(e)}"}), 500
 
-    avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.jpg"
+    avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/avatars/{username}.jpg"
     print("🔗 头像 URL:", avatar_url)
 
     update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
