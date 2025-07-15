@@ -665,6 +665,26 @@ def upload_avatar():
     print("✅ 完成所有流程")
     return jsonify({"url": avatar_url})
 
+@app.route("/api/user-avatar", methods=["GET"])
+def get_user_avatar():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except Exception:
+        return jsonify({"error": "认证失败"}), 401
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    try:
+        data = supabase.table("users").select("avatar_url").eq("username", username).execute()
+        if data.data and "avatar_url" in data.data[0]:
+            return jsonify({ "url": data.data[0]["avatar_url"] })
+    except Exception as e:
+        print("查询头像失败：", e)
+
+    return jsonify({ "url": None })
+
 
 @app.route("/login")
 def login_page():
