@@ -14,6 +14,10 @@ from dotenv import load_dotenv
 import requests  # 如果你还没有这个
 from dotenv import load_dotenv
 from supabase import create_client
+from flask import request, jsonify
+from supabase import create_client
+from PIL import Image
+import io
 import os
 os.getenv("FREEGPT_KEY")
 
@@ -595,55 +599,66 @@ def web_chat():
 
 @app.route("/api/upload-avatar", methods=["POST"])
 def upload_avatar():
-    # ✅ 解析 JWT 鉴权
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         username = payload["user"]
-    except Exception:
+    except Exception as e:
+        print("JWT 解码失败：", e)
         return jsonify({"error": "认证失败"}), 401
 
-    # ✅ 获取上传文件
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "未上传文件"}), 400
 
-    # ✅ 初始化 Supabase 客户端
+    try:
+        # ✅ 使用 Pillow 压缩图片
+        img = Image.open(file.stream)
+        img = img.convert("RGB")  # 避免 PNG alpha 通道报错
+        img_io = io.BytesIO()
+        img.save(img_io, "JPEG", quality=85, optimize=True)  # 可调压缩质量
+        img_io.seek(0)
+    except Exception as e:
+        print("图片压缩失败：", e)
+        return jsonify({"error": "图片处理失败"}), 400
+
     supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    file_path = f"avatars/{username}.jpg"
 
-    file_path = f"avatars/{username}.png"
-
-    # ✅ 可选：删除旧头像（忽略失败）
     try:
         supabase.storage.from_("avatars").remove([file_path])
-    except:
-        pass
+    except Exception as e:
+        print("删除旧头像失败（忽略）：", e)
 
-    # ✅ 上传新头像
-    res = supabase.storage.from_("avatars").upload(file_path, file.stream, {
-        "content-type": file.content_type
-    })
+    try:
+        upload_res = supabase.storage.from_("avatars").upload(file_path, img_io, {
+            "content-type": "image/jpeg"
+        })
+    except Exception as e:
+        print("上传失败：", e)
+        return jsonify({"error": "上传异常"}), 500
 
-    if not res or "error" in res:
+    if not upload_res or upload_res.get("error"):
+        print("上传失败响应：", upload_res)
         return jsonify({"error": "上传失败"}), 500
 
-    avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.png"
+    avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.jpg"
 
-    # ✅ 更新数据库用户记录
-    update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
+    # ✅ 更新数据库
+    patch_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
         "Content-Type": "application/json"
     }
     patch_data = { "avatar_url": avatar_url }
-    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
 
+    patch_res = requests.patch(patch_url, headers=headers, json=patch_data)
     if patch_res.status_code not in [200, 204]:
+        print("数据库更新失败：", patch_res.text)
         return jsonify({"error": "数据库更新失败"}), 500
 
-    return jsonify({"url": avatar_url})
-
+    return jsonify({ "url": avatar_url })
 
 @app.route("/login")
 def login_page():
