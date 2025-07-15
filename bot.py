@@ -17,7 +17,6 @@ from supabase import create_client
 from flask import request, jsonify
 from supabase import create_client
 from PIL import Image
-
 import io
 import os
 os.getenv("FREEGPT_KEY")
