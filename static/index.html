@@ -194,21 +194,24 @@
     const username = localStorage.getItem("zsy_username") || "ZSY用户";
 
     userInfoBox.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span>👤 ${username}</span>
-        <button onclick="logout()" style="
-          padding: 4px 10px;
-          background: #dc3545;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          font-size: 0.8em;
-          cursor: pointer;
-        ">🚪 退出</button>
-        <a href="/" style="font-size: 0.8em; text-decoration: none; color: #007bff;">🏠 返回首页</a>
-        <a href="/changepwd" style="font-size: 0.8em; text-decoration: none; color: #ffc107;">🔑 修改密码</a>
-      </div>
-    `;
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}"
+         alt="头像"
+         style="width: 28px; height: 28px; border-radius: 50%;" />
+    <span>${username}</span>
+    <button onclick="logout()" style="
+      padding: 4px 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8em;
+      cursor: pointer;
+    ">🚪 退出</button>
+    <a href="/" style="font-size: 0.8em; text-decoration: none; color: #007bff;">🏠 返回首页</a>
+    <a href="/changepwd" style="font-size: 0.8em; text-decoration: none; color: #ffc107;">🔑 修改密码</a>
+  </div>
+`;
 
 
     function logout() {
