@@ -17,11 +17,10 @@ from supabase import create_client
 from flask import request, jsonify
 from supabase import create_client
 from PIL import Image
+
 import io
 import os
 os.getenv("FREEGPT_KEY")
-
-
 
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -70,6 +69,7 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.deepseek.com")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "zsy-secret")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 # ---🤖 DeepSeek 接入 ---
 client = OpenAI(
@@ -642,7 +642,7 @@ def upload_avatar():
     update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
-        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/json"
     }
     patch_data = { "avatar_url": avatar_url }
