@@ -193,18 +193,9 @@
     const userInfoBox = document.getElementById("user-info");
     const username = localStorage.getItem("zsy_username") || "ZSY用户";
 
-    const avatar = localStorage.getItem("zsy_avatar_url");
-    const avatarImg = document.getElementById("avatar");
-    if (avatarImg) {
-      if (avatar && avatar.startsWith("http")) {
-        avatarImg.src = avatar;
-      } else {
-        avatarImg.src = "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png";
-      }
-    
     userInfoBox.innerHTML = `
   <div style="display: flex; align-items: center; gap: 10px;">
-    <img id="avatar"
+    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}"
          alt="头像"
          style="width: 28px; height: 28px; border-radius: 50%;" />
     <span>${username}</span>
@@ -224,15 +215,6 @@
     <a href="/changepwd" style="font-size: 0.8em; text-decoration: none; color: #ffc107;">🔑 修改密码</a>
   </div>
 `;
-    const avatar = localStorage.getItem("zsy_avatar_url");
-    const avatarImg = document.getElementById("avatar");
-    if (avatarImg) {
-      if (avatar && avatar.startsWith("http")) {
-        avatarImg.src = avatar;
-      } else {
-        avatarImg.src = "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png";
-      }
-    }
 
     document.getElementById("avatar-upload").addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -474,7 +456,23 @@
     }
 
     
-    
+    async function loadChatHistory() {
+      if (!currentChatId) return;
+
+      chat.innerHTML = "";  // 清空界面
+
+      const res = await fetch(`/api/chat-get?id=${currentChatId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const session = await res.json();
+      const messages = session?.messages || [];
+
+      for (const m of messages) {
+        addMessage(m.content, m.role === "user" ? "user" : "bot");
+      }
+    }
+
+
     async function send() {
      const text = input.value.trim();
      if (!text || !currentChatId) return;
