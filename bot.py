@@ -16,6 +16,10 @@ from dotenv import load_dotenv
 from supabase import create_client
 import os
 os.getenv("FREEGPT_KEY")
+import os
+ext = os.path.splitext(file.filename)[1] or ".png"
+file_path = f"avatars/{username}{ext}"
+
 
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -593,6 +597,7 @@ def web_chat():
 
 @app.route("/api/upload-avatar", methods=["POST"])
 def upload_avatar():
+    # ✅ 解析 JWT 鉴权
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
@@ -600,28 +605,33 @@ def upload_avatar():
     except Exception:
         return jsonify({"error": "认证失败"}), 401
 
+    # ✅ 获取上传文件
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "未上传文件"}), 400
 
-    # 创建 Supabase 客户端
+    # ✅ 初始化 Supabase 客户端
     supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     file_path = f"avatars/{username}.png"
+
+    # ✅ 可选：删除旧头像（忽略失败）
     try:
-        supabase.storage.from_("avatars").remove([file_path])  # 删除旧头像（可选）
+        supabase.storage.from_("avatars").remove([file_path])
     except:
         pass
+
+    # ✅ 上传新头像
     res = supabase.storage.from_("avatars").upload(file_path, file.stream, {
         "content-type": file.content_type
     })
 
     if not res or "error" in res:
-        return jsonify({ "error": "上传失败" }), 500
+        return jsonify({"error": "上传失败"}), 500
 
     avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.png"
 
-    # 更新数据库
+    # ✅ 更新数据库用户记录
     update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
@@ -634,7 +644,9 @@ def upload_avatar():
     if patch_res.status_code not in [200, 204]:
         return jsonify({"error": "数据库更新失败"}), 500
 
-    return jsonify({ "url": avatar_url })
+    return jsonify({"url": avatar_url})
+
+
 @app.route("/login")
 def login_page():
     return send_from_directory("static", "login.html")
