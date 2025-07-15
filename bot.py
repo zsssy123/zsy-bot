@@ -207,6 +207,15 @@ def home():
               <button onclick="logout()">🚪 退出</button>
             </div>
           `;
+          const localAvatar = localStorage.getItem("zsy_avatar_url");
+          const avatarImg = document.getElementById("avatar");
+          if (avatarImg) {
+            if (localAvatar && localAvatar.startsWith("http")) {
+              avatarImg.src = localAvatar;
+            } else {
+              avatarImg.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+            }
+          }
        }
 
         function logout() {
@@ -214,6 +223,54 @@ def home():
           localStorage.removeItem("zsy_username");
           window.location.href = "/login";
         }
+        document.getElementById("avatar-upload").addEventListener("change", async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const formData = new FormData();
+          formData.append("file", file);
+
+          const res = await fetch("/api/upload-avatar", {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + localStorage.getItem("zsy_token")
+            },
+            body: formData
+          });
+
+          const result = await res.json().catch(() => {
+            alert("头像上传失败（服务器未返回 JSON）");
+            return {};
+          });
+
+          if (result.url) {
+            alert("头像更新成功！");
+            localStorage.setItem("zsy_avatar_url", result.url);
+            document.getElementById("avatar").src = result.url;
+          } else {
+            alert("上传失败：" + (result.error || "未知错误"));
+          }
+        });
+        document.getElementById("delete-avatar").addEventListener("click", async () => {
+          if (!confirm("确定要删除头像吗？")) return;
+
+          const res = await fetch("/api/delete-avatar", {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + localStorage.getItem("zsy_token")
+            }
+          });
+
+          const result = await res.json().catch(() => ({}));
+
+          if (result.success) {
+            alert("头像已删除！");
+            localStorage.removeItem("zsy_avatar_url");
+            document.getElementById("avatar").src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(localStorage.getItem("zsy_username"))}`;
+          } else {
+            alert("删除失败：" + (result.error || "未知错误"));
+          }
+        });
       </script>
     </body>
     </html>
