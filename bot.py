@@ -13,7 +13,7 @@ from threading import Thread
 from dotenv import load_dotenv
 import requests  # 如果你还没有这个
 from dotenv import load_dotenv
-from flask import send_from_directory
+from supabase_py import create_client
 import os
 os.getenv("FREEGPT_KEY")
 
@@ -224,10 +224,6 @@ def login():
         return jsonify({"token": token})
     else:
         return jsonify({"error": "用户名或密码错误"}), 401
-
-@app.route("/tencent9046638650735737396.txt")
-def verify_wechat_site():
-    return send_from_directory(".", "tencent9046638650735737396.txt")
 
 @app.route("/api/change-password", methods=["POST"])
 def change_password():
@@ -595,7 +591,50 @@ def web_chat():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
-        
+@app.route("/api/upload-avatar", methods=["POST"])
+def upload_avatar():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except Exception:
+        return jsonify({"error": "认证失败"}), 401
+
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "未上传文件"}), 400
+
+    # 创建 Supabase 客户端
+    supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    file_path = f"avatars/{username}.png"
+    try:
+        supabase.storage.from_("avatars").remove([file_path])  # 删除旧头像（可选）
+    except:
+        pass
+    res = supabase.storage.from_("avatars").upload(file_path, file.stream, {
+        "content-type": file.content_type
+    })
+
+    if not res or "error" in res:
+        return jsonify({ "error": "上传失败" }), 500
+
+    avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.png"
+
+    # 更新数据库
+    update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json"
+    }
+    patch_data = { "avatar_url": avatar_url }
+    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
+
+    if patch_res.status_code not in [200, 204]:
+        return jsonify({"error": "数据库更新失败"}), 500
+
+    return jsonify({ "url": avatar_url })
 @app.route("/login")
 def login_page():
     return send_from_directory("static", "login.html")
