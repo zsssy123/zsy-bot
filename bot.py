@@ -633,9 +633,20 @@ def upload_avatar():
         print("删除旧头像失败：", str(e))
 
     try:
-        res = supabase.storage.from_("avatars").upload(file_path, buffer, {
-            "content-type": "image/png"
-        })
+        # ✅ 压缩为 PNG 并读取 bytes
+        image = Image.open(file.stream)
+        image = image.convert("RGB")
+        image.thumbnail((256, 256))  # 可自定义最大头像尺寸
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        # ✅ 上传到 Supabase（传入 bytes，而非 BytesIO 对象）
+        res = supabase.storage.from_("avatars").upload(
+            file_path,
+            buffer.read(),  # 关键：传入的是 bytes
+            {"content-type": "image/png"}
+        )
         print("上传响应：", res)
     except Exception as e:
         print("上传失败：", str(e))
