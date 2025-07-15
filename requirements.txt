@@ -1,4 +1,4 @@
-python-telegram-bot==20.0      # ✅ 向下兼容 httpx<0.24.0
+python-telegram-bot==20.0
 openai
 flask
 python-dotenv
@@ -9,5 +9,4 @@ supabase==1.0.3
 gotrue==1.0.2
 postgrest==0.10.6
 realtime==1.0.2
-storage3==0.3.0
 Pillow
