@@ -193,6 +193,15 @@
     const userInfoBox = document.getElementById("user-info");
     const username = localStorage.getItem("zsy_username") || "ZSY用户";
 
+    const avatar = localStorage.getItem("zsy_avatar_url");
+    const avatarImg = document.getElementById("avatar");
+    if (avatarImg) {
+      if (avatar && avatar.startsWith("http")) {
+        avatarImg.src = avatar;
+      } else {
+        avatarImg.src = "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png";
+      }
+    
     userInfoBox.innerHTML = `
   <div style="display: flex; align-items: center; gap: 10px;">
     <img id="avatar"
