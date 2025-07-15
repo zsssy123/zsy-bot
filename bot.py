@@ -11,7 +11,7 @@ from telegram.ext import (
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
-import requests  # 如果你还没有这个
+import requests  
 from dotenv import load_dotenv
 from supabase import create_client
 from flask import request, jsonify
@@ -610,51 +610,49 @@ def upload_avatar():
     if not file:
         return jsonify({"error": "未上传文件"}), 400
 
-    # ✅ 用 PIL 压缩图片
+    # 压缩并转换为JPEG格式
     try:
-        image = Image.open(file.stream)
-        image = image.convert("RGB")  # 避免 RGBA 问题
-        buffer = io.BytesIO()
-        image.save(buffer, format="JPEG", quality=80)
-        buffer.seek(0)
+        image = Image.open(file.stream).convert("RGB")
+        compressed_io = io.BytesIO()
+        image.save(compressed_io, format="JPEG", quality=75)
+        compressed_io.seek(0)
     except Exception as e:
-        return jsonify({"error": "图片处理失败: " + str(e)}), 400
+        return jsonify({"error": "图像处理失败"}), 500
 
-    # ✅ 初始化 Supabase 客户端
+    # 上传到 Supabase
     supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     file_path = f"avatars/{username}.jpg"
 
-    # ✅ 删除旧头像
     try:
         supabase.storage.from_("avatars").remove([file_path])
     except:
-        pass  # 忽略错误
+        pass  # 忽略删除失败
 
-    # ✅ 上传压缩后的字节流（必须传 buffer，而非 BytesIO 对象本身）
-    res = supabase.storage.from_("avatars").upload(file_path, buffer, {
+    res = supabase.storage.from_("avatars").upload(file_path, compressed_io, {
         "content-type": "image/jpeg"
     })
 
     if not res or "error" in res:
         return jsonify({"error": "上传失败"}), 500
 
+    # 构造公开访问 URL
     avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.jpg"
 
-    # ✅ 更新用户表中的 avatar_url 字段
-    patch_res = requests.patch(
-        f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}",
-        headers={
-            "apikey": SUPABASE_ANON_KEY,
-            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
-            "Content-Type": "application/json"
-        },
-        json={ "avatar_url": avatar_url }
-    )
+    # 更新用户表
+    update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+        "Content-Type": "application/json"
+    }
+    patch_data = { "avatar_url": avatar_url }
+    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
 
     if patch_res.status_code not in [200, 204]:
         return jsonify({"error": "数据库更新失败"}), 500
 
     return jsonify({ "url": avatar_url })
+
 
 @app.route("/login")
 def login_page():
