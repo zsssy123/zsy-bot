@@ -685,6 +685,39 @@ def get_user_avatar():
 
     return jsonify({ "url": None })
 
+@app.route("/api/delete-avatar", methods=["POST"])
+def delete_avatar():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except Exception:
+        return jsonify({"error": "认证失败"}), 401
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    file_path = f"avatars/{username}.jpg"
+
+    # 删除 Supabase 上的头像文件
+    try:
+        supabase.storage.from_("avatars").remove([file_path])
+    except Exception as e:
+        print("❌ 删除头像失败：", e)
+
+    # 将数据库中的 avatar_url 设为 null
+    update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "Content-Type": "application/json"
+    }
+    patch_data = { "avatar_url": None }
+    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
+
+    if patch_res.status_code not in [200, 204]:
+        return jsonify({"error": "数据库更新失败"}), 500
+
+    return jsonify({"success": True})
+
 
 @app.route("/login")
 def login_page():
