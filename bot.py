@@ -13,7 +13,7 @@ from threading import Thread
 from dotenv import load_dotenv
 import requests  # 如果你还没有这个
 from dotenv import load_dotenv
-
+from flask import send_from_directory
 import os
 os.getenv("FREEGPT_KEY")
 
@@ -224,6 +224,10 @@ def login():
         return jsonify({"token": token})
     else:
         return jsonify({"error": "用户名或密码错误"}), 401
+
+@app.route("/tencent9046638650735737396.txt")
+def verify_wechat_site():
+    return send_from_directory(".", "tencent9046638650735737396.txt")
 
 @app.route("/api/change-password", methods=["POST"])
 def change_password():
