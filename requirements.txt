@@ -5,5 +5,5 @@ python-dotenv
 telegram
 pyjwt
 requests
-supabase==1.0.3
+supabase
 Pillow
