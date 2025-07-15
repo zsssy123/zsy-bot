@@ -474,23 +474,7 @@
     }
 
     
-    async function loadChatHistory() {
-      if (!currentChatId) return;
-
-      chat.innerHTML = "";  // 清空界面
-
-      const res = await fetch(`/api/chat-get?id=${currentChatId}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const session = await res.json();
-      const messages = session?.messages || [];
-
-      for (const m of messages) {
-        addMessage(m.content, m.role === "user" ? "user" : "bot");
-      }
-    }
-
-
+    
     async function send() {
      const text = input.value.trim();
      if (!text || !currentChatId) return;
