@@ -6,3 +6,4 @@ telegram
 pyjwt
 requests
 supabase
+Pillow
