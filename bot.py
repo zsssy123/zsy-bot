@@ -187,18 +187,24 @@ def home():
         const userBox = document.getElementById("user-box");
 
         if (!token) {
-          // 未登录跳转登录页
           window.location.href = "/login";
         } else {
           const username = localStorage.getItem("zsy_username") || "ZSY用户";
+          const avatar = localStorage.getItem("zsy_avatar_url");
+
+          const avatarUrl = avatar && avatar.startsWith("http")
+            ? avatar
+            : `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+
           userBox.innerHTML = `
-            <div class="user-row">
-              <span>👤 ${username}</span>
+            <div class="user-row" style="display: flex; align-items: center; gap: 10px;">
+              <img src="${avatarUrl}" style="width: 28px; height: 28px; border-radius: 50%;" alt="头像" />
+              <span>${username}</span>
               <a href="/changepwd">修改密码</a>
               <button onclick="logout()">🚪 退出</button>
             </div>
           `;
-        }
+       }
 
         function logout() {
           localStorage.removeItem("zsy_token");
