@@ -597,8 +597,10 @@ def web_chat():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
+
 @app.route("/api/upload-avatar", methods=["POST"])
 def upload_avatar():
+    # 解析 JWT 获取用户名
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
@@ -606,39 +608,37 @@ def upload_avatar():
     except Exception:
         return jsonify({"error": "认证失败"}), 401
 
+    # 获取上传文件
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "未上传文件"}), 400
 
-    # 压缩并转换为JPEG格式
+    # 使用 PIL 压缩图片（JPEG 质量控制）
     try:
-        image = Image.open(file.stream).convert("RGB")
-        compressed_io = io.BytesIO()
-        image.save(compressed_io, format="JPEG", quality=75)
-        compressed_io.seek(0)
+        image = Image.open(file.stream)
+        image = image.convert("RGB")
+        buffer = io.BytesIO()
+        image.save(buffer, format="JPEG", quality=70)
+        buffer.seek(0)
     except Exception as e:
-        return jsonify({"error": "图像处理失败"}), 500
+        return jsonify({"error": f"图片处理失败: {str(e)}"}), 500
 
-    # 上传到 Supabase
+    # 初始化 Supabase
     supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     file_path = f"avatars/{username}.jpg"
 
+    # 上传至 Supabase Storage（使用压缩后的 BytesIO）
     try:
-        supabase.storage.from_("avatars").remove([file_path])
-    except:
-        pass  # 忽略删除失败
+        supabase.storage.from_("avatars").upload(file_path, buffer.read(), {
+            "content-type": "image/jpeg"
+        })
+    except Exception as e:
+        return jsonify({"error": f"上传失败: {str(e)}"}), 500
 
-    res = supabase.storage.from_("avatars").upload(file_path, compressed_io, {
-        "content-type": "image/jpeg"
-    })
-
-    if not res or "error" in res:
-        return jsonify({"error": "上传失败"}), 500
-
-    # 构造公开访问 URL
+    # 拼接头像 URL（注意使用 public 存储路径）
     avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.jpg"
 
-    # 更新用户表
+    # 更新数据库 users 表中的 avatar_url 字段
     update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
@@ -646,13 +646,12 @@ def upload_avatar():
         "Content-Type": "application/json"
     }
     patch_data = { "avatar_url": avatar_url }
-    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
 
+    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
     if patch_res.status_code not in [200, 204]:
         return jsonify({"error": "数据库更新失败"}), 500
 
     return jsonify({ "url": avatar_url })
-
 
 @app.route("/login")
 def login_page():
