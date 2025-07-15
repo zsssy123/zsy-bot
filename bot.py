@@ -13,7 +13,7 @@ from threading import Thread
 from dotenv import load_dotenv
 import requests  # 如果你还没有这个
 from dotenv import load_dotenv
-from supabase_py import create_client
+from supabase import create_client
 import os
 os.getenv("FREEGPT_KEY")
 
