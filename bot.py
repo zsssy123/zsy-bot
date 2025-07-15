@@ -628,7 +628,7 @@ def upload_avatar():
         print("❌ 图片处理失败:", str(e))
         return jsonify({"error": f"图片处理失败: {str(e)}"}), 500
 
-    supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     file_path = f"avatars/{username}.jpg"
     print("🚀 上传路径:", file_path)
 
