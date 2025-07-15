@@ -16,9 +16,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 import os
 os.getenv("FREEGPT_KEY")
-import os
-ext = os.path.splitext(file.filename)[1] or ".png"
-file_path = f"avatars/{username}{ext}"
+
 
 
 # ✅ 在这里添加 ZSY 人格描述
