@@ -197,9 +197,12 @@ def home():
             : `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
 
           userBox.innerHTML = `
-            <div class="user-row" style="display: flex; align-items: center; gap: 10px;">
-              <img src="${avatarUrl}" style="width: 28px; height: 28px; border-radius: 50%;" alt="头像" />
+            <div class="user-row">
+              <img id="avatar" alt="头像" style="width: 28px; height: 28px; border-radius: 50%;" />
               <span>${username}</span>
+              <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+              <label for="avatar-upload" style="cursor: pointer; font-size: 0.8em; color: #007bff;">更换头像</label>
+              <button id="delete-avatar" style="font-size: 0.8em; background: #999; border: none; color: white; padding: 4px 8px; border-radius: 4px;">删除头像</button>
               <a href="/changepwd">修改密码</a>
               <button onclick="logout()">🚪 退出</button>
             </div>
