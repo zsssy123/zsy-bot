@@ -528,6 +528,22 @@
     });
 
     window.addEventListener("DOMContentLoaded", async () => {
+      // 🔄 同步头像 URL 到 localStorage（或直接使用）
+      try {
+        const avatarRes = await fetch("/api/user-avatar", {
+          headers: {
+            "Authorization": "Bearer " + localStorage.getItem("zsy_token")
+          }
+        });
+        const avatarData = await avatarRes.json();
+        if (avatarData.url) {
+          localStorage.setItem("zsy_avatar_url", avatarData.url);
+          document.getElementById("avatar").src = avatarData.url;
+        }
+      } catch (e) {
+        console.warn("获取头像失败", e);
+      }
+
       const res = await fetch("/api/chat-list", {
         headers: { "Authorization": `Bearer ${token}` }
       });
