@@ -674,7 +674,7 @@ def get_user_avatar():
     except Exception:
         return jsonify({"error": "认证失败"}), 401
 
-    supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     try:
         data = supabase.table("users").select("avatar_url").eq("username", username).execute()
