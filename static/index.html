@@ -244,10 +244,10 @@
       msg.className = `message ${sender}`;
       const avatar = document.createElement("img");
       avatar.className = "avatar";
-      avatar.src = sender === "bot"
-        ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
-        : "https://cdn.pixabay.com/photo/2022/10/07/11/02/autumn-7504820_1280.jpg";
-
+      const avatarUrl = sender === "bot"
+      ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
+      : `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+      avatar.src = avatarUrl;
       const bubble = document.createElement("div");
       bubble.className = "bubble";
       bubble.innerText = text;
