@@ -195,7 +195,7 @@
 
     userInfoBox.innerHTML = `
   <div style="display: flex; align-items: center; gap: 10px;">
-    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}"
+    <img id="avatar"
          alt="头像"
          style="width: 28px; height: 28px; border-radius: 50%;" />
     <span>${username}</span>
@@ -215,6 +215,15 @@
     <a href="/changepwd" style="font-size: 0.8em; text-decoration: none; color: #ffc107;">🔑 修改密码</a>
   </div>
 `;
+    const avatar = localStorage.getItem("zsy_avatar_url");
+    const avatarImg = document.getElementById("avatar");
+    if (avatarImg) {
+      if (avatar && avatar.startsWith("http")) {
+        avatarImg.src = avatar;
+      } else {
+        avatarImg.src = "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png";
+      }
+    }
 
     document.getElementById("avatar-upload").addEventListener("change", async (e) => {
     const file = e.target.files[0];
