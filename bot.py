@@ -597,61 +597,75 @@ def web_chat():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
-
 @app.route("/api/upload-avatar", methods=["POST"])
 def upload_avatar():
-    # 解析 JWT 获取用户名
+    print("🔧 开始处理头像上传请求")
+
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    print("📦 获取到 token:", token[:15] + "...")  # 不打印完整 token
+
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         username = payload["user"]
-    except Exception:
+        print("✅ 解码成功，用户名:", username)
+    except Exception as e:
+        print("❌ JWT 解码失败:", str(e))
         return jsonify({"error": "认证失败"}), 401
 
-    # 获取上传文件
     file = request.files.get("file")
     if not file:
+        print("⚠️ 没有上传文件")
         return jsonify({"error": "未上传文件"}), 400
+    print("🖼️ 收到头像文件:", file.filename)
 
-    # 使用 PIL 压缩图片（JPEG 质量控制）
     try:
         image = Image.open(file.stream)
         image = image.convert("RGB")
         buffer = io.BytesIO()
         image.save(buffer, format="JPEG", quality=70)
         buffer.seek(0)
+        print("✅ 图片压缩成功")
     except Exception as e:
+        print("❌ 图片处理失败:", str(e))
         return jsonify({"error": f"图片处理失败: {str(e)}"}), 500
 
-    # 初始化 Supabase
     supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     file_path = f"avatars/{username}.jpg"
+    print("🚀 上传路径:", file_path)
 
-    # 上传至 Supabase Storage（使用压缩后的 BytesIO）
     try:
-        supabase.storage.from_("avatars").upload(file_path, buffer.read(), {
+        upload_result = supabase.storage.from_("avatars").upload(file_path, buffer.read(), {
             "content-type": "image/jpeg"
         })
+        print("✅ 上传成功:", upload_result)
     except Exception as e:
+        print("❌ 上传失败:", str(e))
         return jsonify({"error": f"上传失败: {str(e)}"}), 500
 
-    # 拼接头像 URL（注意使用 public 存储路径）
     avatar_url = f"{SUPABASE_URL}/storage/v1/object/public/avatars/{username}.jpg"
+    print("🔗 头像 URL:", avatar_url)
 
-    # 更新数据库 users 表中的 avatar_url 字段
     update_url = f"{SUPABASE_URL}/rest/v1/users?username=eq.{username}"
     headers = {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/json"
     }
-    patch_data = { "avatar_url": avatar_url }
+    patch_data = {"avatar_url": avatar_url}
 
-    patch_res = requests.patch(update_url, headers=headers, json=patch_data)
+    try:
+        patch_res = requests.patch(update_url, headers=headers, json=patch_data)
+        print("📦 数据库更新响应:", patch_res.status_code, patch_res.text)
+    except Exception as e:
+        print("❌ 请求更新数据库失败:", str(e))
+        return jsonify({"error": f"请求失败: {str(e)}"}), 500
+
     if patch_res.status_code not in [200, 204]:
-        return jsonify({"error": "数据库更新失败"}), 500
+        return jsonify({"error": f"数据库更新失败: {patch_res.text}"}), 500
 
-    return jsonify({ "url": avatar_url })
+    print("✅ 完成所有流程")
+    return jsonify({"url": avatar_url})
+
 
 @app.route("/login")
 def login_page():
