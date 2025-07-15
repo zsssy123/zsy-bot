@@ -5,4 +5,4 @@ python-dotenv
 telegram
 pyjwt
 requests
-pip install supabase
+supabase
