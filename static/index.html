@@ -195,9 +195,10 @@
 
     userInfoBox.innerHTML = `
   <div style="display: flex; align-items: center; gap: 10px;">
-    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}"
+    <img id="avatar"
          alt="头像"
          style="width: 28px; height: 28px; border-radius: 50%;" />
+
     <span>${username}</span>
     <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
     <label for="avatar-upload" style="cursor: pointer; font-size: 0.8em; color: #007bff;">更换头像</label>
@@ -215,6 +216,15 @@
     <a href="/changepwd" style="font-size: 0.8em; text-decoration: none; color: #ffc107;">🔑 修改密码</a>
   </div>
 `;
+    const localAvatar = localStorage.getItem("zsy_avatar_url");
+    const avatarImg = document.getElementById("avatar");
+    if (avatarImg) {
+      if (localAvatar && localAvatar.startsWith("http")) {
+        avatarImg.src = localAvatar;
+      } else {
+        avatarImg.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+      }
+    }
 
     document.getElementById("avatar-upload").addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -279,9 +289,13 @@
       msg.className = `message ${sender}`;
       const avatar = document.createElement("img");
       avatar.className = "avatar";
+      const localAvatar = localStorage.getItem("zsy_avatar_url");
       const avatarUrl = sender === "bot"
-      ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
-      : `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`;
+        ? "https://p3.itc.cn/q_70/images01/20230927/a33685f0ad954b2bae29a8e1e1c05cda.png"
+        : (localAvatar && localAvatar.startsWith("http")
+            ? localAvatar
+            : `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`);
+
       avatar.src = avatarUrl;
       const bubble = document.createElement("div");
       bubble.className = "bubble";
