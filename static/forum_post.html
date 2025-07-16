@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>帖子详情</title></head>
+<body>
+  <div id="post"></div>
+  <div id="comments"></div>
+  <textarea id="new-comment" placeholder="写评论..."></textarea><br>
+  <button onclick="submitComment()">发表评论</button>
+  <script>
+    const postId = new URLSearchParams(location.search).get("id");
+    const token = localStorage.getItem("zsy_token");
+
+    fetch(`/api/forum/post/${postId}`)
+      .then(res => res.json())
+      .then(data => {
+        const p = data.post;
+        document.getElementById("post").innerHTML = `<h2>${p.title}</h2><p>${p.content}</p><p>作者：${p.author}</p>`;
+        const cs = data.comments.map(c => `<p>${c.author}：${c.content}</p>`).join("");
+        document.getElementById("comments").innerHTML = cs;
+      });
+
+    async function submitComment() {
+      const content = document.getElementById("new-comment").value;
+      const res = await fetch("/api/forum/comment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ post_id: postId, content })
+      });
+      const data = await res.json();
+      if (data.message) location.reload();
+    }
+  </script>
+</body>
+</html>
