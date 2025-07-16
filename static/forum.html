@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>ZSY论坛</title></head>
+<body>
+  <h2>📌 所有帖子</h2>
+  <div id="post-list"></div>
+  <button onclick="location.href='/forum/new'">✏️ 发帖</button>
+  <script>
+    fetch('/api/forum/posts')
+      .then(res => res.json())
+      .then(posts => {
+        const list = posts.map(p => `<div><a href="/forum/post?id=${p.id}">${p.title}</a> - ${p.author}</div>`).join("");
+        document.getElementById("post-list").innerHTML = list;
+      });
+  </script>
+</body>
+</html>
