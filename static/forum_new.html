@@ -1,18 +1,92 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>发帖</title></head>
+<!DOCTYPE html><html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📝 发布新帖 - ZSY论坛</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    h2 {
+      margin: 0 0 20px 0;
+      font-size: 1.4em;
+      color: #333;
+    }
+    input, textarea {
+      width: 100%;
+      font-size: 1em;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #msg {
+      margin-top: 10px;
+      color: red;
+    }
+  </style>
+</head>
 <body>
-  <h2>📝 发布新帖</h2>
-  <input id="title" placeholder="标题"><br>
-  <textarea id="content" placeholder="内容"></textarea><br>
+  <div class="top-bar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <img id="my-avatar" class="avatar" />
+      <span id="my-username"></span>
+    </div>
+    <button onclick="location.href='/forum'">← 返回列表</button>
+  </div>  <h2>📝 发布新帖</h2>
+  <input id="title" placeholder="请输入标题">
+  <textarea id="content" placeholder="请输入内容"></textarea>
   <button onclick="post()">发布</button>
-  <p id="msg"></p>
+  <p id="msg"></p>  <script>
+    const token = localStorage.getItem("zsy_token");
+    const username = localStorage.getItem("zsy_username") || "ZSY用户";
+    document.getElementById("my-username").innerText = username;
 
-  <script>
+    fetch("/api/user-avatar", {
+      headers: { Authorization: "Bearer " + token }
+    })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("my-avatar").src = data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+      });
+
     async function post() {
-      const title = document.getElementById("title").value;
-      const content = document.getElementById("content").value;
-      const token = localStorage.getItem("zsy_token");
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      if (!title || !content) {
+        document.getElementById("msg").innerText = "标题和内容不能为空";
+        return;
+      }
+
       const res = await fetch("/api/forum/post", {
         method: "POST",
         headers: {
@@ -21,10 +95,13 @@
         },
         body: JSON.stringify({ title, content })
       });
+
       const data = await res.json();
-      if (data.message) location.href = "/forum";
-      else document.getElementById("msg").innerText = data.error || "出错了";
+      if (data.message) {
+        location.href = "/forum";
+      } else {
+        document.getElementById("msg").innerText = data.error || "出错了";
+      }
     }
-  </script>
-</body>
+  </script></body>
 </html>
