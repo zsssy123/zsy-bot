@@ -1,26 +1,88 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>帖子详情</title></head>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>帖子详情</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .post {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    .comments {
+      margin-top: 30px;
+    }
+    .comment {
+      background: #f1f1f1;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      font-size: 1em;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 14px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
 <body>
-  <div id="post"></div>
-  <div id="comments"></div>
-  <textarea id="new-comment" placeholder="写评论..."></textarea><br>
-  <button onclick="submitComment()">发表评论</button>
+  <div class="post">
+    <h2 id="post-title">加载中...</h2>
+    <p id="post-content"></p>
+  </div>
+
+  <div class="comments">
+    <h3>💬 评论</h3>
+    <div id="comment-list">加载中...</div>
+
+    <textarea id="comment-input" placeholder="写下你的评论..."></textarea>
+    <button onclick="submitComment()">提交评论</button>
+  </div>
+
   <script>
-    const postId = new URLSearchParams(location.search).get("id");
+    const params = new URLSearchParams(location.search);
+    const postId = params.get("id");
     const token = localStorage.getItem("zsy_token");
 
-    fetch(`/api/forum/post/${postId}`)
-      .then(res => res.json())
-      .then(data => {
-        const p = data.post;
-        document.getElementById("post").innerHTML = `<h2>${p.title}</h2><p>${p.content}</p><p>作者：${p.author}</p>`;
-        const cs = data.comments.map(c => `<p>${c.author}：${c.content}</p>`).join("");
-        document.getElementById("comments").innerHTML = cs;
-      });
+    async function loadPost() {
+      const res = await fetch(`/api/forum/post?id=${postId}`);
+      const data = await res.json();
+      document.getElementById("post-title").innerText = data.title;
+      document.getElementById("post-content").innerText = data.content;
+    }
+
+    async function loadComments() {
+      const res = await fetch(`/api/forum/comments?post_id=${postId}`);
+      const data = await res.json();
+      if (!data.length) {
+        document.getElementById("comment-list").innerText = "暂无评论";
+        return;
+      }
+      document.getElementById("comment-list").innerHTML = data.map(c =>
+        `<div class="comment">${c.content}</div>`).join("");
+    }
 
     async function submitComment() {
-      const content = document.getElementById("new-comment").value;
+      const content = document.getElementById("comment-input").value.trim();
+      if (!content) return alert("请填写内容");
       const res = await fetch("/api/forum/comment", {
         method: "POST",
         headers: {
@@ -30,8 +92,13 @@
         body: JSON.stringify({ post_id: postId, content })
       });
       const data = await res.json();
-      if (data.message) location.reload();
+      if (data.error) return alert(data.error);
+      document.getElementById("comment-input").value = "";
+      loadComments();
     }
+
+    loadPost();
+    loadComments();
   </script>
 </body>
 </html>
