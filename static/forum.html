@@ -1,107 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ZSY论坛 - 所有帖子</title>
-  <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f6f8fa;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 2em;
-      color: #333;
-    }
-    .post {
-      background: white;
-      padding: 16px;
-      margin-bottom: 16px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .post h3 {
-      margin: 0;
-      font-size: 1.2em;
-    }
-    .post p {
-      margin: 6px 0 0;
-      color: #666;
-    }
-    a {
-      text-decoration: none;
-      color: #007bff;
-    }
-    .btn-post {
-      display: inline-block;
-      padding: 10px 16px;
-      background: #28a745;
-      color: white;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-  </style>
-</head>
+<html>
+<head><meta charset="UTF-8"><title>ZSY论坛</title></head>
 <body>
-
-  <h1>📌 所有帖子</h1>
-
-  <a href="/forum/new" class="btn-post">✏️ 发帖</a>
-
-  <div id="post-list">加载中...</div>
-
+  <h2>📌 所有帖子</h2>
+  <div id="post-list"></div>
+  <button onclick="location.href='/forum/new'">✏️ 发帖</button>
   <script>
-    async function loadPosts() {
-      const token = localStorage.getItem("zsy_token");
-      const postList = document.getElementById("post-list");
-
-      if (!token) {
-        postList.innerText = "请先登录";
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/forum/list", {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
-        const data = await res.json();
-        if (!Array.isArray(data)) {
-          postList.innerText = "加载失败";
-          return;
-        }
-
-        if (data.length === 0) {
-          postList.innerText = "暂无帖子，快来发一个吧！";
-          return;
-        }
-
-        postList.innerHTML = "";
-        for (const post of data) {
-          const id = post.id;
-          const title = post.title || "(无标题)";
-          const content = post.content || "";
-          const snippet = content.length > 0 ? content.slice(0, 50) + "..." : "";
-
-          postList.innerHTML += `
-            <div class="post">
-              <h3><a href="/forum/post?id=${id}">${title}</a></h3>
-              <p>${snippet}</p>
-            </div>
-          `;
-        }
-      } catch (e) {
-        console.error(e);
-        postList.innerText = "❌ 加载失败，请稍后再试";
-      }
-    }
-
-    loadPosts();
+    fetch('/api/forum/posts')
+      .then(res => res.json())
+      .then(posts => {
+        const list = posts.map(p => `<div><a href="/forum/post?id=${p.id}">${p.title}</a> - ${p.author}</div>`).join("");
+        document.getElementById("post-list").innerHTML = list;
+      });
   </script>
-
 </body>
 </html>
