@@ -78,6 +78,7 @@
     .btns .home { background: #007bff; color: #fff; }
     .btns .update { background: #ffc107; color: #000; }
     .btns .delete { background: #dc3545; color: #fff; }
+    .btns .logout { background: #666; color: #fff; }
   </style>
 </head>
 <body>
@@ -90,6 +91,7 @@
       <button class="home" onclick="location.href='/'">🏠 首页</button>
       <label for="avatar-upload" class="update">🖼️ 更新头像</label>
       <button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>
+      <button class="logout" onclick="logout()">🚪 退出登录</button>
       <input id="avatar-upload" type="file" accept="image/*" style="display:none" />
     </div>
   </div>  <div class="top-bar">
@@ -125,6 +127,13 @@
   function deleteAvatar() {
     fetch("/api/delete-avatar", { method: "POST", headers: { Authorization: "Bearer " + token } })
       .then(res => res.json()).then(d => { if (d.success) location.reload(); });
+  }
+
+  function logout() {
+    localStorage.removeItem("zsy_token");
+    localStorage.removeItem("zsy_username");
+    localStorage.removeItem("zsy_avatar_url");
+    location.href = "/login";
   }
 
   async function loadPosts() {
