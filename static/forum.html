@@ -1,85 +1,82 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!-- ✅ forum.html - 论坛主页（发帖 + 帖子列表） --><!DOCTYPE html><html lang="zh">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZSY论坛</title>
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f9f9f9;
-      margin: 0;
-      padding: 20px;
-    }
-    h2 {
-      color: #333;
-    }
-    #post-list {
-      margin-top: 20px;
-    }
-    .post-item {
-      padding: 12px 16px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      margin-bottom: 12px;
-      transition: all 0.2s ease;
-    }
-    .post-item:hover {
-      background: #eef6ff;
-    }
-    .post-item a {
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #007bff;
-    }
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .new-btn {
-      background: #28a745;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    body { font-family: sans-serif; margin: 0; background: #f9f9f9; }
+    header { background: #fff; padding: 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .post-box { padding: 12px; background: #fff; margin: 12px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    input, textarea { width: 100%; margin: 6px 0; padding: 10px; font-size: 1em; }
+    button { padding: 10px 18px; border: none; border-radius: 6px; background: #4caf50; color: white; font-weight: bold; cursor: pointer; }
+    .post-item { display: flex; align-items: center; gap: 10px; background: #fff; padding: 10px; margin: 10px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .post-item a { font-weight: bold; color: #333; text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <h2>📌 ZSY 论坛帖文列表</h2>
-    <button class="new-btn" onclick="location.href='/forum/new'">✏️ 我要发帖</button>
-  </div>
-  <div id="post-list">正在加载帖子...</div>
+  <header>
+    <div><img id="my-avatar" class="avatar"> <span id="my-username"></span></div>
+    <div>
+      <button onclick="location.href='/'">🏠</button>
+      <button onclick="deleteAvatar()">🗑</button>
+    </div>
+  </header>  <div class="post-box">
+    <h3>📝 发帖</h3>
+    <input id="title" placeholder="标题">
+    <textarea id="content" rows="4" placeholder="内容"></textarea>
+    <button onclick="submitPost()">发布</button>
+  </div>  <div id="posts"></div><script>
+const token = localStorage.getItem("zsy_token");
+const username = localStorage.getItem("zsy_username");
+document.getElementById("my-username").innerText = username;
 
-  <script>
-    async function loadPosts() {
-      try {
-        const res = await fetch("/api/forum/posts");
-        const posts = await res.json();
-        if (!Array.isArray(posts)) throw new Error("返回格式错误");
+fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
+  .then(r => r.json()).then(d => {
+    document.getElementById("my-avatar").src = d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+  });
 
-        if (posts.length === 0) {
-          document.getElementById("post-list").innerHTML = "暂时还没有帖子。";
-          return;
-        }
+function deleteAvatar() {
+  fetch("/api/delete-avatar", { method: "POST", headers: { Authorization: "Bearer " + token } })
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); });
+}
 
-        const html = posts.map(p => `
-          <div class="post-item">
-            <a href="/forum/post?id=${p.id}">${p.title}</a>
-          </div>
-        `).join("");
-        document.getElementById("post-list").innerHTML = html;
-      } catch (err) {
-        document.getElementById("post-list").innerHTML = "❌ 加载失败，请稍后重试。";
-        console.error("加载帖子失败：", err);
-      }
-    }
+function submitPost() {
+  fetch("/rest/v1/posts", {
+    method: "POST",
+    headers: {
+      "apikey": "<服务密钥>", "Authorization": "Bearer <服务密钥>",
+      "Content-Type": "application/json", "Prefer": "return=representation"
+    },
+    body: JSON.stringify({ title: title.value, content: content.value, username })
+  }).then(() => location.reload());
+}
 
-    loadPosts();
-  </script>
-</body>
+function loadPosts() {
+  fetch("/rest/v1/posts?order=created_at.desc", {
+    headers: { apikey: "<匿名密钥>", Authorization: "Bearer " + token }
+  }).then(r => r.json()).then(data => {
+    const box = document.getElementById("posts");
+    data.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "post-item";
+      const img = document.createElement("img");
+      img.className = "avatar";
+      loadAvatar(p.username, img);
+      const a = document.createElement("a");
+      a.href = "/forum/post?id=" + p.id;
+      a.innerText = `@${p.username}：${p.title}`;
+      div.appendChild(img); div.appendChild(a); box.appendChild(div);
+    });
+  });
+}
+
+function loadAvatar(user, img) {
+  fetch("/api/avatar-by-username?username=" + user)
+    .then(r => r.json())
+    .then(d => img.src = d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user}`);
+}
+
+loadPosts();
+</script></body>
 </html>
