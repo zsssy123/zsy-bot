@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>发帖</title></head>
+<body>
+  <h2>📝 发布新帖</h2>
+  <input id="title" placeholder="标题"><br>
+  <textarea id="content" placeholder="内容"></textarea><br>
+  <button onclick="post()">发布</button>
+  <p id="msg"></p>
+
+  <script>
+    async function post() {
+      const title = document.getElementById("title").value;
+      const content = document.getElementById("content").value;
+      const token = localStorage.getItem("zsy_token");
+      const res = await fetch("/api/forum/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, content })
+      });
+      const data = await res.json();
+      if (data.message) location.href = "/forum";
+      else document.getElementById("msg").innerText = data.error || "出错了";
+    }
+  </script>
+</body>
+</html>
