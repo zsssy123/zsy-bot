@@ -887,6 +887,22 @@ def get_post_by_query():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
+@app.route("/api/avatar-by-username")
+def avatar_by_username():
+    username = request.args.get("username")
+    if not username:
+        return jsonify({ "error": "缺少 username 参数" }), 400
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    try:
+        data = supabase.table("users").select("avatar_url").eq("username", username).execute()
+        if data.data and "avatar_url" in data.data[0]:
+            return jsonify({ "url": data.data[0]["avatar_url"] })
+    except Exception as e:
+        print("❌ 查询失败:", e)
+
+    return jsonify({ "url": None })
+
 @app.route("/forum")
 def serve_forum():
     return send_from_directory("static", "forum.html")
