@@ -822,19 +822,39 @@ def get_post_detail(post_id):
 
 @app.route("/api/forum/comment", methods=["POST"])
 def post_comment():
-    data = request.get_json()
-    token = request.headers.get("Authorization", "").split(" ")[1]
-    payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    username = payload["user"]
+    try:
+        data = request.get_json()
+        post_id = data.get("post_id")
+        content = data.get("content")
 
-    post_id = data.get("post_id")
-    content = data.get("content")
+        # 验证登录
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
 
-    if not post_id or not content:
-        return jsonify({"error": "评论内容不能为空"}), 400
+        if not post_id or not content:
+            return jsonify({"error": "缺少字段"}), 400
 
-    supabase.table("comments").insert({"post_id": post_id, "author": username, "content": content}).execute()
-    return jsonify({"message": "评论成功"})
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json"
+        }
+        comment_data = {
+            "post_id": post_id,
+            "username": username,
+            "content": content
+        }
+
+        res = requests.post(f"{SUPABASE_URL}/rest/v1/comments", headers=headers, json=comment_data)
+
+        if res.status_code in [200, 201]:
+            return jsonify({"success": True})
+        else:
+            return jsonify({"error": res.text}), 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/forum")
 def serve_forum():
