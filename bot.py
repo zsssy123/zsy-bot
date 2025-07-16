@@ -784,6 +784,59 @@ def delete_avatar():
 
     return jsonify({"success": True})
 
+@app.route("/api/forum/posts")
+def get_posts():
+    res = supabase.table("posts").select("*").order("created_at", desc=True).execute()
+    return jsonify(res.data)
+
+@app.route("/api/forum/post", methods=["POST"])
+def create_post():
+    data = request.get_json()
+    token = request.headers.get("Authorization", "").split(" ")[1]
+    payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    username = payload["user"]
+
+    title = data.get("title")
+    content = data.get("content")
+    if not title or not content:
+        return jsonify({"error": "标题和内容不能为空"}), 400
+
+    supabase.table("posts").insert({"author": username, "title": title, "content": content}).execute()
+    return jsonify({"message": "帖子已创建"})
+
+@app.route("/api/forum/post/<int:post_id>")
+def get_post_detail(post_id):
+    post = supabase.table("posts").select("*").eq("id", post_id).single().execute().data
+    comments = supabase.table("comments").select("*").eq("post_id", post_id).order("created_at").execute().data
+    return jsonify({"post": post, "comments": comments})
+
+@app.route("/api/forum/comment", methods=["POST"])
+def post_comment():
+    data = request.get_json()
+    token = request.headers.get("Authorization", "").split(" ")[1]
+    payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    username = payload["user"]
+
+    post_id = data.get("post_id")
+    content = data.get("content")
+
+    if not post_id or not content:
+        return jsonify({"error": "评论内容不能为空"}), 400
+
+    supabase.table("comments").insert({"post_id": post_id, "author": username, "content": content}).execute()
+    return jsonify({"message": "评论成功"})
+
+@app.route("/forum")
+def serve_forum():
+    return send_from_directory("static", "forum.html")
+
+@app.route("/forum/new")
+def serve_new_post():
+    return send_from_directory("static", "forum_new.html")
+
+@app.route("/forum/post")
+def serve_post_detail():
+    return send_from_directory("static", "forum_post.html")
 
 @app.route("/login")
 def login_page():
