@@ -2,124 +2,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>帖子详情 - ZSY论坛</title>
+  <title>ZSY 帖子详情</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .post {
-      background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 24px;
-    }
-    .post h2 {
-      margin: 0 0 10px;
-    }
-    .comment {
-      background: #fff;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    .comment-box {
-      margin-top: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 80px;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      resize: vertical;
-    }
-    button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .no-comments {
-      color: #888;
-      font-style: italic;
-    }
+    body { font-family: sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .post-box { background: white; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+    .comments { margin-top: 20px; }
+    .comment { background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+    .comment strong { display: block; margin-bottom: 6px; }
+    textarea { width: 100%; height: 80px; border-radius: 6px; padding: 10px; border: 1px solid #ccc; }
+    button { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    h2 { margin-top: 0; }
+    .error { color: red; font-weight: bold; }
   </style>
 </head>
-<body><div id="post" class="post">加载中...</div>
-<h3>💬 评论</h3>
-<div id="comments"></div>
-<div class="comment-box">
-  <textarea id="new-comment" placeholder="写下你的评论..."></textarea>
-  <button onclick="submitComment()">提交评论</button>
-</div><script>
-const postId = new URLSearchParams(location.search).get("id");
-const token = localStorage.getItem("zsy_token") || "";
-const headers = { "Authorization": `Bearer ${token}` };
+<body>
+  <div class="post-box" id="post">
+    <p>加载中...</p>
+  </div>  <div class="comments">
+    <h3>💬 评论</h3>
+    <div id="comments">暂无评论</div><textarea id="comment-text" placeholder="写下你的评论..."></textarea>
+<button onclick="submitComment()">提交评论</button>
 
-// 加载帖子详情
-fetch(`/api/forum/post?id=${postId}`, { headers })
-  .then(res => res.json())
-  .then(data => {
-    const postEl = document.getElementById("post");
-    if (data && data.title) {
-      postEl.innerHTML = `<h2>${data.title}</h2><p>${data.content}</p>`;
-    } else {
-      postEl.innerHTML = "❌ 帖子加载失败";
-    }
-  })
-  .catch(() => {
-    document.getElementById("post").innerText = "❌ 加载失败";
-  });
+  </div>  <script>
+    const postId = new URLSearchParams(location.search).get("id");
+    const token = localStorage.getItem("zsy_token");
+    const username = localStorage.getItem("zsy_username") || "匿名";
 
-// 加载评论
-function loadComments() {
-  fetch(`/api/forum/comments?post_id=${postId}`, { headers })
-    .then(res => res.json())
-    .then(data => {
-      const commentBox = document.getElementById("comments");
-      if (!data || !data.length) {
-        commentBox.innerHTML = '<div class="no-comments">暂无评论</div>';
-      } else {
-        commentBox.innerHTML = data.map(c => `
-          <div class="comment">
-            <strong>${c.username || "匿名"}</strong><br/>
-            ${c.text}
-          </div>
-        `).join("");
+    async function loadPost() {
+      try {
+        const res = await fetch(`/api/forum/post?id=${postId}`);
+        const data = await res.json();
+        if (data.title && data.content) {
+          document.getElementById("post").innerHTML = `
+            <h2>${data.title}</h2>
+            <p>${data.content}</p>
+            <small>作者: ${data.username || "未知用户"}</small>
+          `;
+        } else {
+          throw new Error("数据不完整");
+        }
+      } catch {
+        document.getElementById("post").innerHTML = "<p class='error'>❌ 加载失败</p>";
       }
-    });
-}
-loadComments();
+    }
 
-// 提交评论
-function submitComment() {
-  const text = document.getElementById("new-comment").value.trim();
-  if (!text) return alert("请输入评论内容");
+    async function loadComments() {
+      const box = document.getElementById("comments");
+      try {
+        const res = await fetch(`/api/forum/comments?post_id=${postId}`);
+        const comments = await res.json();
+        if (comments.length === 0) return box.innerText = "暂无评论";
+        box.innerHTML = comments.map(c => `
+          <div class="comment">
+            <strong>${c.username || "匿名"}</strong>
+            <div>${c.content || "(无内容)"}</div>
+          </div>`
+        ).join("");
+      } catch {
+        box.innerHTML = "<p class='error'>❌ 无法加载评论</p>";
+      }
+    }
 
-  fetch("/api/forum/comment", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({ post_id: postId, text })
-  })
-    .then(res => res.json())
-    .then(data => {
+    async function submitComment() {
+      const content = document.getElementById("comment-text").value.trim();
+      if (!content) return alert("评论内容不能为空");
+
+      const res = await fetch("/api/forum/comment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ post_id: postId, content })
+      });
+      const data = await res.json();
       if (data.success) {
-        document.getElementById("new-comment").value = "";
+        document.getElementById("comment-text").value = "";
         loadComments();
       } else {
-        alert("评论失败: " + (data.error || "未知错误"));
+        alert("提交失败: " + (data.error || "未知错误"));
       }
-    });
-}
-</script></body>
+    }
+
+    loadPost();
+    loadComments();
+  </script></body>
 </html>
