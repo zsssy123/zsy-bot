@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解压调酒大师 | 虚拟酒吧游戏</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80') center/cover no-repeat;
+            opacity: 0.2;
+            z-index: -1;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(10, 10, 20, 0.7);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        
+        h1 {
+            font-size: 3.2rem;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #c0c0ff;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .ingredients-panel {
+            width: 25%;
+            background: rgba(25, 25, 50, 0.7);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #f8f9fa;
+            text-shadow: 0 0 10px rgba(100, 150, 255, 0.5);
+        }
+        
+        .category {
+            margin-bottom: 25px;
+        }
+        
+        .category-title {
+            font-size: 1.4rem;
+            color: #64b5f6;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .category-title i {
+            margin-right: 10px;
+        }
+        
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .ingredient {
+            background: rgba(50, 60, 100, 0.6);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+        
+        .ingredient:hover {
+            transform: translateY(-5px);
+            background: rgba(70, 80, 150, 0.7);
+            border-color: #64b5f6;
+            box-shadow: 0 5px 15px rgba(100, 150, 255, 0.4);
+        }
+        
+        .ingredient.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .ingredient i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #bb86fc;
+        }
+        
+        .ingredient-name {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .ingredient-quantity {
+            font-size: 0.85rem;
+            color: #a0a0f0;
+            margin-top: 5px;
+        }
+        
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+        
+        .interaction-area {
+            background: rgba(30, 30, 60, 0.7);
+            border-radius: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bar-counter {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: url('https://images.unsplash.com/photo-1599458254073-8c8c1fae18a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80') center/cover;
+            border-radius: 0 0 20px 20px;
+            z-index: 1;
+        }
+        
+        .glass-container {
+            position: relative;
+            width: 300px;
+            height: 450px;
+            margin-bottom: 30px;
+            transition: all 0.5s ease;
+            z-index: 10;
+        }
+        
+        .glass {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 350px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 4px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 8px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px 5px 40px 40px;
+            z-index: 10;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass.cocktail-glass {
+            width: 140px;
+            height: 300px;
+            border-radius: 5px 5px 80px 80px;
+            border-bottom: 6px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass.wine-glass {
+            width: 100px;
+            height: 320px;
+            border-radius: 5px 5px 30px 30px;
+            border-bottom: 10px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass.small {
+            height: 280px;
+            width: 150px;
+        }
+        
+        .glass.medium {
+            height: 350px;
+            width: 180px;
+        }
+        
+        .glass.large {
+            height: 420px;
+            width: 200px;
+        }
+        
+        .liquid-layer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0;
+            transition: height 1s ease;
+            opacity: 0.85;
+        }
+        
+        .ice-cubes {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        .ice-cube {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 3px;
+            transform: rotate(45deg);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            animation: iceFall 1s ease-out forwards;
+        }
+        
+        @keyframes iceFall {
+            0% {
+                transform: translateY(-100px) rotate(45deg);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) rotate(45deg);
+                opacity: 1;
+            }
+        }
+        
+        .garnish {
+            position: absolute;
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        .shaker {
+            position: absolute;
+            top: 50px;
+            right: 70px;
+            width: 120px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px 30px 80px 80px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: transform 0.5s ease;
+            z-index: 5;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .shaker:hover {
+            transform: translateY(-10px);
+        }
+        
+        .shaker-lid {
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            width: 100px;
+            height: 30px;
+            background: rgba(200, 200, 200, 0.8);
+            border-radius: 20px;
+        }
+        
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            z-index: 20;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 117, 252, 0.6);
+        }
+        
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .action-btn.reset {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
+        }
+        
+        .action-btn.reset:hover {
+            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.6);
+        }
+        
+        .action-btn.secondary {
+            background: rgba(100, 100, 200, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .action-btn.active {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            box-shadow: 0 0 15px rgba(255, 154, 158, 0.6);
+        }
+        
+        .result-panel {
+            width: 25%;
+            background: rgba(25, 25, 50, 0.7);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+        }
+        
+        .cocktail-name {
+            font-size: 2rem;
+            text-align: center;
+            color: #f8f9fa;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(100, 150, 255, 0.5);
+        }
+        
+        .recipe {
+            background: rgba(40, 40, 70, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .recipe-title {
+            font-size: 1.4rem;
+            color: #64b5f6;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .recipe-title i {
+            margin-right: 10px;
+        }
+        
+        .recipe-list {
+            list-style-type: none;
+        }
+        
+        .recipe-item {
+            padding: 12px 15px;
+            background: rgba(60, 70, 120, 0.4);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .recipe-item:hover {
+            background: rgba(80, 90, 160, 0.6);
+            transform: translateX(5px);
+        }
+        
+        .ingredient-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ingredient-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stats-label {
+            font-size: 1.1rem;
+            color: #64b5f6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stats-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .stats-bar {
+            height: 20px;
+            background: rgba(100, 100, 200, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .stats-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 3s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-200px) translateX(20px); opacity: 0; }
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-15px); }
+            50% { transform: translateX(15px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+        
+        .shaking {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes stir {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-10deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        .stirring {
+            animation: stir 0.5s ease-in-out infinite;
+        }
+        
+        .pouring {
+            animation: pour 2s ease-out forwards;
+        }
+        
+        @keyframes pour {
+            0% { height: 0; }
+            100% { height: var(--pour-height); }
+        }
+        
+        .bottle {
+            position: absolute;
+            z-index: 25;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 1s ease;
+            top: 50px;
+            left: 50px;
+        }
+        
+        .liquid-stream {
+            position: absolute;
+            background: currentColor;
+            width: 6px;
+            border-radius: 3px;
+            z-index: 24;
+            transform-origin: top;
+            animation: streamFlow 1.5s ease-out forwards;
+        }
+        
+        @keyframes streamFlow {
+            0% {
+                height: 0;
+                transform: scaleY(0);
+            }
+            50% {
+                height: 200px;
+                transform: scaleY(1);
+            }
+            100% {
+                height: 0;
+                transform: scaleY(0);
+            }
+        }
+        
+        @media (max-width: 1500px) {
+            .container {
+                flex-wrap: wrap;
+            }
+            
+            .ingredients-panel, .result-panel {
+                width: 35%;
+            }
+            
+            .main-area {
+                width: 60%;
+            }
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .ingredients-panel, .result-panel, .main-area {
+                width: 100%;
+            }
+            
+            .ingredients-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .ingredients-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .glass-container {
+                transform: scale(0.8);
+            }
+            
+            .actions {
+                gap: 10px;
+            }
+            
+            .action-btn {
+                padding: 10px 15px;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .ingredients-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>解压调酒大师</h1>
+        <p class="subtitle">在虚拟酒吧中放松身心，调制属于你的独特鸡尾酒。选择配料，摇晃混合，创造令人惊艳的饮品！体验真实的分层效果，多种杯子选择，加冰功能和装饰点缀。</p>
+    </header>
+    
+    <div class="container">
+        <div class="ingredients-panel">
+            <h2 class="panel-title"><i class="fas fa-cocktail"></i> 配料选择</h2>
+            
+            <div class="category">
+                <h3 class="category-title"><i class="fas fa-wine-bottle"></i> 基酒 (最多5次)</h3>
+                <div class="ingredients-grid">
+                    <div class="ingredient" data-type="base" data-color="#FFD700" data-name="伏特加" data-density="0.9" data-sweetness="0" data-sourness="0" data-alcohol="40">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">伏特加</div>
+                        <div class="ingredient-quantity">40% 酒精</div>
+                    </div>
+                    <div class="ingredient" data-type="base" data-color="#D4AF37" data-name="朗姆酒" data-density="0.95" data-sweetness="10" data-sourness="5" data-alcohol="35">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">朗姆酒</div>
+                        <div class="ingredient-quantity">35% 酒精</div>
+                    </div>
+                    <div class="ingredient" data-type="base" data-color="#C9A0DC" data-name="金酒" data-density="0.92" data-sweetness="5" data-sourness="15" data-alcohol="42">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">金酒</div>
+                        <div class="ingredient-quantity">42% 酒精</div>
+                    </div>
+                    <div class="ingredient" data-type="base" data-color="#F0E68C" data-name="龙舌兰" data-density="0.93" data-sweetness="0" data-sourness="10" data-alcohol="38">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">龙舌兰</div>
+                        <div class="ingredient-quantity">38% 酒精</div>
+                    </div>
+                    <div class="ingredient" data-type="base" data-color="#FFA07A" data-name="威士忌" data-density="0.94" data-sweetness="15" data-sourness="5" data-alcohol="40">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">威士忌</div>
+                        <div class="ingredient-quantity">40% 酒精</div>
+                    </div>
+                    <div class="ingredient" data-type="base" data-color="#87CEEB" data-name="白兰地" data-density="0.91" data-sweetness="20" data-sourness="0" data-alcohol="38">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">白兰地</div>
+                        <div class="ingredient-quantity">38% 酒精</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="category">
+                <h3 class="category-title"><i class="fas fa-glass-water"></i> 果汁 & 饮料</h3>
+                <div class="ingredients-grid">
+                    <div class="ingredient" data-type="mixer" data-color="#FF6B6B" data-name="蔓越莓汁" data-density="1.05" data-sweetness="30" data-sourness="25" data-alcohol="0">
+                        <i class="fas fa-glass-water"></i>
+                        <div class="ingredient-name">蔓越莓汁</div>
+                    </div>
+                    <div class="ingredient" data-type="mixer" data-color="#FFD166" data-name="菠萝汁" data-density="1.1" data-sweetness="40" data-sourness="10" data-alcohol="0">
+                        <i class="fas fa-glass-water"></i>
+                        <div class="ingredient-name">菠萝汁</div>
+                    </div>
+                    <div class="ingredient" data-type="mixer" data-color="#06D6A0" data-name="薄荷糖浆" data-density="1.3" data-sweetness="60" data-sourness="5" data-alcohol="0">
+                        <i class="fas fa-glass-water"></i>
+                        <div class="ingredient-name">薄荷糖浆</div>
+                    </div>
+                    <div class="ingredient" data-type="mixer" data-color="#118AB2" data-name="蓝柑糖浆" data-density="1.25" data-sweetness="50" data-sourness="0" data-alcohol="0">
+                        <i class="fas fa-glass-water"></i>
+                        <div class="ingredient-name">蓝柑糖浆</div>
+                    </div>
+                    <div class="ingredient" data-type="mixer" data-color="#FF70A6" data-name="石榴汁" data-density="1.12" data-sweetness="35" data-sourness="15" data-alcohol="0">
+                        <i class="fas fa-glass-water"></i>
+                        <div class="ingredient-name">石榴汁</div>
+                    </div>
+                    <div class="ingredient" data-type="mixer" data-color="#FF9770" data-name="橙汁" data-density="1.08" data-sweetness="25" data-sourness="30" data-alcohol="0">
+                        <i class="fas fa-glass-water"></i>
+                        <div class="ingredient-name">橙汁</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="category">
+                <h3 class="category-title"><i class="fas fa-lemon"></i> 装饰 & 点缀</h3>
+                <div class="ingredients-grid">
+                    <div class="ingredient" data-type="garnish" data-color="#FFD700" data-name="柠檬片" data-density="0">
+                        <i class="fas fa-lemon"></i>
+                        <div class="ingredient-name">柠檬片</div>
+                    </div>
+                    <div class="ingredient" data-type="garnish" data-color="#EF476F" data-name="樱桃" data-density="0">
+                        <i class="fas fa-cherries"></i>
+                        <div class="ingredient-name">樱桃</div>
+                    </div>
+                    <div class="ingredient" data-type="garnish" data-color="#06D6A0" data-name="薄荷叶" data-density="0">
+                        <i class="fas fa-leaf"></i>
+                        <div class="ingredient-name">薄荷叶</div>
+                    </div>
+                    <div class="ingredient" data-type="garnish" data-color="#118AB2" data-name="蓝莓" data-density="0">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">蓝莓</div>
+                    </div>
+                    <div class="ingredient" data-type="garnish" data-color="#FF70A6" data-name="草莓" data-density="0">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">草莓</div>
+                    </div>
+                    <div class="ingredient" data-type="garnish" data-color="#FF9770" data-name="橙皮" data-density="0">
+                        <i class="fas fa-wine-bottle"></i>
+                        <div class="ingredient-name">橙皮</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="interaction-area" id="interactionArea">
+                <div class="bar-counter"></div>
+                
+                <div class="glass-container">
+                    <div class="glass medium" id="glass">
+                        <div class="ice-cubes" id="iceCubes"></div>
+                        <div id="liquidLayers"></div>
+                        <div id="garnishContainer"></div>
+                        <div id="bubbleContainer"></div>
+                    </div>
+                    <div class="shaker" id="shaker">
+                        <div class="shaker-lid"></div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button class="action-btn" id="iceBtn">
+                        <i class="fas fa-ice-cream"></i> 加冰块
+                    </button>
+                    <button class="action-btn" id="stirBtn">
+                        <i class="fas fa-spoon"></i> 搅拌
+                    </button>
+                    <button class="action-btn" id="shakeBtn">
+                        <i class="fas fa-martini-glass-citrus"></i> 摇晃
+                    </button>
+                    <button class="action-btn" id="mixBtn">
+                        <i class="fas fa-cocktail"></i> 完成调酒
+                    </button>
+                    <button class="action-btn reset" id="resetBtn">
+                        <i class="fas fa-trash"></i> 重置
+                    </button>
+                </div>
+                
+                <div class="actions">
+                    <button class="action-btn secondary active" id="glass1Btn">
+                        <i class="fas fa-glass-whiskey"></i> 威士忌杯
+                    </button>
+                    <button class="action-btn secondary" id="glass2Btn">
+                        <i class="fas fa-cocktail"></i> 马天尼杯
+                    </button>
+                    <button class="action-btn secondary" id="glass3Btn">
+                        <i class="fas fa-wine-glass"></i> 葡萄酒杯
+                    </button>
+                </div>
+                
+                <div class="actions">
+                    <button class="action-btn secondary active" id="sizeSmallBtn">
+                        <i class="fas fa-glass"></i> 小杯
+                    </button>
+                    <button class="action-btn secondary" id="sizeMediumBtn">
+                        <i class="fas fa-glass"></i> 中杯
+                    </button>
+                    <button class="action-btn secondary" id="sizeLargeBtn">
+                        <i class="fas fa-glass"></i> 大杯
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-panel">
+            <h2 class="cocktail-name" id="cocktailName">您的特调鸡尾酒</h2>
+            
+            <div class="stats-container">
+                <div class="stats-row">
+                    <div class="stats-label">
+                        <i class="fas fa-candy-cane"></i> 甜度
+                    </div>
+                    <div class="stats-value" id="sweetnessValue">0</div>
+                </div>
+                <div class="stats-bar">
+                    <div class="stats-fill" id="sweetnessBar" style="background: #FF6B6B; width: 0%"></div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stats-label">
+                        <i class="fas fa-lemon"></i> 酸度
+                    </div>
+                    <div class="stats-value" id="sournessValue">0</div>
+                </div>
+                <div class="stats-bar">
+                    <div class="stats-fill" id="sournessBar" style="background: #06D6A0; width: 0%"></div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stats-label">
+                        <i class="fas fa-wine-bottle"></i> 酒精度
+                    </div>
+                    <div class="stats-value" id="alcoholValue">0%</div>
+                </div>
+                <div class="stats-bar">
+                    <div class="stats-fill" id="alcoholBar" style="background: #FFD700; width: 0%"></div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stats-label">
+                        <i class="fas fa-layer-group"></i> 层次感
+                    </div>
+                    <div class="stats-value" id="layersValue">0</div>
+                </div>
+                <div class="stats-bar">
+                    <div class="stats-fill" id="layersBar" style="background: #C9A0DC; width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="recipe">
+                <h3 class="recipe-title"><i class="fas fa-list"></i> 当前配方</h3>
+                <ul class="recipe-list" id="recipeList">
+                    <li class="recipe-item">添加配料开始调酒</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化变量
+        let currentIngredients = [];
+        let currentLayers = [];
+        let iceCount = 0;
+        let garnish = null;
+        let glassType = 'standard';
+        let glassSize = 'medium';
+        let isMixed = false;
+        let totalHeight = 0;
+        let maxHeight = 90;
+        let baseCount = 0;
+        let maxBaseCount = 5;
+        let isShaking = false;
+        
+        // 味道指数
+        let sweetness = 0;
+        let sourness = 0;
+        let alcohol = 0;
+        let layers = 0;
+        
+        // 获取DOM元素
+        const interactionArea = document.getElementById('interactionArea');
+        const glass = document.getElementById('glass');
+        const liquidLayers = document.getElementById('liquidLayers');
+        const iceCubes = document.getElementById('iceCubes');
+        const garnishContainer = document.getElementById('garnishContainer');
+        const bubbleContainer = document.getElementById('bubbleContainer');
+        const recipeList = document.getElementById('recipeList');
+        const cocktailName = document.getElementById('cocktailName');
+        const mixBtn = document.getElementById('mixBtn');
+        const shakeBtn = document.getElementById('shakeBtn');
+        const stirBtn = document.getElementById('stirBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const iceBtn = document.getElementById('iceBtn');
+        const glass1Btn = document.getElementById('glass1Btn');
+        const glass2Btn = document.getElementById('glass2Btn');
+        const glass3Btn = document.getElementById('glass3Btn');
+        const sizeSmallBtn = document.getElementById('sizeSmallBtn');
+        const sizeMediumBtn = document.getElementById('sizeMediumBtn');
+        const sizeLargeBtn = document.getElementById('sizeLargeBtn');
+        const shakerElement = document.getElementById('shaker');
+        const ingredients = document.querySelectorAll('.ingredient');
+        
+        // 味道指数元素
+        const sweetnessValue = document.getElementById('sweetnessValue');
+        const sournessValue = document.getElementById('sournessValue');
+        const alcoholValue = document.getElementById('alcoholValue');
+        const layersValue = document.getElementById('layersValue');
+        const sweetnessBar = document.getElementById('sweetnessBar');
+        const sournessBar = document.getElementById('sournessBar');
+        const alcoholBar = document.getElementById('alcoholBar');
+        const layersBar = document.getElementById('layersBar');
+        
+        // 鸡尾酒名称
+        const cocktailNames = [
+            "午夜星辰", "海洋之心", "热带日出", "翡翠梦境", 
+            "紫罗兰幻想", "金色沙滩", "北极光", "日落大道",
+            "蔚蓝海岸", "粉红佳人", "绿野仙踪", "紫色迷雾",
+            "蓝色夏威夷", "龙舌兰日出", "莫吉托", "玛格丽特",
+            "血腥玛丽", "长岛冰茶", "白俄罗斯", "大都会"
+        ];
+        
+        // 创建倒酒动画
+        function createPourAnimation(color, callback) {
+            // 创建酒瓶元素
+            const bottle = document.createElement('div');
+            bottle.className = 'bottle';
+            bottle.innerHTML = '<i class="fas fa-wine-bottle"></i>';
+            bottle.style.color = color;
+            bottle.style.left = '30px';
+            bottle.style.top = '50px';
+            
+            // 创建水流元素
+            const stream = document.createElement('div');
+            stream.className = 'liquid-stream';
+            stream.style.color = color;
+            stream.style.left = '85px';
+            stream.style.top = '100px';
+            stream.style.height = '0';
+            
+            interactionArea.appendChild(bottle);
+            interactionArea.appendChild(stream);
+            
+            // 酒瓶倾倒动画
+            bottle.animate([
+                { transform: 'rotate(0deg)', top: '50px' },
+                { transform: 'rotate(-45deg)', top: '80px' }
+            ], {
+                duration: 800,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+            
+            // 水流动画
+            stream.animate([
+                { height: '0', transform: 'scaleY(0)' },
+                { height: '200px', transform: 'scaleY(1)' },
+                { height: '0', transform: 'scaleY(0)' }
+            ], {
+                duration: 1500,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+            
+            // 动画结束后移除元素并执行回调
+            setTimeout(() => {
+                bottle.remove();
+                stream.remove();
+                callback();
+            }, 1500);
+        }
+        
+        // 添加配料 - 带有倒酒动画
+        function addIngredient(name, color, density, sweetnessVal, sournessVal, alcoholVal) {
+            if (isMixed) return;
+            
+            // 检查基酒添加次数
+            if (name === "伏特加" || name === "朗姆酒" || name === "金酒" || 
+                name === "龙舌兰" || name === "威士忌" || name === "白兰地") {
+                if (baseCount >= maxBaseCount) {
+                    alert(`基酒最多只能添加${maxBaseCount}次`);
+                    return;
+                }
+                baseCount++;
+            }
+            
+            // 检查是否已满
+            if (totalHeight >= maxHeight) {
+                alert("杯子已满！无法添加更多配料");
+                return;
+            }
+            
+            // 创建倒酒动画
+            createPourAnimation(color, () => {
+                // 动画结束后添加液体
+                const layer = document.createElement('div');
+                layer.className = 'liquid-layer';
+                layer.style.backgroundColor = color;
+                layer.style.zIndex = currentLayers.length + 1;
+                layer.style.height = '0';
+                layer.style.bottom = `${totalHeight}%`;
+                
+                liquidLayers.appendChild(layer);
+                currentLayers.push(layer);
+                
+                // 设置新层的高度（固定15%）
+                const layerHeight = 15;
+                totalHeight = Math.min(totalHeight + layerHeight, maxHeight);
+                
+                // 使用CSS变量设置动画高度
+                layer.style.setProperty('--pour-height', `${layerHeight}%`);
+                
+                // 开始液体倒入动画
+                setTimeout(() => {
+                    layer.classList.add('pouring');
+                }, 10);
+                
+                // 添加到当前配料
+                currentIngredients.push({ name, color, density, sweetnessVal, sournessVal, alcoholVal });
+                
+                // 更新味道指数
+                updateFlavorStats();
+                
+                // 更新配方列表
+                updateRecipeList();
+                
+                // 添加气泡效果
+                createBubbles();
+                
+                // 检查基酒添加次数
+                if (baseCount >= maxBaseCount) {
+                    document.querySelectorAll('.ingredient[data-type="base"]').forEach(ing => {
+                        ing.classList.add('disabled');
+                    });
+                }
+            });
+        }
+        
+        // 更新液体层高度
+        function updateLayersHeight() {
+            const layers = document.querySelectorAll('.liquid-layer');
+            let currentBottom = 0;
+            
+            layers.forEach(layer => {
+                layer.style.bottom = `${currentBottom}%`;
+                currentBottom += 15;
+            });
+        }
+        
+        // 添加冰块 - 从上往下扔的动画效果
+        function addIce() {
+            if (iceCount >= 8) {
+                alert("冰块最多添加8个");
+                return;
+            }
+            
+            const ice = document.createElement('div');
+            ice.className = 'ice-cube';
+            const size = Math.random() * 20 + 15;
+            const left = Math.random() * 70 + 5;
+            const bottom = Math.random() * 30;
+            
+            // 初始位置在杯子上方
+            ice.style.width = `${size}px`;
+            ice.style.height = `${size}px`;
+            ice.style.left = `${left}%`;
+            ice.style.top = '-30px'; // 从杯子上方开始
+            
+            iceCubes.appendChild(ice);
+            iceCount++;
+            
+            // 设置最终位置
+            setTimeout(() => {
+                ice.style.top = 'auto';
+                ice.style.bottom = `${bottom}%`;
+            }, 10);
+            
+            // 添加到当前配料
+            currentIngredients.push({ name: "冰块", color: "#ffffff", density: 0.9 });
+            updateRecipeList();
+        }
+        
+        // 添加装饰
+        function addGarnish(name, color) {
+            // 移除现有装饰
+            garnishContainer.innerHTML = '';
+            
+            const garnishEl = document.createElement('div');
+            garnishEl.className = 'garnish';
+            
+            // 樱桃图标修复
+            if (name === '樱桃') {
+                garnishEl.innerHTML = '<i class="fas fa-cherries"></i>';
+            } else if (name === '柠檬片') {
+                garnishEl.innerHTML = '<i class="fas fa-lemon"></i>';
+            } else if (name === '薄荷叶') {
+                garnishEl.innerHTML = '<i class="fas fa-leaf"></i>';
+            } else {
+                garnishEl.innerHTML = '<i class="fas fa-wine-bottle"></i>';
+            }
+            
+            garnishEl.style.color = color;
+            garnishEl.style.fontSize = '2rem';
+            garnishEl.style.bottom = '70%';
+            garnishEl.style.left = '50%';
+            garnishEl.style.transform = 'translateX(-50%)';
+            
+            garnishContainer.appendChild(garnishEl);
+            garnish = name;
+            
+            // 添加到当前配料
+            currentIngredients.push({ name, color, density: 0 });
+            updateRecipeList();
+        }
+        
+        // 更新味道指数
+        function updateFlavorStats() {
+            sweetness = 0;
+            sourness = 0;
+            alcohol = 0;
+            layers = currentLayers.length;
+            
+            let count = 0;
+            
+            currentIngredients.forEach(ingredient => {
+                if (ingredient.sweetnessVal !== undefined) {
+                    sweetness += ingredient.sweetnessVal;
+                    sourness += ingredient.sournessVal;
+                    alcohol += ingredient.alcoholVal;
+                    count++;
+                }
+            });
+            
+            if (count > 0) {
+                sweetness = Math.round(sweetness / count);
+                sourness = Math.round(sourness / count);
+                alcohol = Math.round(alcohol / count);
+            }
+            
+            // 更新UI
+            sweetnessValue.textContent = sweetness;
+            sournessValue.textContent = sourness;
+            alcoholValue.textContent = `${alcohol}%`;
+            layersValue.textContent = layers;
+            
+            sweetnessBar.style.width = `${sweetness}%`;
+            sournessBar.style.width = `${sourness}%`;
+            alcoholBar.style.width = `${alcohol}%`;
+            layersBar.style.width = `${layers * 10}%`;
+        }
+        
+        // 更新配方列表
+        function updateRecipeList() {
+            recipeList.innerHTML = '';
+            
+            if (currentIngredients.length === 0) {
+                recipeList.innerHTML = '<li class="recipe-item">添加配料开始调酒</li>';
+                return;
+            }
+            
+            currentIngredients.forEach(ingredient => {
+                const li = document.createElement('li');
+                li.className = 'recipe-item';
+                
+                li.innerHTML = `
+                    <div class="ingredient-info">
+                        <div class="ingredient-color" style="background: ${ingredient.color}"></div>
+                        <span>${ingredient.name}</span>
+                    </div>
+                    <div>1份</div>
+                `;
+                
+                recipeList.appendChild(li);
+            });
+        }
+        
+        // 混合饮品
+        function mixDrink() {
+            if (currentIngredients.length === 0) return;
+            
+            // 随机生成鸡尾酒名称
+            const randomName = cocktailNames[Math.floor(Math.random() * cocktailNames.length)];
+            cocktailName.textContent = `${randomName}鸡尾酒`;
+            
+            // 添加混合动画
+            createParticles();
+            isMixed = true;
+        }
+        
+        // 搅拌饮品
+        function stirDrink() {
+            if (currentIngredients.length === 0 || isMixed) return;
+            
+            glass.classList.add('stirring');
+            
+            setTimeout(() => {
+                glass.classList.remove('stirring');
+                
+                // 搅拌后混合液体
+                mixLayers();
+                
+                // 产生气泡
+                createBubbles();
+            }, 1500);
+        }
+        
+        // 混合液体层
+        function mixLayers() {
+            if (currentLayers.length === 0) return;
+            
+            // 计算混合颜色
+            let r = 0, g = 0, b = 0;
+            let count = 0;
+            
+            currentLayers.forEach(layer => {
+                const color = layer.style.backgroundColor;
+                const rgb = color.match(/\d+/g);
+                if (rgb && rgb.length === 3) {
+                    r += parseInt(rgb[0]);
+                    g += parseInt(rgb[1]);
+                    b += parseInt(rgb[2]);
+                    count++;
+                }
+            });
+            
+            if (count > 0) {
+                r = Math.floor(r / count);
+                g = Math.floor(g / count);
+                b = Math.floor(b / count);
+                
+                const mixedColor = `rgb(${r}, ${g}, ${b})`;
+                
+                // 移除所有层，创建一个混合层
+                liquidLayers.innerHTML = '';
+                currentLayers = [];
+                
+                const mixedLayer = document.createElement('div');
+                mixedLayer.className = 'liquid-layer';
+                mixedLayer.style.backgroundColor = mixedColor;
+                mixedLayer.style.height = `${totalHeight}%`;
+                mixedLayer.style.bottom = '0';
+                
+                liquidLayers.appendChild(mixedLayer);
+                currentLayers.push(mixedLayer);
+                
+                // 更新层次感
+                layers = 1;
+                layersValue.textContent = layers;
+                layersBar.style.width = `${layers * 10}%`;
+            }
+        }
+        
+        // 摇晃调酒器
+        function shakeShaker() {
+            if (isShaking || currentIngredients.length === 0) return;
+            
+            isShaking = true;
+            shakerElement.classList.add('shaking');
+            
+            setTimeout(() => {
+                shakerElement.classList.remove('shaking');
+                isShaking = false;
+                
+                // 摇晃后混合液体
+                mixLayers();
+                
+                // 产生气泡
+                createBubbles();
+                setTimeout(createBubbles, 500);
+            }, 2000);
+        }
+        
+        // 重置
+        function reset() {
+            currentIngredients = [];
+            currentLayers = [];
+            iceCount = 0;
+            garnish = null;
+            totalHeight = 0;
+            isMixed = false;
+            baseCount = 0;
+            
+            liquidLayers.innerHTML = '';
+            iceCubes.innerHTML = '';
+            garnishContainer.innerHTML = '';
+            bubbleContainer.innerHTML = '';
+            
+            cocktailName.textContent = '您的特调鸡尾酒';
+            updateRecipeList();
+            updateFlavorStats();
+            
+            // 启用所有基酒
+            document.querySelectorAll('.ingredient[data-type="base"]').forEach(ing => {
+                ing.classList.remove('disabled');
+            });
+        }
+        
+        // 更改杯子类型
+        function changeGlass(type) {
+            glass.className = 'glass';
+            glass.classList.add(glassSize);
+            
+            if (type === 'cocktail') {
+                glass.classList.add('cocktail-glass');
+            } else if (type === 'wine') {
+                glass.classList.add('wine-glass');
+            }
+            
+            glassType = type;
+            
+            // 更新按钮状态
+            glass1Btn.classList.remove('active');
+            glass2Btn.classList.remove('active');
+            glass3Btn.classList.remove('active');
+            
+            if (type === 'standard') glass1Btn.classList.add('active');
+            if (type === 'cocktail') glass2Btn.classList.add('active');
+            if (type === 'wine') glass3Btn.classList.add('active');
+        }
+        
+        // 更改杯子大小
+        function changeGlassSize(size) {
+            glass.className = 'glass';
+            glass.classList.add(size);
+            
+            if (glassType === 'cocktail') {
+                glass.classList.add('cocktail-glass');
+            } else if (glassType === 'wine') {
+                glass.classList.add('wine-glass');
+            }
+            
+            glassSize = size;
+            
+            // 更新按钮状态
+            sizeSmallBtn.classList.remove('active');
+            sizeMediumBtn.classList.remove('active');
+            sizeLargeBtn.classList.remove('active');
+            
+            if (size === 'small') sizeSmallBtn.classList.add('active');
+            if (size === 'medium') sizeMediumBtn.classList.add('active');
+            if (size === 'large') sizeLargeBtn.classList.add('active');
+        }
+        
+        // 创建粒子效果
+        function createParticles() {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = `${Math.random() * 10 + 5}px`;
+                particle.style.height = particle.style.width;
+                particle.style.background = getRandomColor();
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                interactionArea.appendChild(particle);
+                
+                // 粒子动画
+                const animation = particle.animate([
+                    { transform: 'scale(1)', opacity: 1 },
+                    { transform: 'scale(0)', opacity: 0 }
+                ], {
+                    duration: Math.random() * 1000 + 500,
+                    easing: 'ease-out'
+                });
+                
+                animation.onfinish = () => {
+                    if (particle.parentNode) {
+                        particle.remove();
+                    }
+                };
+            }
+        }
+        
+        // 获取随机颜色
+        function getRandomColor() {
+            const colors = [
+                '#FF6B6B', '#FFD166', '#06D6A0', '#118AB2', 
+                '#FF70A6', '#FF9770', '#C9A0DC', '#F0E68C'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // 创建气泡
+        function createBubbles() {
+            // 清除气泡容器
+            bubbleContainer.innerHTML = '';
+            
+            if (totalHeight === 0) return;
+            
+            for (let i = 0; i < 15; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 8 + 3;
+                const left = Math.random() * 80 + 10;
+                
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${left}%`;
+                bubble.style.bottom = '0';
+                bubble.style.animationDelay = `${Math.random() * 2}s`;
+                
+                bubbleContainer.appendChild(bubble);
+                
+                // 动画结束后移除气泡
+                setTimeout(() => {
+                    if (bubble.parentNode) {
+                        bubble.remove();
+                    }
+                }, 3000);
+            }
+        }
+        
+        // 事件监听器
+        ingredients.forEach(ingredient => {
+            ingredient.addEventListener('click', () => {
+                const name = ingredient.getAttribute('data-name');
+                const color = ingredient.getAttribute('data-color');
+                const density = parseFloat(ingredient.getAttribute('data-density'));
+                const type = ingredient.getAttribute('data-type');
+                const sweetnessVal = parseInt(ingredient.getAttribute('data-sweetness'));
+                const sournessVal = parseInt(ingredient.getAttribute('data-sourness'));
+                const alcoholVal = parseInt(ingredient.getAttribute('data-alcohol'));
+                
+                if (type === 'garnish') {
+                    addGarnish(name, color);
+                } else {
+                    addIngredient(name, color, density, sweetnessVal, sournessVal, alcoholVal);
+                }
+            });
+        });
+        
+        mixBtn.addEventListener('click', mixDrink);
+        shakeBtn.addEventListener('click', shakeShaker);
+        stirBtn.addEventListener('click', stirDrink);
+        resetBtn.addEventListener('click', reset);
+        iceBtn.addEventListener('click', addIce);
+        
+        glass1Btn.addEventListener('click', () => changeGlass('standard'));
+        glass2Btn.addEventListener('click', () => changeGlass('cocktail'));
+        glass3Btn.addEventListener('click', () => changeGlass('wine'));
+        
+        sizeSmallBtn.addEventListener('click', () => changeGlassSize('small'));
+        sizeMediumBtn.addEventListener('click', () => changeGlassSize('medium'));
+        sizeLargeBtn.addEventListener('click', () => changeGlassSize('large'));
+        
+        // 初始气泡效果
+        setInterval(createBubbles, 3000);
+        
+        // 初始化
+        updateRecipeList();
+        updateFlavorStats();
+    </script>
+</body>
+</html>
