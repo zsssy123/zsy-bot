@@ -872,6 +872,20 @@ def post_comment():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/forum/post")
+def get_post_by_query():
+    post_id = request.args.get("id")
+    if not post_id:
+        return jsonify({ "error": "缺少 id 参数" }), 400
+
+    try:
+        post = supabase.table("posts").select("*").eq("id", post_id).single().execute().data
+        if not post:
+            return jsonify({ "error": "帖子不存在" }), 404
+        return jsonify(post)
+    except Exception as e:
+        return jsonify({ "error": str(e) }), 500
+
 @app.route("/forum")
 def serve_forum():
     return send_from_directory("static", "forum.html")
