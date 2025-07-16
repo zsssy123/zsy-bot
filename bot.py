@@ -799,11 +799,20 @@ def create_post():
 
     title = data.get("title")
     content = data.get("content")
+
     if not title or not content:
         return jsonify({"error": "标题和内容不能为空"}), 400
 
-    supabase.table("posts").insert({"author": username, "title": title, "content": content}).execute()
-    return jsonify({"message": "帖子已创建"})
+    try:
+        response = supabase.table("posts").insert({
+            "username": username,     # ✅ 关键字段
+            "title": title,
+            "content": content
+        }).execute()
+        return jsonify({"success": True, "message": "帖子已发布！"})
+    except Exception as e:
+        print("❌ 发帖出错:", e)
+        return jsonify({"error": "数据库错误"}), 500
 
 @app.route("/api/forum/post/<int:post_id>")
 def get_post_detail(post_id):
