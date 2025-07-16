@@ -785,6 +785,22 @@ def delete_avatar():
     return jsonify({"success": True})
 
 supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+@app.route("/api/forum/comments", methods=["GET"])
+def get_comments():
+    post_id = request.args.get("post_id")
+    if not post_id:
+        return jsonify({"error": "缺少 post_id"}), 400
+
+    try:
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}"
+        }
+        url = f"{SUPABASE_URL}/rest/v1/comments?post_id=eq.{post_id}&order=created_at.asc"
+        res = requests.get(url, headers=headers)
+        return jsonify(res.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 @app.route("/api/forum/posts")
 def get_posts():
     res = supabase.table("posts").select("*").order("created_at", desc=True).execute()
