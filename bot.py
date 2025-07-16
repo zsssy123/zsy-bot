@@ -784,6 +784,7 @@ def delete_avatar():
 
     return jsonify({"success": True})
 
+supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 @app.route("/api/forum/posts")
 def get_posts():
     res = supabase.table("posts").select("*").order("created_at", desc=True).execute()
