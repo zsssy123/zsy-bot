@@ -179,6 +179,7 @@ def home():
         <div class="button-group">
           <a href="/chat" class="button">💬 进入 ZSY 聊天室</a>
           <a href="/games" class="button">🎮 开始一场灵魂小游戏</a>
+          <a href="/forum" class="button">✍️浏览zsy论坛</a>
         </div>
       </div>
 
