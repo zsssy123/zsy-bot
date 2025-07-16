@@ -1,17 +1,85 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>ZSY论坛</title></head>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>ZSY论坛</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    #post-list {
+      margin-top: 20px;
+    }
+    .post-item {
+      padding: 12px 16px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+    .post-item:hover {
+      background: #eef6ff;
+    }
+    .post-item a {
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #007bff;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .new-btn {
+      background: #28a745;
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
 <body>
-  <h2>📌 所有帖子</h2>
-  <div id="post-list"></div>
-  <button onclick="location.href='/forum/new'">✏️ 发帖</button>
+  <div class="top-bar">
+    <h2>📌 ZSY 论坛帖文列表</h2>
+    <button class="new-btn" onclick="location.href='/forum/new'">✏️ 我要发帖</button>
+  </div>
+  <div id="post-list">正在加载帖子...</div>
+
   <script>
-    fetch('/api/forum/posts')
-      .then(res => res.json())
-      .then(posts => {
-        const list = posts.map(p => `<div><a href="/forum/post?id=${p.id}">${p.title}</a> - ${p.author}</div>`).join("");
-        document.getElementById("post-list").innerHTML = list;
-      });
+    async function loadPosts() {
+      try {
+        const res = await fetch("/api/forum/posts");
+        const posts = await res.json();
+        if (!Array.isArray(posts)) throw new Error("返回格式错误");
+
+        if (posts.length === 0) {
+          document.getElementById("post-list").innerHTML = "暂时还没有帖子。";
+          return;
+        }
+
+        const html = posts.map(p => `
+          <div class="post-item">
+            <a href="/forum/post?id=${p.id}">${p.title}</a>
+          </div>
+        `).join("");
+        document.getElementById("post-list").innerHTML = html;
+      } catch (err) {
+        document.getElementById("post-list").innerHTML = "❌ 加载失败，请稍后重试。";
+        console.error("加载帖子失败：", err);
+      }
+    }
+
+    loadPosts();
   </script>
 </body>
 </html>
