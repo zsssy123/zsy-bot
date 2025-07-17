@@ -20,6 +20,8 @@
       background: #007bff;
       color: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     header h1 {
@@ -125,6 +127,9 @@
       .game-card {
         padding: 14px;
       }
+      #user-box {
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -140,7 +145,7 @@
   <p>点击下方游戏开始畅玩</p>
 
   <div class="grid" id="game-grid">
-    <!-- JS 动态填充游戏项 -->
+    <!-- 游戏卡片由 JS 动态插入 -->
   </div>
 </div>
 
@@ -152,16 +157,19 @@
   const token = localStorage.getItem("zsy_token");
   const username = localStorage.getItem("zsy_username") || "guest";
   const isGuest = (username === "guest");
+  const isLogin = !!token;
 
   const userBox = document.getElementById("user-box");
-  if (!token) {
+  if (!isLogin) {
     userBox.innerHTML = `
+      <a class="home" href="/">🏠 返回首页</a>
       <span>🔐 请先登录</span>
       <a href="/login">登录账号</a>
       <button onclick="guestLogin()">🎮 游客体验</button>
     `;
   } else {
     userBox.innerHTML = `
+      <a class="home" href="/">🏠 返回首页</a>
       <span>👤 ${username}</span>
       <a href="/changepwd">🔑 修改密码</a>
       <button onclick="logout()">🚪 退出</button>
@@ -178,6 +186,10 @@
     localStorage.setItem("zsy_token", "guest-token");
     localStorage.setItem("zsy_username", "guest");
     location.reload();
+  }
+
+  function isMobileDevice() {
+    return /iPhone|Android|iPad|iPod|Mobile/i.test(navigator.userAgent);
   }
 
   const games = [
@@ -203,7 +215,7 @@
 
   const grid = document.getElementById("game-grid");
   games.forEach((game, index) => {
-    const disabled = isGuest && index > 0;
+    const disabled = !isLogin || (isGuest && index > 0);
     const card = document.createElement("div");
     card.className = "game-card";
     card.innerHTML = `
@@ -212,12 +224,20 @@
         开始游戏
       </a>
     `;
+
+    const a = card.querySelector("a");
     if (disabled) {
-      card.querySelector("a").addEventListener("click", e => {
+      a.addEventListener("click", e => {
         e.preventDefault();
-        alert("游客只能体验第一个游戏，请注册解锁全部内容");
+        alert(isGuest ? "游客只能体验第一个游戏，请注册后解锁更多内容。" : "请先登录后再进入游戏！");
+      });
+    } else if (isMobileDevice()) {
+      a.addEventListener("click", e => {
+        const proceed = confirm("⚠️ 此游戏为电脑端优化，建议点击浏览器菜单中选择“电脑版网站”以获得更好体验。\n\n点击“确定”继续进入，点击“取消”返回。");
+        if (!proceed) e.preventDefault();
       });
     }
+
     grid.appendChild(card);
   });
 </script>
