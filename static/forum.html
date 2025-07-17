@@ -49,10 +49,6 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .new-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -82,7 +78,7 @@
     .btns .update { background: #ffc107; color: #000; }
     .btns .delete { background: #dc3545; color: #fff; }
     .btns .logout { background: #666; color: #fff; }
-    .btns .change { background: #17a2b8; color: #fff; }
+    .btns .changepwd { background: #17a2b8; color: #fff; }
   </style>
 </head>
 <body>
@@ -95,7 +91,7 @@
   </div>
   <div class="top-bar">
     <h2>📌 ZSY 论坛帖文列表</h2>
-    <button class="new-btn" id="new-btn">✏️ 我要发帖</button>
+    <button class="new-btn" onclick="location.href='/forum/new'" id="new-btn">✏️ 我要发帖</button>
   </div>
   <div id="post-list">正在加载帖子...</div><script>
   const token = localStorage.getItem("zsy_token");
@@ -103,7 +99,7 @@
   const avatarBox = document.getElementById("my-avatar");
   const nameBox = document.getElementById("my-username");
   const btnsBox = document.getElementById("btns");
-  const newBtn = document.getElementById("new-btn");if (!token || !username) { avatarBox.src = "https://api.dicebear.com/7.x/bottts/svg?seed=login"; nameBox.innerText = "请登录"; btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' + '<button class="logout" onclick="location.href=\'/login\'">🔐 登录</button>'; newBtn.disabled = true; newBtn.onclick = () => alert("请先登录后再发帖。"); document.getElementById("post-list").innerHTML = "请先登录后查看帖子列表。"; } else { nameBox.innerText = username; btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' + '<label for="avatar-upload" class="update">🖼️ 更新头像</label>' + '<button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>' + '<button class="change" onclick="location.href=\'/changepwd\'">🔑 修改密码</button>' + '<button class="logout" onclick="logout()">🚪 退出登录</button>' + '<input id="avatar-upload" type="file" accept="image/*" style="display:none" />';
+  const newBtn = document.getElementById("new-btn");if (!token || !username) { avatarBox.src = "https://api.dicebear.com/7.x/bottts/svg?seed=login"; nameBox.innerText = "请登录"; btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' + '<button class="logout" onclick="location.href=\'/login\'">🔐 登录</button>'; newBtn.disabled = true; newBtn.style.opacity = 0.5; document.getElementById("post-list").innerHTML = "请先登录后查看帖子列表。"; } else { nameBox.innerText = username; btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' + '<label for="avatar-upload" class="update">🖼️ 更新头像</label>' + '<button class="changepwd" onclick="location.href=\'/changepwd\'">🔑 修改密码</button>' + '<button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>' + '<button class="logout" onclick="logout()">🚪 退出登录</button>' + '<input id="avatar-upload" type="file" accept="image/*" style="display:none" />';
 
 fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
   .then(res => res.json())
@@ -126,15 +122,6 @@ document.addEventListener("change", async (e) => {
     if (result.url) location.reload();
   }
 });
-
-newBtn.disabled = (username === "guest");
-newBtn.onclick = () => {
-  if (username === "guest") {
-    alert("游客无法发帖，请先注册或登录账号。");
-  } else {
-    location.href = "/forum/new";
-  }
-};
 
 loadPosts();
 
