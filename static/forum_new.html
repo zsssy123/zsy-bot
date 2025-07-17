@@ -93,7 +93,7 @@
     // 禁止游客或未登录用户发帖
     if (!token || username === "guest") {
       btn.disabled = true;
-      msg.innerText = "⚠️ 游客无法发帖，请先登录。";
+      msg.innerHTML = '⚠️ 游客无法发帖，<a href="/login" style="color:#d9534f;text-decoration:underline;">请先登录</a>。';
     }
 
     async function post() {
