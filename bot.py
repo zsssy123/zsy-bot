@@ -936,6 +936,37 @@ def serve_new_post():
 def serve_post_detail():
     return send_from_directory("static", "forum_post.html")
 
+@app.route("/api/forum/post-delete", methods=["POST"])
+def delete_post():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except Exception:
+        return jsonify({"error": "认证失败"}), 401
+
+    data = request.get_json()
+    post_id = data.get("id")
+    if not post_id:
+        return jsonify({"error": "缺少帖子 ID"}), 400
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+    try:
+        # 获取帖子作者确认权限
+        post = supabase.table("posts").select("*").eq("id", post_id).execute()
+        if not post.data or post.data[0]["username"] != username:
+            return jsonify({"error": "无权删除该帖子"}), 403
+
+        # 删除所有评论
+        supabase.table("comments").delete().eq("post_id", post_id).execute()
+        # 删除帖子
+        supabase.table("posts").delete().eq("id", post_id).execute()
+
+        return jsonify({ "success": True })
+    except Exception as e:
+        return jsonify({ "error": f"删除失败: {str(e)}" }), 500
+
 @app.route("/login")
 def login_page():
     return send_from_directory("static", "login.html")
