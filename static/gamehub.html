@@ -1,188 +1,225 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZSY 游戏大厅</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
+      margin: 0;
       font-family: "Segoe UI", sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
-      text-align: center;
-      position: relative;
-    }
-    #user-box {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      font-size: 0.9em;
-    }
-    h1 {
+      background: linear-gradient(to bottom right, #f3f9ff, #ffffff);
       color: #333;
     }
-    .grid {
+
+    header {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background: #007bff;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 1.3em;
+      margin: 0;
+    }
+
+    #user-box {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-size: 0.9em;
+    }
+
+    #user-box span {
+      font-weight: bold;
+    }
+
+    #user-box a, #user-box button {
+      margin-top: 4px;
+      font-size: 0.85em;
+      text-decoration: none;
+      border: none;
+      background: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    #user-box button {
+      background: #dc3545;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .main {
+      padding: 24px 16px;
+      text-align: center;
+    }
+
+    .main h2 {
+      font-size: 1.4em;
+      margin-bottom: 8px;
+    }
+
+    .main p {
+      font-size: 0.95em;
+      color: #666;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 16px;
       margin-top: 30px;
     }
+
     .game-card {
       background: white;
       border-radius: 12px;
       padding: 16px;
-      width: 160px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
     }
+
     .game-card:hover {
-      transform: scale(1.05);
+      transform: scale(1.04);
     }
+
+    .game-card h3 {
+      font-size: 1.05em;
+      margin: 0;
+      color: #222;
+    }
+
     .game-card a {
-      display: block;
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 14px;
+      font-size: 0.9em;
+      background: #28a745;
+      color: white;
       text-decoration: none;
-      font-size: 1em;
-      color: #28a745;
-      margin-top: 6px;
+      border-radius: 8px;
+    }
+
+    .game-card a.disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    footer {
+      text-align: center;
+      margin: 40px 0 10px;
+      font-size: 0.9em;
+      color: #777;
     }
 
     @media screen and (max-width: 480px) {
-      .game-card {
-        width: 100%;
-        max-width: 280px;
-      }
-      body {
+      header, .main {
         padding: 12px;
+      }
+      .game-card {
+        padding: 14px;
       }
     }
   </style>
 </head>
 <body>
+
+<header>
+  <h1>🎮 ZSY 游戏大厅</h1>
   <div id="user-box"></div>
+</header>
 
-  <h1>🎮 欢迎来到 ZSY 游戏大厅</h1>
-  <p>点击游戏名称开始玩吧！</p>
+<div class="main">
+  <h2>欢迎来到游戏世界</h2>
+  <p>点击下方游戏开始畅玩</p>
 
-  <div class="grid">
-    <div class="game-card">打砖块（支持手机滑块）<br><a href="/game/dazhuankuai.html">开始游戏</a></div>
-    <div class="game-card">代码雨<br><a href="/game/daimayu.html">开始游戏</a></div>
-    <div class="game-card">俄罗斯方块<br><a href="/game/eluosifangkuai.html">开始游戏</a></div>
-    <div class="game-card">高级电子合成器音序器<br><a href="/game/dianzihechengqi.html">开始游戏</a></div>
-    <div class="game-card">核电站模拟<br><a href="/game/hedianzhanmoni.html">开始游戏</a></div>
-    <div class="game-card">黑客挑战赛<br><a href="/game/heiketiaozhansai.html">开始游戏</a></div>
-    <div class="game-card">皇室战争<br><a href="/game/huangshizhanzheng.html">开始游戏</a></div>
-    <div class="game-card">雷霆战机<br><a href="/game/leitingzhanji.html">开始游戏</a></div>
-    <div class="game-card">扫雷<br><a href="/game/saolei.html">开始游戏</a></div>
-    <div class="game-card">贪吃蛇<br><a href="/game/tanchishe.html">开始游戏</a></div>
-    <div class="game-card">星际模拟器<br><a href="/game/xingximoniqi.html">开始游戏</a></div>
-    <div class="game-card">心灵气球<br><a href="/game/xinlingqiqiu.html">开始游戏</a></div>
-    <div class="game-card">愤怒的小鸟<br><a href="/game/fennudexiaoniao.html">开始游戏</a></div>
-    <div class="game-card">王国保卫战<br><a href="/game/wangguobaoweizhan.html">开始游戏</a></div>
-    <div class="game-card">解压调酒大师<br><a href="/game/jieyatiaojiu.html">开始游戏</a></div>
-    <div class="game-card">街头霸王<br><a href="/game/jietoubawang.html">开始游戏</a></div>
-    <div class="game-card">超级马里奥<br><a href="/game/chaojimaliao.html">开始游戏</a></div>
-    <div class="game-card">打砖块电脑最新版<br><a href="/game/dazhuankuailast.html">开始游戏</a></div>
+  <div class="grid" id="game-grid">
+    <!-- JS 动态填充游戏项 -->
   </div>
+</div>
 
-  <div style="margin-top: 50px;">
-    <a href="/" style="text-decoration:none; color:#555;">← 返回首页</a>
-  </div>
+<footer>
+  © 2025 ZSY 网站计划 | 游戏数据来自开源项目
+</footer>
 
-  <script>
-    function isMobile() {
-      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    }
+<script>
+  const token = localStorage.getItem("zsy_token");
+  const username = localStorage.getItem("zsy_username") || "guest";
+  const isGuest = (username === "guest");
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const token = localStorage.getItem("zsy_token");
-      const userBox = document.getElementById("user-box");
-      const allLinks = document.querySelectorAll(".game-card a");
+  const userBox = document.getElementById("user-box");
+  if (!token) {
+    userBox.innerHTML = `
+      <span>🔐 请先登录</span>
+      <a href="/login">登录账号</a>
+      <button onclick="guestLogin()">🎮 游客体验</button>
+    `;
+  } else {
+    userBox.innerHTML = `
+      <span>👤 ${username}</span>
+      <a href="/changepwd">🔑 修改密码</a>
+      <button onclick="logout()">🚪 退出</button>
+    `;
+  }
 
-      if (!token) {
-        allLinks.forEach(a => {
-          a.addEventListener("click", function(e) {
-            e.preventDefault();
-            alert("请先登录再进入游戏！");
-          });
-          a.style.pointerEvents = "auto";
-          a.style.opacity = "0.5";
-        });
-        userBox.innerHTML = `
-          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-            <a href="/login" style="color:#007bff;">🔐 请先登录</a>
-            <button onclick="guestLogin()" style="
-              padding: 6px 12px;
-              background: #28a745;
-              color: white;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 0.85em;
-            ">🎮 以游客身份继续</button>
-          </div>
-        `;
-        return;
-      }
+  function logout() {
+    localStorage.removeItem("zsy_token");
+    localStorage.removeItem("zsy_username");
+    location.reload();
+  }
 
-      const username = localStorage.getItem("zsy_username") || "ZSY用户";
+  function guestLogin() {
+    localStorage.setItem("zsy_token", "guest-token");
+    localStorage.setItem("zsy_username", "guest");
+    location.reload();
+  }
 
-      // 游客限制只能玩第一个游戏
-      if (username === "guest") {
-        allLinks.forEach((a, index) => {
-          if (index > 0) {
-            a.addEventListener("click", e => {
-              e.preventDefault();
-              alert("游客只能体验第一个游戏，请注册后解锁更多内容！");
-            });
-            a.style.opacity = "0.5";
-          }
-        });
-      }
+  const games = [
+    { name: "打砖块（支持手机滑动）", link: "/game/dazhuankuai.html" },
+    { name: "代码雨", link: "/game/daimayu.html" },
+    { name: "俄罗斯方块", link: "/game/eluosifangkuai.html" },
+    { name: "高级电子合成器音序器", link: "/game/dianzihechengqi.html" },
+    { name: "核电站模拟", link: "/game/hedianzhanmoni.html" },
+    { name: "黑客挑战赛", link: "/game/heiketiaozhansai.html" },
+    { name: "皇室战争", link: "/game/huangshizhanzheng.html" },
+    { name: "雷霆战机", link: "/game/leitingzhanji.html" },
+    { name: "扫雷", link: "/game/saolei.html" },
+    { name: "贪吃蛇", link: "/game/tanchishe.html" },
+    { name: "星际模拟器", link: "/game/xingximoniqi.html" },
+    { name: "心灵气球", link: "/game/xinlingqiqiu.html" },
+    { name: "愤怒的小鸟", link: "/game/fennudexiaoniao.html" },
+    { name: "王国保卫战", link: "/game/wangguobaoweizhan.html" },
+    { name: "解压调酒大师", link: "/game/jieyatiaojiu.html" },
+    { name: "街头霸王", link: "/game/jietoubawang.html" },
+    { name: "超级马里奥", link: "/game/chaojimaliao.html" },
+    { name: "打砖块（电脑新版）", link: "/game/dazhuankuailast.html" }
+  ];
 
-      // 移动设备提示兼容性
-      allLinks.forEach(link => {
-        link.addEventListener("click", function(e) {
-          if (isMobile()) {
-            const confirmed = confirm("⚠️ 此游戏为电脑端优化，请在浏览器菜单中选择“切换为电脑版”以获得更好体验！ 也可以不用手机版有部分游戏可以玩");
-            if (!confirmed) e.preventDefault();
-          }
-        });
+  const grid = document.getElementById("game-grid");
+  games.forEach((game, index) => {
+    const disabled = isGuest && index > 0;
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.innerHTML = `
+      <h3>${game.name}</h3>
+      <a href="${disabled ? '#' : game.link}" class="${disabled ? 'disabled' : ''}">
+        开始游戏
+      </a>
+    `;
+    if (disabled) {
+      card.querySelector("a").addEventListener("click", e => {
+        e.preventDefault();
+        alert("游客只能体验第一个游戏，请注册解锁全部内容");
       });
-
-      userBox.innerHTML = `
-  <span>👤 ${username}</span>
-  <a href="/changepwd" style="
-    background: #ffc107;
-    color: black;
-    padding: 4px 10px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 0.85em;
-  ">🔑 修改密码</a>
-  <button onclick="logout()" style="
-    padding: 4px 10px;
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.85em;
-    cursor: pointer;
-  ">🚪 退出</button>
-`;
-    });
-
-    function logout() {
-      localStorage.removeItem("zsy_token");
-      localStorage.removeItem("zsy_username");
-      location.reload();
     }
-
-    function guestLogin() {
-      localStorage.setItem("zsy_token", "guest-token");
-      localStorage.setItem("zsy_username", "guest");
-      location.reload();
-    }
-  </script>
+    grid.appendChild(card);
+  });
+</script>
 </body>
 </html>
