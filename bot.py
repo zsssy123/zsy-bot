@@ -903,6 +903,27 @@ def avatar_by_username():
 
     return jsonify({ "url": None })
 
+@app.route("/api/forum/comment-delete", methods=["POST"])
+def delete_comment():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except Exception:
+        return jsonify({"error": "认证失败"}), 401
+
+    data = request.get_json()
+    comment_id = data.get("id")
+    if not comment_id:
+        return jsonify({"error": "缺少评论 ID"}), 400
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    try:
+        result = supabase.table("comments").delete().eq("id", comment_id).eq("username", username).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": f"删除失败: {str(e)}"}), 500
+
 @app.route("/forum")
 def serve_forum():
     return send_from_directory("static", "forum.html")
