@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="zh"><head>
-  <meta charset="UTF-8">
+<!DOCTYPE html><html lang="zh"><head>  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZSY 帖子详情</title>
   <style>
@@ -9,10 +8,11 @@
     .post-box { background: white; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 12px; align-items: center; }
     .post-content { flex: 1; }
     .comments { margin-top: 20px; }
-    .comment { background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; gap: 10px; }
+    .comment { background: #fff; padding: 12px; border-radius: 6px; margin-bottom: 10px; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; }
     .comment strong { display: block; margin-bottom: 6px; }
     textarea { width: 100%; height: 80px; border-radius: 6px; padding: 10px; border: 1px solid #ccc; }
     button { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    .delete-btn { background: #dc3545; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 0.85em; margin-top: 4px; }
     h2 { margin-top: 0; }
     .error { color: red; font-weight: bold; }
     .user-info { display: flex; align-items: center; gap: 10px; }
@@ -47,10 +47,10 @@
       document.getElementById("my-avatar").src = d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
     });
 
-  async function getAvatar(username) {
-    const res = await fetch(`/api/avatar-by-username?username=${encodeURIComponent(username)}`);
+  async function getAvatar(user) {
+    const res = await fetch(`/api/avatar-by-username?username=${encodeURIComponent(user)}`);
     const data = await res.json();
-    return data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+    return data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user}`;
   }
 
   async function loadPost() {
@@ -84,18 +84,40 @@
 
       const html = await Promise.all(comments.map(async c => {
         const avatar = await getAvatar(c.username);
+        const isOwner = c.username === username;
         return `
           <div class="comment">
-            <img class="avatar" src="${avatar}" />
-            <div>
-              <strong>${c.username || "匿名"}</strong>
-              <div>${c.content || "(无内容)"}</div>
+            <div style="display: flex; gap: 10px;">
+              <img class="avatar" src="${avatar}" />
+              <div>
+                <strong>${c.username || "匿名"}</strong>
+                <div>${c.content || "(无内容)"}</div>
+              </div>
             </div>
+            ${isOwner ? `<button class="delete-btn" onclick="deleteComment('${c.id}')">删除</button>` : ""}
           </div>`;
       }));
       box.innerHTML = html.join("");
     } catch {
       box.innerHTML = "<p class='error'>❌ 无法加载评论</p>";
+    }
+  }
+
+  async function deleteComment(id) {
+    if (!confirm("确定要删除这条评论吗？")) return;
+    const res = await fetch("/api/forum/comment-delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ id })
+    });
+    const result = await res.json();
+    if (result.success) {
+      loadComments();
+    } else {
+      alert("删除失败: " + (result.error || "未知错误"));
     }
   }
 
