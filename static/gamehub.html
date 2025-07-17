@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <title>ZSY 游戏大厅</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
       background: #f9f9f9;
-      padding: 40px;
+      padding: 20px;
       text-align: center;
       position: relative;
     }
@@ -24,14 +25,14 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 20px;
-      margin-top: 40px;
+      gap: 16px;
+      margin-top: 30px;
     }
     .game-card {
       background: white;
       border-radius: 12px;
-      padding: 20px;
-      width: 180px;
+      padding: 16px;
+      width: 160px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       transition: transform 0.2s;
     }
@@ -41,9 +42,19 @@
     .game-card a {
       display: block;
       text-decoration: none;
-      font-size: 1.1em;
+      font-size: 1em;
       color: #28a745;
-      margin-top: 8px;
+      margin-top: 6px;
+    }
+
+    @media screen and (max-width: 480px) {
+      .game-card {
+        width: 100%;
+        max-width: 280px;
+      }
+      body {
+        padding: 12px;
+      }
     }
   </style>
 </head>
@@ -78,12 +89,17 @@
   </div>
 
   <script>
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
       const token = localStorage.getItem("zsy_token");
       const userBox = document.getElementById("user-box");
+      const allLinks = document.querySelectorAll(".game-card a");
 
       if (!token) {
-        document.querySelectorAll("a").forEach(a => {
+        allLinks.forEach(a => {
           a.addEventListener("click", function(e) {
             e.preventDefault();
             alert("请先登录再进入游戏！");
@@ -105,46 +121,55 @@
             ">🎮 以游客身份继续</button>
           </div>
         `;
-      } else {
-        const username = localStorage.getItem("zsy_username") || "ZSY用户";
-
-        // ✅ 限制 guest 用户只能玩第一个游戏（打砖块）
-        if (username === "guest") {
-          document.querySelectorAll(".game-card a").forEach((a, index) => {
-            if (index > 0) {
-              a.addEventListener("click", function(e) {
-                e.preventDefault();
-                alert("游客只能体验第一个游戏，请注册后解锁更多内容！");
-              });
-              a.style.pointerEvents = "auto";
-              a.style.opacity = "0.5";
-            }
-          });
-        }
-
-        userBox.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span>👤 ${username}</span>
-            <button onclick="logout()" style="
-              padding: 4px 10px;
-              background: #dc3545;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              font-size: 0.8em;
-              cursor: pointer;
-            ">🚪 退出</button>
-          </div>
-          <div style="margin-top: 6px;">
-            <a href="/changepwd" style="
-              font-size: 0.8em;
-              text-decoration: none;
-              color: #007bff;
-            ">🔑 修改密码</a>
-          </div>
-        `;
+        return;
       }
 
+      const username = localStorage.getItem("zsy_username") || "ZSY用户";
+
+      // 游客限制只能玩第一个游戏
+      if (username === "guest") {
+        allLinks.forEach((a, index) => {
+          if (index > 0) {
+            a.addEventListener("click", e => {
+              e.preventDefault();
+              alert("游客只能体验第一个游戏，请注册后解锁更多内容！");
+            });
+            a.style.opacity = "0.5";
+          }
+        });
+      }
+
+      // 移动设备提示兼容性
+      allLinks.forEach(link => {
+        link.addEventListener("click", function(e) {
+          if (isMobile()) {
+            const confirmed = confirm("⚠️ 此游戏为电脑端优化，手机可能无法正常体验，是否继续？");
+            if (!confirmed) e.preventDefault();
+          }
+        });
+      });
+
+      userBox.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span>👤 ${username}</span>
+          <button onclick="logout()" style="
+            padding: 4px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+          ">🚪 退出</button>
+        </div>
+        <div style="margin-top: 6px;">
+          <a href="/changepwd" style="
+            font-size: 0.8em;
+            text-decoration: none;
+            color: #007bff;
+          ">🔑 修改密码</a>
+        </div>
+      `;
     });
 
     function logout() {
@@ -152,12 +177,12 @@
       localStorage.removeItem("zsy_username");
       location.reload();
     }
+
     function guestLogin() {
       localStorage.setItem("zsy_token", "guest-token");
       localStorage.setItem("zsy_username", "guest");
-      location.reload(); // 刷新进入游戏界面
+      location.reload();
     }
-
   </script>
 </body>
 </html>
