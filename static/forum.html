@@ -50,6 +50,10 @@
       border-radius: 6px;
       cursor: pointer;
     }
+    .new-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -79,6 +83,7 @@
     .btns .update { background: #ffc107; color: #000; }
     .btns .delete { background: #dc3545; color: #fff; }
     .btns .logout { background: #666; color: #fff; }
+    .btns .change { background: #17a2b8; color: #fff; }
   </style>
 </head>
 <body>
@@ -91,113 +96,85 @@
   </div>
   <div class="top-bar">
     <h2>📌 ZSY 论坛帖文列表</h2>
-    <button class="new-btn" onclick="location.href='/forum/new'" id="new-btn">✏️ 我要发帖</button>
+    <button class="new-btn" id="new-btn">✏️ 我要发帖</button>
   </div>
-  <div id="post-list">正在加载帖子...</div><script>
+  <div id="post-list">正在加载帖子...</div>
+<script>
   const token = localStorage.getItem("zsy_token");
   const username = localStorage.getItem("zsy_username");
   const avatarBox = document.getElementById("my-avatar");
   const nameBox = document.getElementById("my-username");
   const btnsBox = document.getElementById("btns");
-  const newBtn = document.getElementById("new-btn");
+  const newBtn = document.getElementById("new-btn");if (!token || !username) { avatarBox.src = "https://api.dicebear.com/7.x/bottts/svg?seed=login"; nameBox.innerText = "请登录"; btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' + '<button class="logout" onclick="location.href=\'/login\'">🔐 登录</button>'; newBtn.disabled = true; newBtn.onclick = () => alert("请先登录后再发帖。"); document.getElementById("post-list").innerHTML = "请先登录后查看帖子列表。"; } else { nameBox.innerText = username; btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' + '<label for="avatar-upload" class="update">🖼️ 更新头像</label>' + '<button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>' + '<button class="change" onclick="location.href=\'/changepwd\'">🔑 修改密码</button>' + '<button class="logout" onclick="logout()">🚪 退出登录</button>' + '<input id="avatar-upload" type="file" accept="image/*" style="display:none" />';
 
-  if (!token || !username) {
-    avatarBox.src = "https://api.dicebear.com/7.x/bottts/svg?seed=login";
-    nameBox.innerText = "请登录";
-    btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' +
-                        '<button class="logout" onclick="location.href=\'/login\'">🔐 登录</button>';
-    newBtn.disabled = true;
-    newBtn.style.opacity = 0.5;
-    document.getElementById("post-list").innerHTML = "请先登录后查看帖子列表。";
-  } else {
-    nameBox.innerText = username;
-    btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' +
-                        '<label for="avatar-upload" class="update">🖼️ 更新头像</label>' +
-                        '<button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>' +
-                        '<button class="logout" onclick="logout()">🚪 退出登录</button>' +
-                        '<input id="avatar-upload" type="file" accept="image/*" style="display:none" />';
+fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
+  .then(res => res.json())
+  .then(data => {
+    avatarBox.src = data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+  });
 
-    fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
-      .then(res => res.json())
-      .then(data => {
-        avatarBox.src = data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
-      });
-
-    document.addEventListener("change", async (e) => {
-      if (e.target.id === "avatar-upload") {
-        const file = e.target.files[0];
-        if (!file) return;
-        const formData = new FormData();
-        formData.append("file", file);
-        const res = await fetch("/api/upload-avatar", {
-          method: "POST",
-          headers: { Authorization: "Bearer " + token },
-          body: formData
-        });
-        const result = await res.json();
-        if (result.url) location.reload();
-      }
-    });
-
-    loadPosts();
-  }
-
-  function deleteAvatar() {
-    fetch("/api/delete-avatar", { method: "POST", headers: { Authorization: "Bearer " + token } })
-      .then(res => res.json()).then(d => { if (d.success) location.reload(); });
-  }
-
-  function logout() {
-    localStorage.removeItem("zsy_token");
-    localStorage.removeItem("zsy_username");
-    localStorage.removeItem("zsy_avatar_url");
-    location.href = "/login";
-  }
-
-  async function deletePost(id) {
-    if (!confirm("确定删除这篇帖子？该操作将删除所有评论！")) return;
-    const res = await fetch("/api/forum/post-delete", {
+document.addEventListener("change", async (e) => {
+  if (e.target.id === "avatar-upload") {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/upload-avatar", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ id })
+      headers: { Authorization: "Bearer " + token },
+      body: formData
     });
     const result = await res.json();
-    if (result.success) loadPosts();
-    else alert("删除失败：" + (result.error || "未知错误"));
+    if (result.url) location.reload();
+  }
+});
+
+newBtn.disabled = (username === "guest");
+newBtn.onclick = () => {
+  if (username === "guest") {
+    alert("游客无法发帖，请先注册或登录账号。");
+  } else {
+    location.href = "/forum/new";
+  }
+};
+
+loadPosts();
+
+}
+
+function deleteAvatar() { fetch("/api/delete-avatar", { method: "POST", headers: { Authorization: "Bearer " + token } }) .then(res => res.json()).then(d => { if (d.success) location.reload(); }); }
+
+function logout() { localStorage.removeItem("zsy_token"); localStorage.removeItem("zsy_username"); localStorage.removeItem("zsy_avatar_url"); location.href = "/login"; }
+
+async function deletePost(id) { if (!confirm("确定删除这篇帖子？该操作将删除所有评论！")) return; const res = await fetch("/api/forum/post-delete", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": Bearer ${token} }, body: JSON.stringify({ id }) }); const result = await res.json(); if (result.success) loadPosts(); else alert("删除失败：" + (result.error || "未知错误")); }
+
+async function loadPosts() { try { const res = await fetch("/api/forum/posts"); const posts = await res.json(); if (!Array.isArray(posts)) throw new Error("返回格式错误");
+
+if (posts.length === 0) {
+    document.getElementById("post-list").innerHTML = "暂时还没有帖子。";
+    return;
   }
 
-  async function loadPosts() {
-    try {
-      const res = await fetch("/api/forum/posts");
-      const posts = await res.json();
-      if (!Array.isArray(posts)) throw new Error("返回格式错误");
+  const html = await Promise.all(posts.map(async p => {
+    const avatarUrl = await fetch(`/api/avatar-by-username?username=${p.username}`)
+      .then(r => r.json()).then(d => d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username}`);
+    const isOwner = p.username === username;
+    const disabledLink = !token ? '#' : `/forum/post?id=${p.id}`;
+    return `
+      <div class="post-item">
+        <img class="avatar" src="${avatarUrl}" />
+        <a class="post-link" href="${disabledLink}">${p.title}</a>
+        ${isOwner ? `<button class="delete" onclick="deletePost('${p.id}')">删除</button>` : ""}
+      </div>
+    `;
+  }));
+  document.getElementById("post-list").innerHTML = html.join("");
+} catch (err) {
+  document.getElementById("post-list").innerHTML = "❌ 加载失败，请稍后重试。";
+  console.error("加载帖子失败：", err);
+}
 
-      if (posts.length === 0) {
-        document.getElementById("post-list").innerHTML = "暂时还没有帖子。";
-        return;
-      }
+} </script>
 
-      const html = await Promise.all(posts.map(async p => {
-        const avatarUrl = await fetch(`/api/avatar-by-username?username=${p.username}`)
-          .then(r => r.json()).then(d => d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username}`);
-        const isOwner = p.username === username;
-        const disabledLink = !token ? '#' : `/forum/post?id=${p.id}`;
-        return `
-          <div class="post-item">
-            <img class="avatar" src="${avatarUrl}" />
-            <a class="post-link" href="${disabledLink}">${p.title}</a>
-            ${isOwner ? `<button class="delete" onclick="deletePost('${p.id}')">删除</button>` : ""}
-          </div>
-        `;
-      }));
-      document.getElementById("post-list").innerHTML = html.join("");
-    } catch (err) {
-      document.getElementById("post-list").innerHTML = "❌ 加载失败，请稍后重试。";
-      console.error("加载帖子失败：", err);
-    }
-  }
-</script></body>
+</body>
 </html>
