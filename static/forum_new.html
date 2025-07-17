@@ -49,6 +49,10 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
     #msg {
       margin-top: 10px;
       color: red;
@@ -62,15 +66,22 @@
       <span id="my-username"></span>
     </div>
     <button onclick="location.href='/forum'">← 返回列表</button>
-  </div>  <h2>📝 发布新帖</h2>
+  </div>
+
+  <h2>📝 发布新帖</h2>
   <input id="title" placeholder="请输入标题">
   <textarea id="content" placeholder="请输入内容"></textarea>
-  <button onclick="post()">发布</button>
-  <p id="msg"></p>  <script>
+  <button id="submit-btn" onclick="post()">发布</button>
+  <p id="msg"></p>
+
+  <script>
     const token = localStorage.getItem("zsy_token");
     const username = localStorage.getItem("zsy_username") || "ZSY用户";
     document.getElementById("my-username").innerText = username;
+    const btn = document.getElementById("submit-btn");
+    const msg = document.getElementById("msg");
 
+    // 加载头像
     fetch("/api/user-avatar", {
       headers: { Authorization: "Bearer " + token }
     })
@@ -79,11 +90,17 @@
         document.getElementById("my-avatar").src = data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
       });
 
+    // 禁止游客或未登录用户发帖
+    if (!token || username === "guest") {
+      btn.disabled = true;
+      msg.innerText = "⚠️ 游客无法发帖，请先登录。";
+    }
+
     async function post() {
       const title = document.getElementById("title").value.trim();
       const content = document.getElementById("content").value.trim();
       if (!title || !content) {
-        document.getElementById("msg").innerText = "标题和内容不能为空";
+        msg.innerText = "标题和内容不能为空";
         return;
       }
 
@@ -100,8 +117,9 @@
       if (data.message) {
         location.href = "/forum";
       } else {
-        document.getElementById("msg").innerText = data.error || "出错了";
+        msg.innerText = data.error || "出错了";
       }
     }
-  </script></body>
+  </script>
+</body>
 </html>
