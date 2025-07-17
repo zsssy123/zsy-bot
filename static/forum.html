@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="zh"><head>  <meta charset="UTF-8" />
-  <title>ZSY论坛</title>
+<!DOCTYPE html><html lang="zh"><head>  <meta charset="UTF-8" />  <title>ZSY论坛</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -98,8 +97,7 @@
     <h2>📌 ZSY 论坛帖文列表</h2>
     <button class="new-btn" id="new-btn">✏️ 我要发帖</button>
   </div>
-  <div id="post-list">正在加载帖子...</div>
-<script>
+  <div id="post-list">正在加载帖子...</div><script>
   const token = localStorage.getItem("zsy_token");
   const username = localStorage.getItem("zsy_username");
   const avatarBox = document.getElementById("my-avatar");
@@ -174,7 +172,6 @@ if (posts.length === 0) {
   console.error("加载帖子失败：", err);
 }
 
-} </script>
+} </script></body>
 
-</body>
 </html>
