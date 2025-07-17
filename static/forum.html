@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="zh">
-<head>
+<!DOCTYPE html><html lang="zh"><head>
   <meta charset="UTF-8" />
   <title>ZSY论坛</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,16 +24,18 @@
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
     }
     .post-item:hover {
       background: #eef6ff;
     }
-    .post-item a {
+    .post-link {
       text-decoration: none;
       font-weight: bold;
       font-size: 1.1em;
       color: #007bff;
+      flex: 1;
     }
     .top-bar {
       display: flex;
@@ -94,7 +95,8 @@
       <button class="logout" onclick="logout()">🚪 退出登录</button>
       <input id="avatar-upload" type="file" accept="image/*" style="display:none" />
     </div>
-  </div>  <div class="top-bar">
+  </div>
+  <div class="top-bar">
     <h2>📌 ZSY 论坛帖文列表</h2>
     <button class="new-btn" onclick="location.href='/forum/new'">✏️ 我要发帖</button>
   </div>
@@ -103,7 +105,6 @@
   const username = localStorage.getItem("zsy_username");
   document.getElementById("my-username").innerText = username;
 
-  // 加载当前用户头像
   fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
     .then(res => res.json())
     .then(data => {
@@ -136,6 +137,21 @@
     location.href = "/login";
   }
 
+  async function deletePost(id) {
+    if (!confirm("确定删除这篇帖子？该操作将删除所有评论！")) return;
+    const res = await fetch("/api/forum/post-delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ id })
+    });
+    const result = await res.json();
+    if (result.success) loadPosts();
+    else alert("删除失败：" + (result.error || "未知错误"));
+  }
+
   async function loadPosts() {
     try {
       const res = await fetch("/api/forum/posts");
@@ -150,10 +166,12 @@
       const html = await Promise.all(posts.map(async p => {
         const avatarUrl = await fetch(`/api/avatar-by-username?username=${p.username}`)
           .then(r => r.json()).then(d => d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username}`);
+        const isOwner = p.username === username;
         return `
           <div class="post-item">
             <img class="avatar" src="${avatarUrl}" />
-            <a href="/forum/post?id=${p.id}">${p.title}</a>
+            <a class="post-link" href="/forum/post?id=${p.id}">${p.title}</a>
+            ${isOwner ? `<button class="delete" onclick="deletePost('${p.id}')">删除</button>` : ""}
           </div>
         `;
       }));
