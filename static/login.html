@@ -54,19 +54,26 @@
       font-size: 0.95em;
       color: #555;
     }
-    .hint a {
-      color: #007bff;
-      text-decoration: none;
+    .hint button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .hint button:hover {
+      background-color: #218838;
     }
   </style>
 </head>
 <body>
   <h2>欢迎登录 ZSY AI ✨</h2>
-
+  
   <input id="username" placeholder="用户名" />
   <input id="password" type="password" placeholder="密码" />
   <button onclick="login()">登录</button>
-  <!-- 游客登录按钮 -->
+  <!-- 游客登录按钮 -->  
   <div style="margin-top: 20px; text-align: center;">
     <button onclick="loginAsGuest()" style="
       background-color: #6c757d;
@@ -77,13 +84,13 @@
       cursor: pointer;
     ">🕶 游客体验</button>
   </div>
-
+  
   <p id="err"></p>
-
+  
   <p class="hint">
-    还没有账号？<a href="/register">立即注册</a>  若不想注册 可以使用游客模式 注意隐私保护哦
+    还没有账号？<button onclick="location.href='/register'">立即注册</button> 若不想注册 可以使用游客模式 注意隐私保护哦
   </p>
-
+  
   <script>
     async function login() {
       const username = document.getElementById("username").value.trim();
@@ -97,12 +104,12 @@
       if (data.token) {
         localStorage.setItem("zsy_username", username);
         localStorage.setItem("zsy_token", data.token);
-        
         window.location.href = "/";
       } else {
         document.getElementById("err").innerText = data.error || "登录失败";
       }
     }
+
     async function loginAsGuest() {
       const res = await fetch("/api/login", {
         method: "POST",
