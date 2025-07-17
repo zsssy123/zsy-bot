@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="zh"><head>
-  <meta charset="UTF-8" />
+<!DOCTYPE html><html lang="zh"><head>  <meta charset="UTF-8" />
   <title>ZSY论坛</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -88,42 +87,60 @@
       <img id="my-avatar" class="avatar" src="">
       <span id="my-username"></span>
     </div>
-    <div class="btns">
-      <button class="home" onclick="location.href='/'">🏠 首页</button>
-      <label for="avatar-upload" class="update">🖼️ 更新头像</label>
-      <button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>
-      <button class="logout" onclick="logout()">🚪 退出登录</button>
-      <input id="avatar-upload" type="file" accept="image/*" style="display:none" />
-    </div>
+    <div class="btns" id="btns"></div>
   </div>
   <div class="top-bar">
     <h2>📌 ZSY 论坛帖文列表</h2>
-    <button class="new-btn" onclick="location.href='/forum/new'">✏️ 我要发帖</button>
+    <button class="new-btn" onclick="location.href='/forum/new'" id="new-btn">✏️ 我要发帖</button>
   </div>
   <div id="post-list">正在加载帖子...</div><script>
   const token = localStorage.getItem("zsy_token");
   const username = localStorage.getItem("zsy_username");
-  document.getElementById("my-username").innerText = username;
+  const avatarBox = document.getElementById("my-avatar");
+  const nameBox = document.getElementById("my-username");
+  const btnsBox = document.getElementById("btns");
+  const newBtn = document.getElementById("new-btn");
 
-  fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("my-avatar").src = data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+  if (!token || !username) {
+    avatarBox.src = "https://api.dicebear.com/7.x/bottts/svg?seed=login";
+    nameBox.innerText = "请登录";
+    btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' +
+                        '<button class="logout" onclick="location.href=\'/login\'">🔐 登录</button>';
+    newBtn.disabled = true;
+    newBtn.style.opacity = 0.5;
+    document.getElementById("post-list").innerHTML = "请先登录后查看帖子列表。";
+  } else {
+    nameBox.innerText = username;
+    btnsBox.innerHTML = '<button class="home" onclick="location.href=\'/\'">🏠 首页</button>' +
+                        '<label for="avatar-upload" class="update">🖼️ 更新头像</label>' +
+                        '<button class="delete" onclick="deleteAvatar()">🗑️ 删除头像</button>' +
+                        '<button class="logout" onclick="logout()">🚪 退出登录</button>' +
+                        '<input id="avatar-upload" type="file" accept="image/*" style="display:none" />';
+
+    fetch("/api/user-avatar", { headers: { Authorization: "Bearer " + token } })
+      .then(res => res.json())
+      .then(data => {
+        avatarBox.src = data.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+      });
+
+    document.addEventListener("change", async (e) => {
+      if (e.target.id === "avatar-upload") {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload-avatar", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + token },
+          body: formData
+        });
+        const result = await res.json();
+        if (result.url) location.reload();
+      }
     });
 
-  document.getElementById("avatar-upload").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch("/api/upload-avatar", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + token },
-      body: formData
-    });
-    const result = await res.json();
-    if (result.url) location.reload();
-  });
+    loadPosts();
+  }
 
   function deleteAvatar() {
     fetch("/api/delete-avatar", { method: "POST", headers: { Authorization: "Bearer " + token } })
@@ -167,10 +184,11 @@
         const avatarUrl = await fetch(`/api/avatar-by-username?username=${p.username}`)
           .then(r => r.json()).then(d => d.url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.username}`);
         const isOwner = p.username === username;
+        const disabledLink = !token ? '#' : `/forum/post?id=${p.id}`;
         return `
           <div class="post-item">
             <img class="avatar" src="${avatarUrl}" />
-            <a class="post-link" href="/forum/post?id=${p.id}">${p.title}</a>
+            <a class="post-link" href="${disabledLink}">${p.title}</a>
             ${isOwner ? `<button class="delete" onclick="deletePost('${p.id}')">删除</button>` : ""}
           </div>
         `;
@@ -181,7 +199,5 @@
       console.error("加载帖子失败：", err);
     }
   }
-
-  loadPosts();
 </script></body>
 </html>
