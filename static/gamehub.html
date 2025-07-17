@@ -143,7 +143,7 @@
       allLinks.forEach(link => {
         link.addEventListener("click", function(e) {
           if (isMobile()) {
-            const confirmed = confirm("⚠️ 此游戏为电脑端优化，手机可能无法正常体验，是否继续？");
+            const confirmed = confirm("⚠️ 此游戏为电脑端优化，请在浏览器菜单中选择“切换为电脑版”以获得更好体验！ 也可以不用手机版有部分游戏可以玩");
             if (!confirmed) e.preventDefault();
           }
         });
