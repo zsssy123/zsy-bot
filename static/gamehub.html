@@ -150,7 +150,7 @@
 </div>
 
 <footer>
-  © 2025 ZSY 网站计划 | 游戏数据来自开源项目
+  © 2025 ZSY 网站计划 | 游戏数据来自cjc所有
 </footer>
 
 <script>
@@ -161,19 +161,19 @@
 
   const userBox = document.getElementById("user-box");
   if (!isLogin) {
-    userBox.innerHTML = `
-      <a class="home" href="/">🏠 返回首页</a>
-      <span>🔐 请先登录</span>
-      <a href="/login">登录账号</a>
-      <button onclick="guestLogin()">🎮 游客体验</button>
-    `;
-  } else {
-    userBox.innerHTML = `
-      <a class="home" href="/">🏠 返回首页</a>
-      <span>👤 ${username}</span>
-      <a href="/changepwd">🔑 修改密码</a>
-      <button onclick="logout()">🚪 退出</button>
-    `;
+  userBox.innerHTML = `
+    <button onclick="location.href='/'">🏠 返回首页</button>
+    <span>🔐 请先登录</span>
+    <button onclick="location.href='/login'">登录账号</button>
+    <button onclick="guestLogin()">🎮 游客体验（只第一个）</button>
+  `;
+} else {
+  userBox.innerHTML = `
+    <button onclick="location.href='/'">🏠 返回首页</button>
+    <span>👤 ${username}</span>
+    <button onclick="location.href='/changepwd'">🔑 修改密码</button>
+    <button onclick="logout()">🚪 退出</button>
+  `;
   }
 
   function logout() {
