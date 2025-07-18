@@ -984,6 +984,23 @@ def game_hub():
 @app.route("/game/<filename>")
 def serve_game(filename):
     return send_from_directory("static/game", filename)
+
+@app.after_request
+def inject_dark_mode_script(response):
+    if response.content_type.startswith("text/html"):
+        try:
+            html = response.get_data(as_text=True)
+            if "</head>" in html:
+                injection = '''
+<link rel="stylesheet" href="/static/zsy-theme.css">
+<script src="/static/zsy-theme.js" defer></script>
+'''
+                html = html.replace("</head>", injection + "</head>")
+                response.set_data(html)
+        except Exception as e:
+            print("注入失败：", e)
+    return response
+
 def run_flask():
     app.run(host="0.0.0.0", port=8080)
 
@@ -994,6 +1011,8 @@ user_modes = {}        # 用户人格风格
 user_histories = {}    # 用户上下文消息历史
 
 # ---👋 /start ---
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("你好，我是 ZSY 🤖 已启动！可发送消息试试 /mode me /ping 指令～  我们还有官方的zsy 网站 https://zsyai.onrender.com/")
 
