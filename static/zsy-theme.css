@@ -1,45 +1,74 @@
 @media (prefers-color-scheme: dark) {
+  /* 全局背景与文本色 */
   body {
-    background-color: #121212 !important;
-    color: #eee !important;
+    background-color: #111 !important;
+    color: #e0e0e0 !important;
   }
 
-  header {
-    background-color: #1f1f1f !important;
-    color: white !important;
+  /* 标题颜色 */
+  h1, h2, h3, h4, h5 {
+    color: #f0f0f0 !important;
   }
 
-  .main, .grid, .footer {
-    background-color: #121212 !important;
-    color: #eee !important;
+  /* 按钮样式统一暗色调 */
+  button, .btn, input[type="submit"] {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
   }
 
-  .game-card {
+  button:hover, .btn:hover {
+    background-color: #3a3a3a !important;
+  }
+
+  /* 顶部导航栏和页脚 */
+  header, .top-bar, .header-bar, footer {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+  }
+
+  /* 帖子列表、评论卡片、论坛结构等 */
+  .post-item, .comment-item, .game-card, .forum-card {
+    background-color: #222 !important;
+    color: #ddd !important;
+    border: 1px solid #333 !important;
+  }
+
+  /* 输入框与文本域 */
+  input, textarea {
     background-color: #1e1e1e !important;
-    color: #eee !important;
-    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.05) !important;
-  }
-
-  .game-card h3, .game-card p {
-    color: #eee !important;
-  }
-
-  .game-card a {
-    background-color: #3c9f40 !important;
-    color: white !important;
-  }
-
-  a, a:visited {
-    color: #90caf9 !important;
-  }
-
-  button {
-    background-color: #444 !important;
-    color: white !important;
-  }
-
-  .home {
-    background: #555 !important;
     color: #fff !important;
+    border: 1px solid #444 !important;
+  }
+
+  /* 链接颜色 */
+  a {
+    color: #66ccff !important;
+  }
+
+  a:hover {
+    color: #88ddff !important;
+  }
+
+  /* 禁用按钮样式 */
+  button:disabled, .btn:disabled, a.disabled {
+    background-color: #444 !important;
+    color: #aaa !important;
+  }
+
+  /* 所有边框统一 */
+  .border, .box, .container {
+    border-color: #333 !important;
+  }
+
+  /* 首页大卡片结构（如聊天室、游戏、论坛入口） */
+  .home-section, .home-card, .grid, .main {
+    background-color: #1c1c1c !important;
+    color: #eee !important;
+  }
+
+  /* 渐变背景若用，暗化 */
+  body.dark-gradient {
+    background: linear-gradient(to bottom right, #121212, #1e1e1e) !important;
   }
 }
