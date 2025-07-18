@@ -1,9 +1,45 @@
 @media (prefers-color-scheme: dark) {
   body {
-    background: #121212;
-    color: #f0f0f0;
+    background-color: #121212 !important;
+    color: #eee !important;
   }
-  a { color: #4fc3f7; }
-  .game-card { background: #1e1e1e; }
-  header, footer { background: #222; color: #fff; }
+
+  header {
+    background-color: #1f1f1f !important;
+    color: white !important;
+  }
+
+  .main, .grid, .footer {
+    background-color: #121212 !important;
+    color: #eee !important;
+  }
+
+  .game-card {
+    background-color: #1e1e1e !important;
+    color: #eee !important;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .game-card h3, .game-card p {
+    color: #eee !important;
+  }
+
+  .game-card a {
+    background-color: #3c9f40 !important;
+    color: white !important;
+  }
+
+  a, a:visited {
+    color: #90caf9 !important;
+  }
+
+  button {
+    background-color: #444 !important;
+    color: white !important;
+  }
+
+  .home {
+    background: #555 !important;
+    color: #fff !important;
+  }
 }
