@@ -1,50 +1,59 @@
-/* 全局背景 + 字体 */
-html, body {
-  background: #121212 !important;
-  color: #ffffff !important;
+/* 🌞 默认浅色模式 */
+body {
+  background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+  color: #222;
 }
-
-/* 所有按钮统一 */
-button, .button, a.button {
-  background-color: #1f1f1f !important;
-  color: #ffffff !important;
-  border: 1px solid #444 !important;
-}
-
-button:hover, .button:hover {
-  background-color: #333 !important;
-}
-
-/* 输入框统一 */
-input, textarea, select {
-  background-color: #1e1e1e !important;
-  color: #fff !important;
-  border: 1px solid #444 !important;
-}
-
-/* 所有 div 背景强制深色 */
-div, section, article, header, footer, .box, .grid, .game-card {
-  background-color: #1c1c1c !important;
-  color: #f0f0f0 !important;
-  border-color: #333 !important;
-}
-
-/* 链接颜色调整 */
 a {
-  color: #81cfff !important;
+  color: #007bff;
+}
+button, input, select, textarea {
+  color: #222;
+  background-color: white;
+}
+header, .box, .game-card {
+  background-color: white;
+  color: #222;
 }
 
-/* 错误信息等 */
-#err, .error {
-  color: #ff6f61 !important;
-}
+/* 🌙 深色模式 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #121212 !important;
+    color: #ffffff !important;
+  }
 
-/* 禁用元素颜色 */
-.disabled, [disabled] {
-  background-color: #444 !important;
-  color: #aaa !important;
-}
-/* 强制所有文字为白色 */
-*, *::before, *::after {
-  color: #ffffff !important;
+  a {
+    color: #66b0ff !important;
+  }
+
+  header, .box, .game-card {
+    background-color: #1e1e1e !important;
+    color: white !important;
+    border: 1px solid #333 !important;
+    box-shadow: 0 0 10px rgba(255,255,255,0.05);
+  }
+
+  input, select, textarea, button {
+    background-color: #222 !important;
+    color: white !important;
+    border: 1px solid #444 !important;
+  }
+
+  .button, .game-card a {
+    background-color: #444 !important;
+    color: white !important;
+    border: none !important;
+  }
+
+  .button:hover, .game-card a:hover {
+    background-color: #666 !important;
+  }
+
+  .user-row a, .user-row button, .user-row label {
+    color: #ccc !important;
+  }
+
+  footer {
+    color: #aaa !important;
+  }
 }
