@@ -1,34 +1,24 @@
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #111 !important;
-    color: #ddd !important;
-  }
+/* zsy-theme.css 全局暗黑模式适配 */
 
-  h1, h2, h3, h4, h5, h6 {
-    color: #f2f2f2 !important;
-  }
+@media (prefers-color-scheme: dark) { html, body { background-color: #121212; color: #eeeeee; }
 
-  a {
-    color: #80caff !important;
-  }
+.box, .container, .card, .content, .main-area, .chat-box { background-color: #1e1e1e !important; color: #eeeeee; box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important; }
 
-  .card, .game-card, .box, input, textarea, button, .top-bar, .main, .grid {
-    background-color: #1a1a1a !important;
-    color: #eee !important;
-    border-color: #444 !important;
-  }
+h1, h2, h3, h4, h5, h6, p, span, label { color: #f0f0f0 !important; }
 
-  header, .top-bar {
-    background-color: #222 !important;
-    color: #fff !important;
-  }
+a { color: #84b9ff !important; }
 
-  .btn, .new-btn, button {
-    background-color: #333 !important;
-    color: #fff !important;
-  }
+input, textarea { background-color: #1f1f1f !important; color: #ffffff !important; border: 1px solid #555 !important; }
 
-  footer {
-    color: #888 !important;
-  }
-}
+button { background-color: #3b3bff !important; color: white !important; border: none; }
+
+button:hover { background-color: #5c5cff !important; }
+
+select, option { background-color: #1e1e1e !important; color: #ffffff !important; }
+
+.chat-message.user { background-color: #333333 !important; }
+
+.chat-message.assistant { background-color: #2a2a2a !important; }
+
+.navbar, .footer, .header { background-color: #181818 !important; color: #f0f0f0 !important; } }
+
