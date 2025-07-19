@@ -1,24 +1,23 @@
-/* zsy-theme.css 全局暗黑模式适配 */
+/* light 默认主题 */
+:root {
+  --bg-page: #f3f9ff;
+  --bg-card: #fff;
+  --text-primary: #333;
+  --button-bg: #6b7bfa;
+  --button-text: #fff;
 
-@media (prefers-color-scheme: dark) { html, body { background-color: #121212; color: #eeeeee; }
+  color-scheme: light dark;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
 
-.box, .container, .card, .content, .main-area, .chat-box { background-color: #1e1e1e !important; color: #eeeeee; box-shadow: 0 6px 20px rgba(0,0,0,0.5) !important; }
-
-h1, h2, h3, h4, h5, h6, p, span, label { color: #f0f0f0 !important; }
-
-a { color: #84b9ff !important; }
-
-input, textarea { background-color: #1f1f1f !important; color: #ffffff !important; border: 1px solid #555 !important; }
-
-button { background-color: #3b3bff !important; color: white !important; border: none; }
-
-button:hover { background-color: #5c5cff !important; }
-
-select, option { background-color: #1e1e1e !important; color: #ffffff !important; }
-
-.chat-message.user { background-color: #333333 !important; }
-
-.chat-message.assistant { background-color: #2a2a2a !important; }
-
-.navbar, .footer, .header { background-color: #181818 !important; color: #f0f0f0 !important; } }
-
+/* 响应系统暗色主题 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #121212;
+    --bg-card: #1f1f1f;
+    --text-primary: #eee;
+    --button-bg: #5363e2;
+    --button-text: #fff;
+  }
+}
