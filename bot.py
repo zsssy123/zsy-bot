@@ -21,6 +21,7 @@ import io
 import os
 os.getenv("FREEGPT_KEY")
 from supabase import create_client, Client
+from flask import send_file, request, Response
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
@@ -78,6 +79,15 @@ client = OpenAI(
 
 # ---📌 Flask 保活 ---
 app = Flask('')
+
+@app.before_request
+def intercept_html_pages():
+    if request.path.endswith(".html"):
+        try:
+            return send_file(f"static{request.path}", mimetype="text/html")
+        except:
+            return "页面不存在", 404
+
 
 @app.route("/")
 def home():
