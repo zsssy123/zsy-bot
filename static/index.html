@@ -122,7 +122,24 @@
     .sidebar.hidden {
   transform: translateX(-100%);
 }
+    /* 隐藏用的类 */
+    .hidden {
+  display: none !important;
+}
 
+/* 菜单按钮样式 */
+    #toggle-sidebar {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 9999;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
     .main-content {
   margin-left: 240px;
   transition: margin-left 0.3s ease;
@@ -164,21 +181,11 @@
 <body>
 
   <!-- ☑️ 添加侧边栏控制按钮 -->
-  <button id="toggle-sidebar" style="
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 9999;
-    background: #333;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-  ">📂 菜单</button>
+  <!-- 菜单按钮 -->
+<button id="toggle-sidebar">📁 菜单</button>
 
   <!-- ☑️ 给 sidebar 添加 class 用于控制 -->
-  <div id="sidebar" class="sidebar">
+  <div id="sidebar" class="hidden">
     <div><strong>💬 我的对话</strong></div>
     <div id="chat-list"></div>
     <button id="new-chat-btn">➕ 新建会话</button>
@@ -626,11 +633,11 @@
       await loadChatList();
       await loadChatHistory();
     });
+  
   document.getElementById("toggle-sidebar").addEventListener("click", function () {
-        const sidebar = document.querySelector(".sidebar");
+    const sidebar = document.getElementById("sidebar");
     sidebar.classList.toggle("hidden");
-    });
-
+  });
 
   </script>
 
