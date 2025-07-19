@@ -83,26 +83,27 @@ app = Flask('')
 
 @app.before_request
 def intercept_html_pages():
-    inject_pages = [
-        "/login",
-        "/register",
-        "/chat",
-        "/forum",
-        "/forum/post",
-        "/forum/new",
-        "/changepwd",
-        "/games",
-        "/gamehub.html"
-    ]
-    if request.path in inject_pages or request.path.endswith(".html"):
+    mapping = {
+        "/chat": "/index.html",
+        "/games": "/gamehub.html",
+        "/login": "/login.html",
+        "/register": "/register.html",
+        "/forum": "/forum.html",
+        "/forum/post": "/forum_post.html",
+        "/forum/new": "/forum_new.html",
+        "/changepwd": "/changepwd.html"
+    }
+
+    target = mapping.get(request.path, request.path if request.path.endswith(".html") else None)
+    if target:
         try:
-            with open(f"static{request.path}.html" if not request.path.endswith(".html") else f"static{request.path}", encoding="utf-8") as f:
+            with open(f"static{target}", encoding="utf-8") as f:
                 html = f.read()
             response = make_response(html)
             response.headers["Content-Type"] = "text/html"
             return response
         except Exception as e:
-            print("页面读取失败：", e)
+            print(f"❌ 页面读取失败 ({target}):", e)
             return "页面不存在", 404
 
 @app.route("/")
