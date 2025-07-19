@@ -1,84 +1,50 @@
-/* 🌙 ZSY 暗黑模式主题：全局背景与文本样式覆盖 */
+/* 全局背景 + 字体 */
 html, body {
-  background-color: #121212 !important;
+  background: #121212 !important;
   color: #ffffff !important;
-  font-family: "Segoe UI", sans-serif;
 }
 
-/* 强制所有文字变白 */
-*, *::before, *::after {
-  color: #ffffff !important;
-  text-shadow: none !important;
-  opacity: 1 !important;
-}
-
-/* 容器、卡片、弹窗统一背景 */
-div, section, article, header, footer, .box, .card, .grid, .container, .game-card {
-  background-color: #1e1e1e !important;
-  color: #ffffff !important;
-  border-color: #333 !important;
-  box-shadow: none !important;
-}
-
-/* 所有按钮统一风格 */
-button, .button, input[type="submit"], input[type="button"] {
-  background-color: #2c2c2c !important;
+/* 所有按钮统一 */
+button, .button, a.button {
+  background-color: #1f1f1f !important;
   color: #ffffff !important;
   border: 1px solid #444 !important;
-  border-radius: 6px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: background 0.3s;
 }
+
 button:hover, .button:hover {
-  background-color: #3a3a3a !important;
+  background-color: #333 !important;
 }
 
-/* 所有链接颜色亮蓝色 */
-a, a:visited {
-  color: #81cfff !important;
-  text-decoration: none !important;
-}
-a:hover {
-  text-decoration: underline !important;
-}
-
-/* 表单组件 */
+/* 输入框统一 */
 input, textarea, select {
   background-color: #1e1e1e !important;
-  color: #ffffff !important;
+  color: #fff !important;
   border: 1px solid #444 !important;
-  border-radius: 6px;
-  padding: 8px;
 }
 
-/* 游客受限样式 */
-.disabled, [disabled] {
-  background-color: #555 !important;
-  color: #aaa !important;
-  cursor: not-allowed !important;
-  opacity: 0.6 !important;
+/* 所有 div 背景强制深色 */
+div, section, article, header, footer, .box, .grid, .game-card {
+  background-color: #1c1c1c !important;
+  color: #f0f0f0 !important;
+  border-color: #333 !important;
 }
 
-/* 页面顶部区域 */
-header, nav, #user-box {
-  background-color: #1b1b1b !important;
-  color: #ffffff !important;
-  border-bottom: 1px solid #333 !important;
+/* 链接颜色调整 */
+a {
+  color: #81cfff !important;
 }
 
-/* 脚注统一样式 */
-footer {
-  background-color: #1a1a1a !important;
-  color: #888 !important;
-}
-
-/* 提示文字 */
-::placeholder {
-  color: #888 !important;
-}
-
-/* 特别提示 / 错误 */
-.error, #err, .alert {
+/* 错误信息等 */
+#err, .error {
   color: #ff6f61 !important;
+}
+
+/* 禁用元素颜色 */
+.disabled, [disabled] {
+  background-color: #444 !important;
+  color: #aaa !important;
+}
+/* 强制所有文字为白色 */
+*, *::before, *::after {
+  color: #ffffff !important;
 }
