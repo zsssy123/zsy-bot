@@ -1,23 +1,46 @@
-/* light 默认主题 */
-:root {
-  --bg-page: #f3f9ff;
-  --bg-card: #fff;
-  --text-primary: #333;
-  --button-bg: #6b7bfa;
-  --button-text: #fff;
-
-  color-scheme: light dark;
-  background-color: var(--bg-page);
-  color: var(--text-primary);
+/* 全局背景 + 字体 */
+html, body {
+  background: #121212 !important;
+  color: #ffffff !important;
 }
 
-/* 响应系统暗色主题 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-page: #121212;
-    --bg-card: #1f1f1f;
-    --text-primary: #eee;
-    --button-bg: #5363e2;
-    --button-text: #fff;
-  }
+/* 所有按钮统一 */
+button, .button, a.button {
+  background-color: #1f1f1f !important;
+  color: #ffffff !important;
+  border: 1px solid #444 !important;
+}
+
+button:hover, .button:hover {
+  background-color: #333 !important;
+}
+
+/* 输入框统一 */
+input, textarea, select {
+  background-color: #1e1e1e !important;
+  color: #fff !important;
+  border: 1px solid #444 !important;
+}
+
+/* 所有 div 背景强制深色 */
+div, section, article, header, footer, .box, .grid, .game-card {
+  background-color: #1c1c1c !important;
+  color: #f0f0f0 !important;
+  border-color: #333 !important;
+}
+
+/* 链接颜色调整 */
+a {
+  color: #81cfff !important;
+}
+
+/* 错误信息等 */
+#err, .error {
+  color: #ff6f61 !important;
+}
+
+/* 禁用元素颜色 */
+.disabled, [disabled] {
+  background-color: #444 !important;
+  color: #aaa !important;
 }
