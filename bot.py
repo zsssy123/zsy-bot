@@ -21,6 +21,7 @@ import io
 import os
 os.getenv("FREEGPT_KEY")
 from supabase import create_client, Client
+from flask import make_response
 from flask import send_file, request, Response
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -84,10 +85,13 @@ app = Flask('')
 def intercept_html_pages():
     if request.path.endswith(".html"):
         try:
-            return send_file(f"static{request.path}", mimetype="text/html")
+            with open(f"static{request.path}", encoding="utf-8") as f:
+                html = f.read()
+            response = make_response(html)
+            response.headers["Content-Type"] = "text/html"
+            return response  # ✅ 注意：是 Response 对象！
         except:
             return "页面不存在", 404
-
 
 @app.route("/")
 def home():
