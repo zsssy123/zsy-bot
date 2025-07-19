@@ -83,14 +83,26 @@ app = Flask('')
 
 @app.before_request
 def intercept_html_pages():
-    if request.path.endswith(".html"):
+    inject_pages = [
+        "/login",
+        "/register",
+        "/chat",
+        "/forum",
+        "/forum/post",
+        "/forum/new",
+        "/changepwd",
+        "/games",
+        "/gamehub.html"
+    ]
+    if request.path in inject_pages or request.path.endswith(".html"):
         try:
-            with open(f"static{request.path}", encoding="utf-8") as f:
+            with open(f"static{request.path}.html" if not request.path.endswith(".html") else f"static{request.path}", encoding="utf-8") as f:
                 html = f.read()
             response = make_response(html)
             response.headers["Content-Type"] = "text/html"
-            return response  # ✅ 这样才会被 after_request 自动注入 dark css
-        except:
+            return response
+        except Exception as e:
+            print("页面读取失败：", e)
             return "页面不存在", 404
 
 @app.route("/")
