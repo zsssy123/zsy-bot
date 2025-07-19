@@ -996,15 +996,12 @@ def serve_game(filename):
     return send_from_directory("static/game", filename)
 
 @app.after_request
-def inject_dark_mode_script(response):
+def inject_dark_mode(response):
     if response.content_type.startswith("text/html"):
         try:
             html = response.get_data(as_text=True)
-            if "</head>" in html:
-                injection = '''
-<link rel="stylesheet" href="/static/zsy-theme.css">
-<script src="/static/zsy-theme.js" defer></script>
-'''
+            if "</head>" in html and "zsy-theme.css" not in html:
+                injection = '<link rel="stylesheet" href="/static/zsy-theme.css">'
                 html = html.replace("</head>", injection + "</head>")
                 response.set_data(html)
         except Exception as e:
