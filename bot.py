@@ -724,19 +724,9 @@ def web_chat():
                 if response.status_code == 200:
                     result = response.json()
         
-                    # 提取思考过程（如果有）
-                    thinking = result.get("thinking", "无思考过程")
-        
-                    # 提取回答内容
-                    answer = result["choices"][0]["message"]["content"]
-        
-                    return {
-                        "thinking": thinking,
-                        "answer": answer
-                    }
+                    reply = resp.json()["choices"][0]["message"]["content"]
                 else:
                     return f"错误: {response.status_code}, {response.text}"
-            reply = response.choices[0].message.content.strip()
         
         
         else:
