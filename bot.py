@@ -672,7 +672,46 @@ def web_chat():
             else:
                 print("❌ GPT-4o-mini 响应错误：", resp.text)
                 reply = f"GPT-4o-mini 接口出错：{resp.status_code}：{resp.text}"
+        elif model == "gpt-4.1-nano":
+            freegpt_key = os.getenv("FREEGPT_KEY")
+            resp = requests.post(
+                "https://api.chatanywhere.tech/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "gpt-4.1-nano",
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ gpt-4.1-nano 响应错误：", resp.text)
+                reply = f"gpt-4.1-nano 接口出错：{resp.status_code}：{resp.text}"
 
+        elif model == "deepseek-r1":
+            freegpt_key = os.getenv("FREEGPT_KEY")
+            resp = requests.post(
+                "https://api.chatanywhere.tech/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "deepseek-r1",
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ deepseek-r1 响应错误：", resp.text)
+                reply = f"deepseek-r1 接口出错：{resp.status_code}：{resp.text}"
+        
         
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
