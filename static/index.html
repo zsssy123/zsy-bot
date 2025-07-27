@@ -346,7 +346,7 @@
       // 如果是游客，只能使用 deepseek，禁用模型选择器
       modelSelector.value = "deepseek";
       modelSelector.disabled = true;
-      alert("当前为游客身份，暂时仅支持使用 DeepSeek 模型。如需使用 GPT-3.5 或 GPT-4o，请注册登录。");
+      alert("当前为游客身份，暂时仅支持使用 DeepSeek 模型。如需使用 GPT-3.5，GPT-4o，gpt4.1 ,Gemini等高级语言模型，请自己注册并登录。");
     } else {
       // 正常用户可以使用保存的模型
       const savedModel = localStorage.getItem("zsy_model") || "deepseek";
