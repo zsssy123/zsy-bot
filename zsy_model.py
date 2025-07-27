@@ -1,12 +1,15 @@
 # zsy_model.py
 
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
-print("🧠 正在加载 ZSYAI 模型（ChatGLM3）...")
-tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm3-6b", trust_remote_code=True)
-model = AutoModel.from_pretrained("THUDM/chatglm3-6b", trust_remote_code=True).half().cuda()
-model = model.eval()
+print("🧠 正在加载 ZSYAI 模型（Mistral 7B）...")
+
+# 使用 Mistral 7B 模型并进行量化（减小内存占用）
+tokenizer = AutoTokenizer.from_pretrained("mistralai/mistral-7b-instruct")  # 替换为较小的模型
+model = AutoModelForCausalLM.from_pretrained("mistralai/mistral-7b-instruct", revision="int4", device_map="auto")
+
+model.eval()
 print("✅ ZSYAI 模型加载完成")
 
 def zsy_reply(messages: list[dict]) -> str:
