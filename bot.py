@@ -619,7 +619,12 @@ def web_chat():
     messages = [{"role": "system", "content": system_prompt}] + (
         history if use_memory else [{"role": "user", "content": user_msg}]
     )
-
+    def call_gemini_api(prompt):
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {API_KEY}"
+                }
+    
     # ✅ 请求 AI 回复
     try:
         model = data.get("model", "deepseek")  # 默认使用 deepseek
@@ -702,13 +707,8 @@ def web_chat():
             )
             reply = response.choices[0].message.content.strip()
         elif model == "gemini-2.5-pro":
-            def call_gemini_api(prompt):
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {API_KEY}"
-                }
-    
-                freegpt_key = os.getenv("API_KEY")
+            
+            freegpt_key = os.getenv("API_KEY")
             resp = requests.post(
                 "https://api.laozhang.ai/v1/chat/completions",
                 headers={
