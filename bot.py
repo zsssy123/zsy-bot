@@ -24,11 +24,6 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
-from pydantic import BaseModel
-# 定义请求体模型
-class ChatRequest(BaseModel):
-    messages: list
-
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
@@ -550,14 +545,6 @@ def update_chat():
         return jsonify({ "message": "更新成功" })
     else:
         return jsonify({ "error": res.text }), res.status_code
-@app.post("/api/zsy")
-def chat(req: ChatRequest):
-    history = []
-    for m in req.messages:
-        if m["role"] == "user":
-            query = m["content"]
-            response, history = model.chat(tokenizer, query, history=history)
-    return {"reply": response}
 
 @app.route("/api/chat-delete", methods=["DELETE"])
 def delete_chat():
@@ -740,10 +727,7 @@ def web_chat():
                 print("❌ gemini-2.5-pro 响应错误：", resp.text)
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         
-        elif model == "zsyai":
-            from zsy_model import zsy_reply
-            reply = zsy_reply(messages)
-
+        
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
