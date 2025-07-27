@@ -708,25 +708,24 @@ def web_chat():
                     "Authorization": f"Bearer {API_KEY}"
                 }
     
-                data = {
+                freegpt_key = os.getenv("API_KEY")
+            resp = requests.post(
+                "https://api.laozhang.ai/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
                     "model": "gemini-2.5-pro",
-                    "messages": [
-                        {"role": "system", "content": "你是一个专业的AI助手。"},
-                        {"role": "user", "content": prompt}
-                    ],
-                    "thinking": True,  # 启用思考功能
-                    "temperature": 0.7,
-                    "max_tokens": 1000
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
                 }
-    
-                response = requests.post(API_URL, headers=headers, data=json.dumps(data))
-    
-                if response.status_code == 200:
-                    result = response.json()
-        
-                    reply = result["choices"][0]["message"]["content"]
-                else:
-                    return f"错误: {response.status_code}, {response.text}"
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ gemini-2.5-pro 响应错误：", resp.text)
+                reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         
         
         else:
