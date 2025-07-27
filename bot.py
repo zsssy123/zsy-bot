@@ -637,8 +637,15 @@ def web_chat():
             }
             resp = requests.post(
                 "https://api.chatanywhere.tech/v1/chat/completions",
-                headers=headers,
-                json={"messages": messages}
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "gpt-3.5-turbo", 
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
             )
             if resp.status_code == 200:
                 reply = resp.json()["choices"][0]["message"]["content"]
