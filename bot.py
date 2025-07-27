@@ -545,6 +545,14 @@ def update_chat():
         return jsonify({ "message": "更新成功" })
     else:
         return jsonify({ "error": res.text }), res.status_code
+@app.post("/api/zsy")
+def chat(req: ChatRequest):
+    history = []
+    for m in req.messages:
+        if m["role"] == "user":
+            query = m["content"]
+            response, history = model.chat(tokenizer, query, history=history)
+    return {"reply": response}
 
 @app.route("/api/chat-delete", methods=["DELETE"])
 def delete_chat():
