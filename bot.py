@@ -724,7 +724,7 @@ def web_chat():
                 if response.status_code == 200:
                     result = response.json()
         
-                    reply = resp.json()["choices"][0]["message"]["content"]
+                    reply = result["choices"][0]["message"]["content"]
                 else:
                     return f"错误: {response.status_code}, {response.text}"
         
