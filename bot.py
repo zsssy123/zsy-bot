@@ -736,11 +736,7 @@ def web_chat():
                     }
                 else:
                     return f"错误: {response.status_code}, {response.text}"
-            result = call_gemini_api("设计一个高效的推荐算法")
-            print("思考过程:")
-            print(result["thinking"])
-            print("\n最终回答:")
-            print(result["answer"])
+            reply = response.choices[0].message.content.strip()
         
         
         else:
