@@ -693,24 +693,11 @@ def web_chat():
                 reply = f"gpt-4.1-nano 接口出错：{resp.status_code}：{resp.text}"
 
         elif model == "deepseek-r1":
-            freegpt_key = os.getenv("FREEGPT_KEY")
-            resp = requests.post(
-                "https://api.chatanywhere.tech/v1/chat/completions",
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {freegpt_key}"
-                },
-                json={
-                    "model": "deepseek-r1",
-                    "messages": messages,
-                    "stream": False         # 不要流式返回
-                }
+            response = client.chat.completions.create(
+                model="deepseek-reasoner",
+                messages=messages
             )
-            if resp.status_code == 200:
-                reply = resp.json()["choices"][0]["message"]["content"]
-            else:
-                print("❌ deepseek-r1 响应错误：", resp.text)
-                reply = f"deepseek-r1 接口出错：{resp.status_code}：{resp.text}"
+            reply = response.choices[0].message.content.strip()
         
         
         else:
