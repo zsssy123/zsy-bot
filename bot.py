@@ -24,6 +24,11 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
+from pydantic import BaseModel
+# 定义请求体模型
+class ChatRequest(BaseModel):
+    messages: list
+
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
