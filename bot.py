@@ -23,6 +23,7 @@ os.getenv("FREEGPT_KEY")
 from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
+import json
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
@@ -71,6 +72,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "zsy-secret")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+API_KEY = "你的laozhang.ai API密钥" 
+API_URL = "https://api.laozhang.ai/v1/chat/completions"
 
 # ---🤖 DeepSeek 接入 ---
 client = OpenAI(
@@ -698,6 +701,46 @@ def web_chat():
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
+        elif model == "gemini-2.5-pro":
+            def call_gemini_api(prompt):
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {API_KEY}"
+                }
+    
+                data = {
+                    "model": "gemini-2.5-pro",
+                    "messages": [
+                        {"role": "system", "content": "你是一个专业的AI助手。"},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "thinking": True,  # 启用思考功能
+                    "temperature": 0.7,
+                    "max_tokens": 1000
+                }
+    
+                response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+    
+                if response.status_code == 200:
+                    result = response.json()
+        
+                    # 提取思考过程（如果有）
+                    thinking = result.get("thinking", "无思考过程")
+        
+                    # 提取回答内容
+                    answer = result["choices"][0]["message"]["content"]
+        
+                    return {
+                        "thinking": thinking,
+                        "answer": answer
+                    }
+                else:
+                    return f"错误: {response.status_code}, {response.text}"
+            result = call_gemini_api("设计一个高效的推荐算法")
+            print("思考过程:")
+            print(result["thinking"])
+            print("\n最终回答:")
+            print(result["answer"])
         
         
         else:
