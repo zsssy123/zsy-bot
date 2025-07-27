@@ -727,7 +727,10 @@ def web_chat():
                 print("❌ gemini-2.5-pro 响应错误：", resp.text)
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         
-        
+        elif model == "zsyai":
+            from zsy_model import zsy_reply
+            reply = zsy_reply(messages)
+
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
