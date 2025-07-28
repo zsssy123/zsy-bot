@@ -713,7 +713,7 @@ def web_chat():
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
-        elif model == "grok-2":
+        elif model == "grok-3-mini-latest":
             
             freegpt_key = os.getenv("API_KEY")
             resp = requests.post(
@@ -723,7 +723,7 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-2",
+                    "model": "grok-3-mini-latest",
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
