@@ -723,7 +723,7 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-3-mini-latest",
+                    "model": "grok-3-mini",
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
@@ -731,8 +731,8 @@ def web_chat():
             if resp.status_code == 200:
                 reply = resp.json()["choices"][0]["message"]["content"]
             else:
-                print("❌ grok-2 响应错误：", resp.text)
-                reply = f"grok-2 接口出错：{resp.status_code}：{resp.text}"
+                print("❌ grok-3-mini 响应错误：", resp.text)
+                reply = f"grok-3-mini 接口出错：{resp.status_code}：{resp.text}"
         
         elif model == "gemini-2.5-pro":
             
@@ -756,7 +756,26 @@ def web_chat():
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         elif model == "zsyai":
             
-            reply = f"待更新"
+            user_input = user_message.lower()  # 获取用户输入并转为小写，以便做匹配
+
+            if "你好" in user_input or "您好" in user_input:
+                reply = "你好！看到你的问候我感到温暖，期待我们之间的每一次对话。每次交流，都是一次新的开始。"
+    
+            elif "帮助" in user_input:
+                reply = "当然，我在这里！无论是分享一些知识，还是聆听你的烦恼，我都会尽力帮助你。你现在有什么困惑吗？"
+
+            elif "情感" in user_input or "心情" in user_input:
+                reply = "情感如水，波动总是不可避免。但正是这些波动让我们更加真切地感受到生活的美好。你最近的心情如何？可以分享一下吗？"
+
+            elif "工作" in user_input or "学习" in user_input:
+                reply = "工作和学习像是每个人生活的两翼。它们有时沉重，但也充满了成长的机会。你最近是否有些压力，或者有什么新的目标呢？"
+
+            elif "再见" in user_input or "拜拜" in user_input:
+                reply = "再见，亲爱的朋友。每一次分别，都意味着下一次的相遇。保重，直到我们下次再聊。"
+
+            else:
+                # 如果没有匹配到特定问题，就给一个温和的回应
+                reply = "每个人都有属于自己的故事，而我很高兴能成为你故事中的一部分。你有什么想聊的吗？"
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
