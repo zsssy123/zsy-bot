@@ -24,7 +24,7 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
-import google.generativeai as genai
+
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
@@ -737,14 +737,23 @@ def web_chat():
         elif model == "gemini-2.5-pro":
             
             freegpt_key = os.getenv("GEMINIAPI_KEY")
-            genai.configure(api_key=freegpt_key)
-            model = genai.GenerativeModel("gemini-2.5-pro")
-            # 定义提示词
-            prompt = "简要解释人工智能的工作原理"
-            # 生成内容
-            response = model.generate([prompt])
-            # 输出结果
-            reply=response[0].text
+            resp = requests.post(
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "gemini-2.5-pro",
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ gemini-2.5-pro 响应错误：", resp.text)
+                reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         elif model == "zsyai":
             
             reply = f"待更新"
