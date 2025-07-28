@@ -16,3 +16,4 @@ torch
 sentencepiece
 uvicorn
 huggingface_hub
+mistral_inference
