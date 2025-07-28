@@ -744,7 +744,7 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "gemini-2.5-pro",
+                    "model": "gemini-2.5-flash",
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
