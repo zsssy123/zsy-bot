@@ -753,6 +753,9 @@ def web_chat():
             else:
                 print("❌ gemini-2.5-pro 响应错误：", resp.text)
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
+        elif model == "zsyai":
+            
+            reply = f"仍在制造中"
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
