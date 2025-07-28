@@ -756,7 +756,7 @@ def web_chat():
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         elif model == "zsyai":
             
-            user_input = user_message.lower()  # 获取用户输入并转为小写，以便做匹配
+            user_input = user_msg
 
             if "你好" in user_input or "您好" in user_input:
                 reply = "你好！看到你的问候我感到温暖，期待我们之间的每一次对话。每次交流，都是一次新的开始。"
