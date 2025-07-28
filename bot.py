@@ -738,13 +738,13 @@ def web_chat():
             
             freegpt_key = os.getenv("GEMINIAPI_KEY")
             resp = requests.post(
-                "https://cloudaicompanion.googleapis.com/v1beta/chat/completions",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "gemini-2.5-flash",
+                    
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
