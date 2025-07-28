@@ -74,6 +74,7 @@ JWT_SECRET = os.getenv("JWT_SECRET", "zsy-secret")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 API_KEY = "你的laozhang.ai API密钥" 
 API_URL = "https://api.laozhang.ai/v1/chat/completions"
+GEMINIAPI_KEY = "gemini API密钥" 
 
 # ---🤖 DeepSeek 接入 ---
 client = OpenAI(
@@ -706,11 +707,32 @@ def web_chat():
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
-        elif model == "gemini-2.5-pro":
+        elif model == "grok-2":
             
             freegpt_key = os.getenv("API_KEY")
             resp = requests.post(
                 "https://api.laozhang.ai/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "grok-2",
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ grok-2 响应错误：", resp.text)
+                reply = f"grok-2 接口出错：{resp.status_code}：{resp.text}"
+        
+        elif model == "gemini-2.5-pro":
+            
+            freegpt_key = os.getenv("GEMINIAPI_KEY")
+            resp = requests.post(
+                "https://api.googleapis.com/gemini/v1/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
@@ -726,8 +748,6 @@ def web_chat():
             else:
                 print("❌ gemini-2.5-pro 响应错误：", resp.text)
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
-        
-        
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
