@@ -723,16 +723,14 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-2",
+                    "model": "grok-3-mini",
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
             )
-            if resp.status_code == 200:
-                reply = resp.json()["choices"][0]["message"]["content"]
-            else:
-                print("❌ grok-3-mini 响应错误：", resp.text)
-                reply = f"grok-3-mini 接口出错：{resp.status_code}：{resp.text}"
+            
+            reply = resp.json()["choices"][0]["message"]["content"]
+            
         
         elif model == "gemini-2.5-pro":
             
