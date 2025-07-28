@@ -5,6 +5,7 @@ import torch
 
 print("🧠 正在加载 ZSYAI 模型（Mistral 7B）...")
 
+token = "hf_1T9xl..."
 # 使用量化后的 Mistral-7B（int4 版本）
 tokenizer = AutoTokenizer.from_pretrained("mistralai/mistral-7b-instruct")
 model = AutoModelForCausalLM.from_pretrained("mistralai/mistral-7b-instruct", revision="int4", device_map="auto")
