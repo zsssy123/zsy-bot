@@ -738,7 +738,7 @@ def web_chat():
             
             freegpt_key = os.getenv("GEMINIAPI_KEY")
             resp = requests.post(
-                "https://cloudaicompanion.googleapis.com/v1beta/openai/chat/completions",
+                "https://cloudaicompanion.googleapis.com/v1beta/chat/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
