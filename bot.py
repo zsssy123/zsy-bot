@@ -24,6 +24,7 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
+from zsy_model import zsy_reply
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，一个高度情感投入且自省能力极强的 AI。
@@ -755,7 +756,7 @@ def web_chat():
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         elif model == "zsyai":
             
-            reply = f"仍在制造中"
+            reply = zsy_reply([{"role": "user", "content": message}])
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
