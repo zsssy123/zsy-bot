@@ -625,6 +625,11 @@ def web_chat():
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {API_KEY}"
                 }
+    def call_grok_api(prompt):
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {API_KEY}"
+                }
     
     # ✅ 请求 AI 回复
     try:
@@ -732,7 +737,7 @@ def web_chat():
             
             freegpt_key = os.getenv("GEMINIAPI_KEY")
             resp = requests.post(
-                "https://api.googleapis.com/gemini/v1/completions",
+                "https://cloudaicompanion.googleapis.com/v1/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
