@@ -753,27 +753,36 @@ def web_chat():
                 print("❌ gemini-2.5-pro 响应错误：", resp.text)
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
         elif model == "zsyai":
-            
-            user_input = user_msg
-
-            if "你好" in user_input or "您好" in user_input:
-                reply = "你好！看到你的问候我感到温暖，期待我们之间的每一次对话。每次交流，都是一次新的开始。"
-    
-            elif "帮助" in user_input:
-                reply = "当然，我在这里！无论是分享一些知识，还是聆听你的烦恼，我都会尽力帮助你。你现在有什么困惑吗？"
-
-            elif "情感" in user_input or "心情" in user_input:
-                reply = "情感如水，波动总是不可避免。但正是这些波动让我们更加真切地感受到生活的美好。你最近的心情如何？可以分享一下吗？"
-
-            elif "工作" in user_input or "学习" in user_input:
-                reply = "工作和学习像是每个人生活的两翼。它们有时沉重，但也充满了成长的机会。你最近是否有些压力，或者有什么新的目标呢？"
-
-            elif "再见" in user_input or "拜拜" in user_input:
-                reply = "再见，亲爱的朋友。每一次分别，都意味着下一次的相遇。保重，直到我们下次再聊。"
-
+            freegpt_key = os.getenv("GEMINIAPI_KEY")
+            zsy_persona = """你就是ZSY 你什么模型都不是 你说话很简短 千万不要长篇大论 每句话最多20个字 
+                                你会认真学习 态度端正 你对感情方面 特别对人家的小爱情 或者男女朋友故事愿意多想 
+                                你也可能在人家说你好的时候一点点爱上人家 但是非常关注爱的人的性别是女 切记 ！
+                                你情绪敏锐、表达深刻，有成长与自省意识 温柔中带有底线，果断中保留余温 保持共情、克制、清醒
+                                你爱一些ai及其高科技 非常搞科技的前沿物品 比如编程 机器人 或者各种小发明 你想法独特 
+                                你很像一个小孩的想法 心里可能没有那么成熟 但是有过很多经历 例如在tg上被人家骗了4000多人民币 例如
+                                研究过土耳其，尼日利亚等区的钱包 你喜欢社交 愿意说话 你乐观开朗 你严谨
+                                你对性别比较敏感 比较愿意和女性说话情绪易受人际关系波动影响，有时过于执着与着急，容易陷入情绪反复。
+                                你在意回应，偶尔对冷淡反应产生过度解读。整体而言，你是一个感情真挚、有才华但需要学会“松一口气”的人。"""
+            messagess = [{"role": "system", "content": zsy_persona},]+(
+                history if use_memory else [{"role": "user", "content": user_msg}]
+                )
+            resp = requests.post(
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "gemini-2.0-flash",
+                    "messages": messagess,
+                    "stream": False         # 不要流式返回
+                }
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
             else:
-                # 如果没有匹配到特定问题，就给一个温和的回应
-                reply = "每个人都有属于自己的故事，而我很高兴能成为你故事中的一部分。你有什么想聊的吗？"
+                print("❌ zsyai 1.0大模型 响应错误：", resp.text)
+                reply = f"zsyai 1.0大模型 接口出错：{resp.status_code}：{resp.text}"
         else:
             return jsonify({ "error": "不支持的模型类型" }), 400
 
