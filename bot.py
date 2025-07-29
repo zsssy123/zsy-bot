@@ -717,13 +717,13 @@ def web_chat():
             
             freegpt_key = os.getenv("API_KEY")
             resp = requests.post(
-                "https://api.laozhang.ai/v1/chat/completions",
+                "https://js.puter.com/v2/",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-3-mini",
+                    "model": "x-ai/grok-3-mini",
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
