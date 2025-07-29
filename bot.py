@@ -73,8 +73,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET", "zsy-secret")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-API_KEY = "你的laozhang.ai API密钥" 
-API_URL = "https://api.laozhang.ai/v1/chat/completions"
+API_KEY = "你的openkey API密钥" 
+API_URL = "https://openkey.cloud/v1/chat/completions"
 GEMINIAPI_KEY = "gemini API密钥" 
 
 # ---🤖 DeepSeek 接入 ---
@@ -713,17 +713,17 @@ def web_chat():
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
-        elif model == "grok-3-mini-latest":
+        elif model == "grok-4":
             
             freegpt_key = os.getenv("API_KEY")
             resp = requests.post(
-                "https://api.laozhang.ai/v1/chat/completions",
+                "https://openkey.cloud/v1/chat/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-3-mini",
+                    "model": "grok-4",
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
