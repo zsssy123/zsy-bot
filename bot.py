@@ -24,7 +24,6 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
-import pytesseract
 
 
 # ✅ 在这里添加 ZSY 人格描述
@@ -346,11 +345,22 @@ def ocr_image():
         return jsonify({"error": "未上传文件"}), 400
 
     try:
-        img = Image.open(file.stream).convert("L")
-        text = pytesseract.image_to_string(img, lang="chi_sim+eng")  # 中英文混合识别
-        return jsonify({"text": text.strip()})
+        # 使用 ocr.space 云服务识别图片
+        res = requests.post(
+            "https://api.ocr.space/parse/image",
+            files={ "file": file.stream },
+            data={ "language": "chs", "isOverlayRequired": False },
+            headers={ "apikey": "helloworld" }  # 免费公用 key
+        )
+        result = res.json()
+        if "ParsedResults" in result:
+            text = result["ParsedResults"][0].get("ParsedText", "").strip()
+            return jsonify({ "text": text })
+        else:
+            return jsonify({ "error": "识别失败，未返回结果" }), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({ "error": str(e) }), 500
+
 
 @app.route("/api/change-password", methods=["POST"])
 def change_password():
