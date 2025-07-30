@@ -180,6 +180,7 @@
           <option value="gemini-2.5-pro">🔮 Gemini 2.5 Pro</option>
           <option value="grok-4">🧩 Grok 3-mini  </option>
           <option value="zsyai">❤️ ZSYAI 1.0</option>
+          <option value="Gemini 2.5 Flash-Lite">【支持照片直接上传】 Gemini 2.5 Flash-Lite</option>
         </select>
       </label>
 
@@ -293,28 +294,61 @@
       const file = e.target.files[0];
       if (!file) return;
 
-      if (!confirm("⚠️ 你正在上传一张图片，我们将尝试识别其中的文字。识别完成后文字将作为消息发送，图片不会被保存。是否继续？")) return;
+      const model = document.getElementById("model-selector").value;
 
-      const formData = new FormData();
-      formData.append("image", file);
+      if (model === "gemini-vision") {
+        const reader = new FileReader();
+        reader.onload = async function () {
+          const base64Image = reader.result;
 
-      const res = await fetch("/api/ocr-image", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("zsy_token")}`
-        },
-        body: formData
-      });
+          const res = await fetch("/api/image-chat", {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + localStorage.getItem("zsy_token"),
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              image: base64Image,
+              chatId: currentChatId,
+              prompt: "请根据这张图生成回答",
+              model: "Gemini 2.5 Flash-Lite"
+            })
+          });
 
-      const data = await res.json();
-      if (data.text) {
-        const input = document.getElementById("msg");
-        input.value = "[该文字由照片转变过来 可以按照照片处理] " + data.text;
-        send();  // ✅ 自动发送！
+          const data = await res.json();
+          if (data.reply) {
+            addMessage("[图片已发送]", "user");
+            addMessage(data.reply, "bot");
+          } else {
+            alert("❌ Gemini 回复失败：" + (data.error || "未知错误"));
+          }
+        };
+        reader.readAsDataURL(file); // 👈 转 base64
       } else {
-        alert("❌ 未能识别文字：" + (data.error || "未知错误"));
+    // 👇 OCR 模型处理分支（你已有的逻辑）
+        if (!confirm("⚠️ 将尝试提取图片中的文字并自动发送，是否继续？")) return;
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const res = await fetch("/api/ocr-image", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("zsy_token")
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (data.text) {
+          const input = document.getElementById("msg");
+          input.value = "[该文字由照片转变过来] " + data.text;
+          send();
+        } else {
+          alert("❌ 未能识别文字：" + (data.error || "未知错误"));
+        }
       }
     });
+
 
 
 
