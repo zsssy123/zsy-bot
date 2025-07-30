@@ -308,7 +308,9 @@
 
       const data = await res.json();
       if (data.text) {
-        document.getElementById("msg").value = "[来自图片识别] " + data.text;
+        const input = document.getElementById("msg");
+        input.value = "[该文字由照片转变过来 可以按照照片处理] " + data.text;
+        send();  // ✅ 自动发送！
       } else {
         alert("❌ 未能识别文字：" + (data.error || "未知错误"));
       }
