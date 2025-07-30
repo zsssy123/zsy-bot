@@ -11,3 +11,4 @@ postgrest==0.10.6
 realtime==1.0.2
 Pillow
 google-generativeai
+pytesseract
