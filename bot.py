@@ -24,6 +24,8 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
+import pytesseract
+
 
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -328,6 +330,27 @@ def login():
         return jsonify({"token": token})
     else:
         return jsonify({"error": "用户名或密码错误"}), 401
+
+
+@app.route("/api/ocr-image", methods=["POST"])
+def ocr_image():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except:
+        return jsonify({"error": "认证失败"}), 401
+
+    file = request.files.get("image")
+    if not file:
+        return jsonify({"error": "未上传文件"}), 400
+
+    try:
+        img = Image.open(file.stream).convert("L")
+        text = pytesseract.image_to_string(img, lang="chi_sim+eng")  # 中英文混合识别
+        return jsonify({"text": text.strip()})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/change-password", methods=["POST"])
 def change_password():
