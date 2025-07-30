@@ -25,6 +25,7 @@ from flask import make_response
 from flask import send_file, request, Response
 import json
 import base64
+import google.generativeai as genai
 
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -361,6 +362,54 @@ def baidu_ocr(image_file, access_token):
     else:
         raise Exception(f"OCR 识别失败：{result}")
 
+@app.route("/api/image-chat", methods=["POST"])
+def image_chat():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        username = payload["user"]
+    except:
+        return jsonify({ "error": "认证失败" }), 401
+
+    data = request.get_json()
+    image_data = data.get("image")
+    prompt = data.get("prompt", "请描述这张图")
+    chat_id = data.get("chatId")
+    model = data.get("model", "Gemini 2.5 Flash-Lite")
+
+    if not image_data or not chat_id:
+        return jsonify({ "error": "缺少参数" }), 400
+
+    try:
+        # 解码 base64 图片
+        image_bytes = base64.b64decode(image_data.split(",")[-1])
+        image = Image.open(io.BytesIO(image_bytes))
+
+        # ✅ 配置 Gemini 模型
+        genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+        vision_model = genai.GenerativeModel("Gemini 2.5 Flash-Lite")  # 可改成 gemini-1.5-pro 也行
+        response = vision_model.generate_content([prompt, image])
+        reply = response.text.strip()
+
+        # ✅ 更新 Supabase 聊天记录
+        url = f"{SUPABASE_URL}/rest/v1/chat_sessions?id=eq.{chat_id}"
+        headers = {
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+            "Content-Type": "application/json"
+        }
+        get_res = requests.get(url, headers=headers)
+        if get_res.status_code != 200 or not get_res.json():
+            return jsonify({ "error": "会话不存在" }), 404
+        history = get_res.json()[0].get("messages", [])
+        history.append({ "role": "user", "content": "[图片]" })
+        history.append({ "role": "assistant", "content": reply })
+        patch_res = requests.patch(url, headers=headers, json={ "messages": history })
+
+        return jsonify({ "reply": reply })
+
+    except Exception as e:
+        return jsonify({ "error": str(e) }), 500
 
 @app.route("/api/ocr-image", methods=["POST"])
 def ocr_image():
@@ -810,6 +859,26 @@ def web_chat():
             else:
                 print("❌ gemini-2.5-pro 响应错误：", resp.text)
                 reply = f"gemini-2.5-pro 接口出错：{resp.status_code}：{resp.text}"
+        elif model == "Gemini 2.5 Flash-Lite":
+            
+            freegpt_key = os.getenv("GEMINIAPI_KEY")
+            resp = requests.post(
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "Gemini 2.5 Flash-Lite",
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
+            )
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ Gemini 2.5 Flash-Lite 响应错误：", resp.text)
+                reply = f"Gemini 2.5 Flash-Lite 接口出错：{resp.status_code}：{resp.text}"
         elif model == "zsyai":
             freegpt_key = os.getenv("GEMINIAPI_KEY")
             zsy_persona = """你就是ZSY 你什么模型都不是
