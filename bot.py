@@ -24,7 +24,7 @@ from supabase import create_client, Client
 from flask import make_response
 from flask import send_file, request, Response
 import json
-
+import base64
 
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
@@ -77,6 +77,8 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 API_KEY = "你的openkey API密钥" 
 API_URL = "https://openkey.cloud/v1/chat/completions"
 GEMINIAPI_KEY = "gemini API密钥" 
+BAIDU_OCR_API_KEY = os.getenv("BAIDU_OCR_API_KEY")
+BAIDU_OCR_SECRET_KEY = os.getenv("BAIDU_OCR_SECRET_KEY")
 
 # ---🤖 DeepSeek 接入 ---
 client = OpenAI(
@@ -330,36 +332,59 @@ def login():
     else:
         return jsonify({"error": "用户名或密码错误"}), 401
 
+# 获取百度 access_token
+def get_baidu_token(api_key, secret_key):
+    url = f"https://aip.baidubce.com/oauth/2.0/token"
+    params = {
+        "grant_type": "client_credentials",
+        "client_id": api_key,
+        "client_secret": secret_key
+    }
+    res = requests.post(url, data=params)
+    if res.status_code == 200 and "access_token" in res.json():
+        return res.json()["access_token"]
+    else:
+        raise Exception(f"获取百度 OCR Token 失败：{res.text}")
+
+# 调用百度 OCR 接口识别文字
+def baidu_ocr(image_file, access_token):
+    image_data = base64.b64encode(image_file.read()).decode("utf-8")
+    url = f"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={access_token}"
+    headers = { "Content-Type": "application/x-www-form-urlencoded" }
+    data = { "image": image_data }
+
+    res = requests.post(url, data=data, headers=headers)
+    result = res.json()
+    if "words_result" in result:
+        words = [item["words"] for item in result["words_result"]]
+        return "\n".join(words)
+    else:
+        raise Exception(f"OCR 识别失败：{result}")
+
 
 @app.route("/api/ocr-image", methods=["POST"])
 def ocr_image():
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        username = payload["user"]
     except:
         return jsonify({"error": "认证失败"}), 401
 
     file = request.files.get("image")
     if not file:
-        return jsonify({"error": "未上传文件"}), 400
+        return jsonify({ "error": "未上传文件" }), 400
 
     try:
-        # 使用 ocr.space 云服务识别图片
-        res = requests.post(
-            "https://api.ocr.space/parse/image",
-            files={ "file": file.stream },
-            data={ "language": "chs", "isOverlayRequired": False },
-            headers={ "apikey": "helloworld" }  # 免费公用 key
-        )
-        result = res.json()
-        if "ParsedResults" in result:
-            text = result["ParsedResults"][0].get("ParsedText", "").strip()
+        access_token = get_baidu_token(BAIDU_OCR_API_KEY, BAIDU_OCR_SECRET_KEY)
+        text = baidu_ocr(file, access_token)
+        if text.strip():
             return jsonify({ "text": text })
         else:
-            return jsonify({ "error": "识别失败，未返回结果" }), 500
+            return jsonify({ "error": "未识别出任何文字" }), 400
     except Exception as e:
+        print("❌ OCR 错误：", str(e))
         return jsonify({ "error": str(e) }), 500
+
 
 
 @app.route("/api/change-password", methods=["POST"])
