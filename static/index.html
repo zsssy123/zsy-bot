@@ -188,6 +188,9 @@
     <div id="chat"></div>
 
     <div id="input-bar">
+      <input type="file" id="image-upload" accept="image/*" style="display: none;" />
+      <label for="image-upload" style="cursor: pointer; padding: 10px; background: #007bff; color: white; border-radius: 20px;">📷 上传图片</label>
+
       <input id="msg" placeholder="说点什么…" autocomplete="off" />
       <button id="send-btn">发送</button>
     </div>
@@ -285,6 +288,32 @@
         alert("删除失败：" + (result.error || "未知错误"));
       }
     });
+
+    document.getElementById("image-upload").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!confirm("⚠️ 你正在上传一张图片，我们将尝试识别其中的文字。识别完成后文字将作为消息发送，图片不会被保存。是否继续？")) return;
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await fetch("/api/ocr-image", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.text) {
+        input.value = "[来自图片识别的文字] " + data.text;
+      } else {
+        alert("❌ 未能识别文字：" + (data.error || "未知错误"));
+      }
+    });
+
 
 
     
