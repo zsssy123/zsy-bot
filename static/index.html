@@ -301,18 +301,19 @@
       const res = await fetch("/api/ocr-image", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${localStorage.getItem("zsy_token")}`
         },
         body: formData
       });
 
       const data = await res.json();
       if (data.text) {
-        input.value = "[来自图片识别的文字] " + data.text;
+        document.getElementById("msg").value = "[来自图片识别] " + data.text;
       } else {
         alert("❌ 未能识别文字：" + (data.error || "未知错误"));
       }
     });
+
 
 
 
