@@ -375,7 +375,7 @@ def image_chat():
     image_data = data.get("image")
     prompt = data.get("prompt", "请描述这张图")
     chat_id = data.get("chatId")
-    model = data.get("model", "Gemini 2.5 Flash-Lite")
+    model = data.get("model", "gemini-1.5-pro")
 
     if not image_data or not chat_id:
         return jsonify({ "error": "缺少参数" }), 400
@@ -387,7 +387,7 @@ def image_chat():
 
         # ✅ 配置 Gemini 模型
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
-        vision_model = genai.GenerativeModel("Gemini 2.5 Flash-Lite")  # 可改成 gemini-1.5-pro 也行
+        vision_model = genai.GenerativeModel("gemini-1.5-pro")  # 可改成 gemini-1.5-pro 也行
         response = vision_model.generate_content([prompt, image])
         reply = response.text.strip()
 
