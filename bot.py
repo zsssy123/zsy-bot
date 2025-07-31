@@ -276,7 +276,7 @@ def home():
           });
 
           const result = await res.json().catch(() => {
-            alert("头像上传失败（服务器未返回 JSON）");
+            alert("头像上传失败可尝试点击删除头像（服务器未返回 JSON）");
             return {};
           });
 
@@ -285,7 +285,7 @@ def home():
             localStorage.setItem("zsy_avatar_url", result.url);
             document.getElementById("avatar").src = result.url;
           } else {
-            alert("上传失败：" + (result.error || "未知错误"));
+            alert("上传失败可尝试点击删除头像：" + (result.error || "未知错误"));
           }
         });
         document.getElementById("delete-avatar").addEventListener("click", async () => {
