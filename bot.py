@@ -410,7 +410,37 @@ def image_chat():
 
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
+@app.route("/api/gemini-voice-audio", methods=["POST"])
+def gemini_voice_audio():
+    import wave, io
+    import asyncio
+    import google.generativeai as genai
 
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except:
+        return jsonify({"error": "认证失败"}), 401
+
+    if "audio" not in request.files:
+        return jsonify({"error": "未收到音频文件"}), 400
+
+    audio_file = request.files["audio"]
+    audio_bytes = audio_file.read()
+
+    genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+    model = genai.GenerativeModel("gemini-1.5-flash")
+
+    # 上传音频并获取文字
+    blob = genai.upload_file(audio_bytes, mime_type="audio/webm")
+    chat = model.start_chat()
+
+    response = asyncio.run(chat.send_message_async(
+        [blob, "请识别我的语音内容并回复。"]
+    ))
+
+    reply = response.text
+    return jsonify({"reply": reply})
 @app.route("/api/gemini-voice", methods=["POST"])
 def gemini_voice():
     import asyncio
