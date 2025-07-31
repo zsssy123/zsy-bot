@@ -192,7 +192,12 @@
       <input type="file" id="image-upload" accept="image/*" style="display: none;" />
       <label for="image-upload" style="cursor: pointer; padding: 10px; background: #007bff; color: white; border-radius: 20px;">📷传图</label>
 
-      <input id="msg" placeholder="说点什么…" autocomplete="off" />
+      <textarea
+        id="msg"
+        placeholder="说点什么…"
+        rows="1"
+        style="max-height: 6.5em; overflow-y: auto; resize: none; width: 100%; font-size: 16px; line-height: 1.4em; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box;"
+      ></textarea>
       <button id="send-btn">发送</button>
     </div>
   </div>
@@ -664,7 +669,12 @@
       await loadChatHistory();
     });
 
+    const msgInput = document.getElementById("msg");
 
+    msgInput.addEventListener("input", () => {
+      msgInput.style.height = "auto";  // 重置高度
+      msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + "px";  // 最多5行（约120px）
+        });
     document.getElementById("toggle-sidebar").addEventListener("click", function () {
       const sidebar = document.getElementById("sidebar");
       sidebar.style.display = sidebar.style.display === "none" ? "flex" : "none";
