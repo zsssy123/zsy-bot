@@ -189,29 +189,34 @@
     <div id="chat"></div>
 
     <div id="input-bar">
-      <button id="gemini-live-voice" style="
-        padding: 10px 16px;
-        background: #6a1b9a;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-        margin-bottom: 8px;
-       ">
-        🎤 语音对话
-      </button>
-      <input type="file" id="image-upload" accept="image/*" style="display: none;" />
-      <label for="image-upload" style="cursor: pointer; padding: 10px; background: #007bff; color: white; border-radius: 20px;">📷传图</label>
+  <!-- ✅ 新增一个垂直排列的按钮容器 -->
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button id="gemini-live-voice" style="
+          padding: 10px 16px;
+          background: #6a1b9a;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">
+          🎤 语音对话
+        </button>
 
+        <input type="file" id="image-upload" accept="image/*" style="display: none;" />
+        <label for="image-upload" style="cursor: pointer; padding: 10px; background: #007bff; color: white; border-radius: 20px;">📷传图</label>
+      </div>
+
+      <!-- 输入框 -->
       <textarea
         id="msg"
         placeholder="说点什么…"
         rows="1"
-        style="max-height: 6.5em; overflow-y: auto; resize: none; width: 100%; font-size: 16px; line-height: 1.4em; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box;"
+        style="max-height: 6.5em; overflow-y: auto; resize: none; width: 100%; font-size: 16px; line-height: 1.4em; padding: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; flex: 1;"
       ></textarea>
+
       <button id="send-btn">发送</button>
-    </div>
+        </div>
   </div>
 
   <script>
