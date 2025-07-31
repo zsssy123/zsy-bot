@@ -605,70 +605,73 @@
         addMessage(m.content, m.role === "user" ? "user" : "bot");
       }
     }
-    let listening = false;
+    let recording = false;
+    let mediaRecorder;
+    let audioChunks = [];
 
     const btn = document.getElementById("gemini-live-voice");
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
 
-    recognition.lang = "zh-CN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    btn.addEventListener("click", async () => {
+      if (!recording) {
+         try {
+           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+           mediaRecorder = new MediaRecorder(stream);
+           audioChunks = [];
 
-    btn.addEventListener("click", () => {
-      listening = !listening;
-      btn.innerText = listening ? "⏹ 停止对话" : "🎤 开始对话";
+           mediaRecorder.ondataavailable = (e) => {
+             if (e.data.size > 0) audioChunks.push(e.data);
+          };
 
-      if (listening) {
-        startVoiceLoop();
-      } else {
-        recognition.stop();
-        speechSynthesis.cancel(); // 停止正在播放的 TTS（保险起见）
-      }
-    });
+           mediaRecorder.onstop = async () => {
+             const blob = new Blob(audioChunks, { type: "audio/webm" });
+             const formData = new FormData();
+             formData.append("audio", blob);
 
-    function startVoiceLoop() {
-      recognition.start();
+             const res = await fetch("/api/gemini-voice-audio", {
+               method: "POST",
+               headers: {
+                 Authorization: "Bearer " + localStorage.getItem("zsy_token")
+               },
+               body: formData
+              });
 
-      recognition.onresult = async (event) => {
-        const text = event.results[0][0].transcript;
-        console.log("🎤 识别文本：", text);
+             const result = await res.json();
+             if (result.reply) {
+               addMessage("[语音消息已发送]", "user");
+               addMessage(result.reply, "bot");
 
-        const res = await fetch("/api/gemini-voice", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + localStorage.getItem("zsy_token"),
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ message: text })
-        });
+               const utter = new SpeechSynthesisUtterance(result.reply);
+               utter.lang = "zh-CN";
+               speechSynthesis.speak(utter);
+             } else {
+                alert("❌ Gemini 回复失败：" + (result.error || "未知错误"));
+              }
+            };
 
-        if (!res.ok) {
-          const err = await res.json();
-          alert("❌ Gemini Live 出错：" + (err.error || "未知错误"));
-          return;
+           mediaRecorder.start();
+           recording = true;
+           btn.innerText = "⏹ 停止对话";
+           alert("开始录音，请说话…再次点击按钮结束");
+         } catch (err) {
+           alert("❌ 获取麦克风失败：" + err.message);
+          }
+       } else {
+          mediaRecorder.stop();
+          recording = false;
+          btn.innerText = "🎤 语音对话";
         }
+      });
 
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play();
+           recognition.onerror = (e) => {
+             console.warn("❌ 语音识别失败：", e);
+              if (listening) startVoiceLoop(); // 重试
+            };
 
-        audio.onended = () => {
-          if (listening) startVoiceLoop(); // 循环进行下一轮语音识别
-        };
-      };
-
-      recognition.onerror = (e) => {
-        console.warn("❌ 语音识别失败：", e);
-        if (listening) startVoiceLoop(); // 重试
-      };
-
-      recognition.onend = () => {
-        // 如果用户没有说话就结束了，也可以重启
-        if (listening) setTimeout(startVoiceLoop, 300);
-      };
-    }
+           recognition.onend = () => {
+              // 如果用户没有说话就结束了，也可以重启
+             if (listening) setTimeout(startVoiceLoop, 300);
+            };
+          }
 
     async function send() {
      const text = input.value.trim();
