@@ -413,12 +413,22 @@ def image_chat():
 
 @app.route("/api/gemini-voice", methods=["POST"])
 def gemini_voice():
-    import tempfile
     import asyncio
     import io
+    import wave
     import google.generativeai as genai
-    from google.generativeai import types
     from flask import send_file
+
+    def pcm_to_wav(pcm_data, sample_rate=24000, sample_width=2, channels=1):
+        wav_io = io.BytesIO()
+        wav_writer = wave.open(wav_io, "wb")
+        wav_writer.setnchannels(channels)
+        wav_writer.setsampwidth(sample_width)
+        wav_writer.setframerate(sample_rate)
+        wav_writer.writeframes(pcm_data)
+        wav_writer.close()
+        wav_io.seek(0)
+        return wav_io
 
     data = request.get_json()
     user_msg = data.get("message", "").strip()
@@ -431,30 +441,33 @@ def gemini_voice():
 
     try:
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
-        client = genai.Client()
-        model = "gemini-2.5-flash-preview-native-audio-dialog"
-        config = {
-            "response_modalities": ["AUDIO"],
-            "system_instruction": "你是一个温柔聪明的语音助手，用中文回答问题。"
-        }
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash-preview-native-audio-dialog",
+            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
+        )
 
         async def run():
-            async with client.aio.live.connect(model=model, config=config) as session:
-                await session.send_text(user_msg)
-                buffer = io.BytesIO()
-                async for response in session.receive():
-                    if response.data:
-                        buffer.write(response.data)
-                buffer.seek(0)
-                return buffer
+            chat = model.start_chat()
+            response = await chat.send_message_async(
+                user_msg,
+                generation_config={"response_mime_type": "audio/L16"}
+            )
 
-        audio_buffer = asyncio.run(run())
+            # 提取 PCM 音频数据
+            audio_data = b""
+            for part in response.parts:
+                if part.inline_data and part.inline_data.mime_type.startswith("audio/"):
+                    audio_data += part.inline_data.data
+
+            return pcm_to_wav(audio_data)
+
+        wav_audio = asyncio.run(run())
 
         return send_file(
-            audio_buffer,
+            wav_audio,
             mimetype="audio/wav",
             as_attachment=False,
-            download_name="reply.wav"
+            download_name="gemini_reply.wav"
         )
 
     except Exception as e:
