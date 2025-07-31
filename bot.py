@@ -441,7 +441,7 @@ def gemini_voice():
 
         # 用 Google TTS 生成语音
         tts_resp = requests.post(
-            "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + os.getenv("GOOGLE_TTS_KEY"),
+            "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + os.getenv("GEMINIAPI_KEY"),
             json={
                 "input": { "text": reply },
                 "voice": { "languageCode": "zh-CN", "ssmlGender": "FEMALE" },
