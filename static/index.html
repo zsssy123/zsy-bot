@@ -264,7 +264,7 @@
   });
 
     const result = await res.json().catch(() => {
-      alert("头像上传失败（服务器未返回 JSON）");
+      alert("头像上传失败，可能要先删除头像才能更新哦（服务器未返回 JSON）");
       return {};
     });
 
@@ -272,7 +272,7 @@
       alert("头像更新成功！");
       document.querySelector("#header img").src = result.url;
     } else {
-      alert("上传失败：" + (result.error || "未知错误"));
+      alert("上传失败：要先删除头像才能更新哦" + (result.error || "未知错误"));
     }
   });
     document.getElementById("delete-avatar-btn").addEventListener("click", async () => {
@@ -315,7 +315,7 @@
             body: JSON.stringify({
               image: base64Image,
               chatId: currentChatId,
-              prompt: "请根据这张图生成回答",
+              prompt: "请根据这张图生成回答，尽量中文回答",
               model: "gemini-2.5-flash-lite"
             })
           });
@@ -331,7 +331,7 @@
         reader.readAsDataURL(file); // 👈 转 base64
       } else {
     // 👇 OCR 模型处理分支（你已有的逻辑）
-        if (!confirm("⚠️ 将尝试提取图片中的文字并自动发送，是否继续？")) return;
+        if (!confirm("⚠️ 将尝试提取图片中的文字并自动发送，是否继续？（如果想直接上次照片 请在模型选择器中选择可以直接上传照片的模型）")) return;
         const formData = new FormData();
         formData.append("image", file);
 
@@ -418,7 +418,7 @@
       // 如果是游客，只能使用 deepseek，禁用模型选择器
       modelSelector.value = "deepseek";
       modelSelector.disabled = true;
-      alert("当前为游客身份，暂时仅支持使用 DeepSeek 模型。如需使用 GPT-3.5，GPT-4o，gpt4.1 ,Gemini等高级语言模型，请自己注册并登录。");
+      alert("当前为游客身份，暂时仅支持使用 DeepSeek 模型。如需使用 GPT-3.5，GPT-4o，gpt4.1 ,Gemini，grok等高级语言模型，请自己注册并登录。");
     } else {
       // 正常用户可以使用保存的模型
       const savedModel = localStorage.getItem("zsy_model") || "deepseek";
@@ -677,10 +677,13 @@
         });
     msgInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
+        // ⏎ Enter 发送消息
         e.preventDefault();
         send();
       }
+      // 👇 如果是 Shift+Enter，什么都不做 → 保留默认换行行为
     });
+
     document.getElementById("toggle-sidebar").addEventListener("click", function () {
       const sidebar = document.getElementById("sidebar");
       sidebar.style.display = sidebar.style.display === "none" ? "flex" : "none";
