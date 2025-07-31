@@ -662,16 +662,7 @@
         }
       });
 
-           recognition.onerror = (e) => {
-             console.warn("❌ 语音识别失败：", e);
-              if (listening) startVoiceLoop(); // 重试
-            };
-
-           recognition.onend = () => {
-              // 如果用户没有说话就结束了，也可以重启
-             if (listening) setTimeout(startVoiceLoop, 300);
-            };
-          }
+           
 
     async function send() {
      const text = input.value.trim();
