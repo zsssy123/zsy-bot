@@ -600,7 +600,58 @@
         addMessage(m.content, m.role === "user" ? "user" : "bot");
       }
     }
+    let listening = false;
+    const btn = document.getElementById("gemini-live-voice");
 
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+      recognition.lang = "zh-CN";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    btn.addEventListener("click", () => {
+      listening = !listening;
+      btn.innerText = listening ? "⏹ 停止语音对话" : "🎤 开始语音对话";
+      if (listening) {
+        startVoiceLoop();
+      } else {
+        recognition.stop();
+      }
+    });
+
+    function startVoiceLoop() {
+      recognition.start();
+
+      recognition.onresult = async (event) => {
+        const text = event.results[0][0].transcript;
+        console.log("🎙️ 你说的是：", text);
+
+        const res = await fetch("/api/gemini-voice", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + localStorage.getItem("zsy_token"),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        if (data.audioUrl) {
+          const audio = new Audio(data.audioUrl);
+          audio.play();
+          audio.onended = () => {
+            if (listening) startVoiceLoop(); // 自动继续下一轮
+          };
+        } else {
+          alert("🤖 Gemini 没有返回语音");
+        }
+      };
+
+      recognition.onerror = (e) => {
+        console.error("❌ 语音识别错误：", e);
+        if (listening) startVoiceLoop(); // 尝试继续
+      };
+    }
 
     async function send() {
      const text = input.value.trim();
