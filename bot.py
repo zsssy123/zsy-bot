@@ -413,6 +413,13 @@ def image_chat():
 
 @app.route("/api/gemini-voice", methods=["POST"])
 def gemini_voice():
+    import tempfile
+    import asyncio
+    import io
+    from google import genai
+    from google.genai import types
+    from flask import send_file
+
     data = request.get_json()
     user_msg = data.get("message", "").strip()
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
@@ -420,42 +427,40 @@ def gemini_voice():
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except:
-        return jsonify({ "error": "认证失败" }), 401
+        return jsonify({"error": "认证失败"}), 401
 
     try:
-        # 用 Gemini Flash 回复
-        freegpt_key = os.getenv("GEMINIAPI_KEY")
-        gemini_resp = requests.post(
-            "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-            headers={
-                "Authorization": f"Bearer {freegpt_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "gemini-2.5-flash",
-                "messages": [{"role": "user", "content": user_msg}],
-                "stream": False
-            }
-        )
-        reply = gemini_resp.json()["choices"][0]["message"]["content"]
+        genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+        client = genai.Client()
+        model = "gemini-2.5-flash-preview-native-audio-dialog"
+        config = {
+            "response_modalities": ["AUDIO"],
+            "system_instruction": "你是一个温柔聪明的语音助手，用中文回答问题。"
+        }
 
-        # 用 Google TTS 生成语音
-        tts_resp = requests.post(
-            "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + os.getenv("GEMINIAPI_KEY"),
-            json={
-                "input": { "text": reply },
-                "voice": { "languageCode": "zh-CN", "ssmlGender": "FEMALE" },
-                "audioConfig": { "audioEncoding": "MP3" }
-            }
-        )
-        tts_data = tts_resp.json()
-        audio_base64 = tts_data["audioContent"]
+        async def run():
+            async with client.aio.live.connect(model=model, config=config) as session:
+                await session.send_text(user_msg)
+                buffer = io.BytesIO()
+                async for response in session.receive():
+                    if response.data:
+                        buffer.write(response.data)
+                buffer.seek(0)
+                return buffer
 
-        # 返回 base64 音频链接
-        return jsonify({ "reply": reply, "audioUrl": f"data:audio/mp3;base64,{audio_base64}" })
+        audio_buffer = asyncio.run(run())
+
+        return send_file(
+            audio_buffer,
+            mimetype="audio/wav",
+            as_attachment=False,
+            download_name="reply.wav"
+        )
 
     except Exception as e:
-        return jsonify({ "error": str(e) }), 500
+        print("❌ Gemini Live API 出错：", str(e))
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/ocr-image", methods=["POST"])
