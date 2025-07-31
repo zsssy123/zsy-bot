@@ -417,7 +417,7 @@ def gemini_voice():
     import asyncio
     import io
     import google.generativeai as genai
-    from google.genai import types
+    from google.generativeai import types
     from flask import send_file
 
     data = request.get_json()
