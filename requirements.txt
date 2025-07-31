@@ -12,3 +12,4 @@ realtime==1.0.2
 Pillow
 google-generativeai
 pytesseract
+google-generativeai soundfile librosa
