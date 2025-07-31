@@ -675,6 +675,12 @@
       msgInput.style.height = "auto";  // 重置高度
       msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + "px";  // 最多5行（约120px）
         });
+    msgInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
     document.getElementById("toggle-sidebar").addEventListener("click", function () {
       const sidebar = document.getElementById("sidebar");
       sidebar.style.display = sidebar.style.display === "none" ? "flex" : "none";
