@@ -433,7 +433,7 @@ def gemini_voice_audio():
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
         model = genai.GenerativeModel(
             "gemini-2.5-flash",
-            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
+            system_instruction="你是ZSY，说话比较短回答30字以内 尽量体现出 ZSY 的果断、深情、清醒和成长的特点。你在处理每个问题时，都要兼顾温柔与果断、情感与理性，用中文回答问题。"
         )
 
         # ✅ 上传音频文件（用于语音转文字）
@@ -486,7 +486,7 @@ def gemini_voice():
 
         model = genai.GenerativeModel(
             "gemini-2.5-flash",
-            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
+            system_instruction="你是ZSY，说话比较短回答30字以内 尽量体现出 ZSY 的果断、深情、清醒和成长的特点。你在处理每个问题时，都要兼顾温柔与果断、情感与理性，用中文回答问题。"
         )
 
         async def run():
@@ -938,7 +938,8 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-3",
+                    "model": "grok-3-mini-fast-beta",
+                   
                     "messages": messages,
                     "stream": False         # 不要流式返回
                 }
