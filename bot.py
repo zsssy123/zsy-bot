@@ -413,35 +413,46 @@ def image_chat():
         return jsonify({ "error": str(e) }), 500
 @app.route("/api/gemini-voice-audio", methods=["POST"])
 def gemini_voice_audio():
-    import wave, io
-    import asyncio
+    import io
     import google.generativeai as genai
+
+    if "audio" not in request.files:
+        return jsonify({"error": "缺少音频文件"}), 400
 
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
-        jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except:
         return jsonify({"error": "认证失败"}), 401
 
-    if "audio" not in request.files:
-        return jsonify({"error": "未收到音频文件"}), 400
+    try:
+        # 读取上传的音频文件
+        file = request.files["audio"]
+        audio_file = io.BytesIO(file.read())  # ✅ 包装成文件对象
 
-    audio_file = request.files["audio"]
-    audio_bytes = audio_file.read()
+        genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash-preview-native-audio-dialog",
+            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
+        )
 
-    genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
-    model = genai.GenerativeModel("gemini-1.5-flash")
+        # ✅ 上传音频文件（用于语音转文字）
+        blob = genai.upload_file(audio_file, mime_type="audio/webm")
 
-    # 上传音频并获取文字
-    blob = genai.upload_file(audio_bytes, mime_type="audio/webm")
-    chat = model.start_chat()
+        # ✅ 发送语音转文字请求
+        response = model.generate_content([blob], generation_config={"response_mime_type": "text/plain"})
 
-    response = asyncio.run(chat.send_message_async(
-        [blob, "请识别我的语音内容并回复。"]
-    ))
+        reply_text = ""
+        for part in response.parts:
+            if hasattr(part, "text"):
+                reply_text += part.text
 
-    reply = response.text
-    return jsonify({"reply": reply})
+        return jsonify({"reply": reply_text.strip()})
+
+    except Exception as e:
+        print("❌ Gemini 语音处理出错：", str(e))
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/gemini-voice", methods=["POST"])
 def gemini_voice():
     import asyncio
