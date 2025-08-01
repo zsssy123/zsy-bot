@@ -190,7 +190,18 @@
 
     <div id="input-bar">
   <!-- ✅ 新增一个垂直排列的按钮容器 -->
-     
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button id="gemini-live-voice" style="
+          padding: 10px 16px;
+          background: #6a1b9a;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+        ">
+          🎤 语音对话
+        </button>
 
         <input type="file" id="image-upload" accept="image/*" style="display: none;" />
         <label for="image-upload" style="cursor: pointer; padding: 10px; background: #007bff; color: white; border-radius: 20px;">📷传图</label>
@@ -594,7 +605,63 @@
         addMessage(m.content, m.role === "user" ? "user" : "bot");
       }
     }
-    
+    let recording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const btn = document.getElementById("gemini-live-voice");
+
+    btn.addEventListener("click", async () => {
+      if (!recording) {
+         try {
+           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+           mediaRecorder = new MediaRecorder(stream);
+           audioChunks = [];
+
+           mediaRecorder.ondataavailable = (e) => {
+             if (e.data.size > 0) audioChunks.push(e.data);
+          };
+
+           mediaRecorder.onstop = async () => {
+             const blob = new Blob(audioChunks, { type: "audio/webm" });
+             const formData = new FormData();
+             formData.append("audio", blob);
+
+             const res = await fetch("/api/gemini-voice-audio", {
+               method: "POST",
+               headers: {
+                 Authorization: "Bearer " + localStorage.getItem("zsy_token")
+               },
+               body: formData
+              });
+
+             const result = await res.json();
+             if (result.reply) {
+               addMessage("[语音消息已发送]", "user");
+               addMessage(result.reply, "bot");
+
+               const utter = new SpeechSynthesisUtterance(result.reply);
+               utter.lang = "zh-CN";
+               speechSynthesis.speak(utter);
+             } else {
+                alert("❌ Gemini 回复失败：" + (result.error || "未知错误"));
+              }
+            };
+
+           mediaRecorder.start();
+           recording = true;
+           btn.innerText = "⏹ 停止对话";
+           alert("开始录音，请说话…再次点击按钮结束");
+         } catch (err) {
+           alert("❌ 获取麦克风失败：" + err.message);
+          }
+       } else {
+          mediaRecorder.stop();
+          recording = false;
+          btn.innerText = "🎤 语音对话";
+        }
+      });
+
            
 
     async function send() {
