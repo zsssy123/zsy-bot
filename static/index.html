@@ -637,7 +637,7 @@
 
              const result = await res.json();
              if (result.reply) {
-               addMessage("[语音消息已发送]", "user");
+               addMessage("[语音消息已发送 如果没收到Gemini语音 请切换chrome或者edge浏览器不要使用微信浏览器 https://m.wandoujia.com/apps/7672441 这是下载edge浏览器的地址]", "user");
                addMessage(result.reply, "bot");
 
                const utter = new SpeechSynthesisUtterance(result.reply);
@@ -651,7 +651,7 @@
            mediaRecorder.start();
            recording = true;
            btn.innerText = "⏹ 停止对话";
-           alert("开始录音，请说话…再次点击按钮结束（请注意 只有点击停止对话时才能引发gemini回复");
+           alert("开始录音，请说话…再次点击按钮结束（请注意 只有点击停止对话时才能引发gemini回复  ⚡⚡⚡⚡⚡请使用chrome或者edge浏览器运行 否则会无法播放Gemini语音 ");
          } catch (err) {
            alert("❌ 获取麦克风失败：" + err.message);
           }
