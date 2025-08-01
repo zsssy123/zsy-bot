@@ -938,7 +938,7 @@ def web_chat():
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-3-mini-fast-beta",
+                    "model": "grok-3",
                    
                     "messages": messages,
                     "stream": False         # 不要流式返回
