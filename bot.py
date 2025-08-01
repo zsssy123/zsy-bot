@@ -26,7 +26,6 @@ from flask import send_file, request, Response
 import json
 import base64
 import google.generativeai as genai
-import asyncio
 
 
 # ✅ 在这里添加 ZSY 人格描述
