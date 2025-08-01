@@ -15,4 +15,4 @@ soundfile
 librosa
 asyncio
 Flask
-google-generativeai
+google-generativeai>=0.8.5
