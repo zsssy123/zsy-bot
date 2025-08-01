@@ -411,14 +411,13 @@ def image_chat():
 
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
-
 @app.route("/api/gemini-voice-audio", methods=["POST"])
 def gemini_voice_audio():
-    import os
     import io
-    import wave
-    import tempfile
     import google.generativeai as genai
+
+    if "audio" not in request.files:
+        return jsonify({"error": "缺少音频文件"}), 400
 
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
@@ -426,45 +425,33 @@ def gemini_voice_audio():
     except:
         return jsonify({"error": "认证失败"}), 401
 
-    file = request.files.get("audio")
-    if not file:
-        return jsonify({"error": "缺少音频文件"}), 400
-
-    audio_bytes = file.read()
-
     try:
+        # 读取上传的音频文件
+        file = request.files["audio"]
+        audio_file = io.BytesIO(file.read())  # ✅ 包装成文件对象
+
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
-        model = genai.GenerativeModel("gemini-2.5-flash", system_instruction="你是ZSY，说话比较短回答30字以内 尽量体现出 ZSY 的果断、深情、清醒和成长的特点。你在处理每个问题时，都要兼顾温柔与果断、情感与理性，用中文回答问题。")
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash",
+            system_instruction="你是ZSY，说话比较短回答30字以内 尽量体现出 ZSY 的果断、深情、清醒和成长的特点。你在处理每个问题时，都要兼顾温柔与果断、情感与理性，用中文回答问题。"
+        )
 
-        async def run():
-            chat = model.start_chat()
-            response = await chat.send_message_async(
-                content=genai.types.Blob(data=audio_bytes, mime_type="audio/webm"),
-                generation_config={"response_mime_type": "audio/L16"}
-            )
+        # ✅ 上传音频文件（用于语音转文字）
+        blob = genai.upload_file(audio_file, mime_type="audio/webm")
 
-            pcm_data = b""
-            for part in response.parts:
-                if part.inline_data and part.inline_data.mime_type.startswith("audio/"):
-                    pcm_data += part.inline_data.data
+        # ✅ 发送语音转文字请求
+        response = model.generate_content([blob], generation_config={"response_mime_type": "text/plain"})
 
-            # Convert PCM to WAV
-            wav_io = io.BytesIO()
-            with wave.open(wav_io, "wb") as wav_file:
-                wav_file.setnchannels(1)
-                wav_file.setsampwidth(2)
-                wav_file.setframerate(24000)
-                wav_file.writeframes(pcm_data)
-            wav_io.seek(0)
-            return wav_io
+        reply_text = ""
+        for part in response.parts:
+            if hasattr(part, "text"):
+                reply_text += part.text
 
-        audio_wav = asyncio.run(run())
-        return send_file(audio_wav, mimetype="audio/wav", as_attachment=False)
+        return jsonify({"reply": reply_text.strip()})
 
     except Exception as e:
-        print("❌ Gemini 语音出错:", e)
+        print("❌ Gemini 语音处理出错：", str(e))
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/api/gemini-voice", methods=["POST"])
 def gemini_voice():
