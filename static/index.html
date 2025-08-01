@@ -651,7 +651,7 @@
            mediaRecorder.start();
            recording = true;
            btn.innerText = "⏹ 停止对话";
-           alert("开始录音，请说话…再次点击按钮结束");
+           alert("开始录音，请说话…再次点击按钮结束（请注意 只有点击停止对话时才能引发gemini回复");
          } catch (err) {
            alert("❌ 获取麦克风失败：" + err.message);
           }
