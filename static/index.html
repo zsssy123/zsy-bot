@@ -750,12 +750,16 @@
       msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + "px";  // 最多5行（约120px）
         });
     msgInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        // ⏎ Enter 发送消息
-        e.preventDefault();
-        send();
+      if (e.key === "Enter") {
+        if (e.shiftKey) {
+      // Shift + Enter → 换行，不发送
+          return; // 什么也不做，让浏览器处理换行
+        } else {
+      // ⏎ Enter → 发送
+          e.preventDefault();
+          send();
+        }
       }
-      // 👇 如果是 Shift+Enter，什么都不做 → 保留默认换行行为
     });
 
     document.getElementById("toggle-sidebar").addEventListener("click", function () {
