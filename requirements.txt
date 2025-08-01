@@ -12,8 +12,3 @@ realtime==1.0.2
 Pillow
 google-generativeai
 pytesseract
-soundfile
-librosa
-openai-whisper
-
-ffmpeg-python
