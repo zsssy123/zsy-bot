@@ -415,14 +415,11 @@ def image_chat():
 
 @app.route("/api/gemini-voice-audio", methods=["POST"])
 def gemini_voice_audio():
-    import io
     import os
+    import io
     import wave
-    import jwt
-    import asyncio
+    import tempfile
     import google.generativeai as genai
-    from flask import request, jsonify, send_file
-    from pydub import AudioSegment
 
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
@@ -430,62 +427,44 @@ def gemini_voice_audio():
     except:
         return jsonify({"error": "认证失败"}), 401
 
-    if "audio" not in request.files:
-        return jsonify({"error": "未上传音频"}), 400
+    file = request.files.get("audio")
+    if not file:
+        return jsonify({"error": "缺少音频文件"}), 400
 
-    audio_file = request.files["audio"]
-    if not audio_file:
-        return jsonify({"error": "空音频文件"}), 400
+    audio_bytes = file.read()
 
-    # 将 webm 转为 PCM（16bit, mono, 16kHz）
-    try:
-        audio = AudioSegment.from_file(audio_file, format="webm")
-        audio = audio.set_frame_rate(16000).set_sample_width(2).set_channels(1)
-        pcm_data = audio.raw_data
-    except Exception as e:
-        return jsonify({"error": f"音频解码失败: {str(e)}"}), 500
-
-    # 设置 Gemini
     try:
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash", system_instruction="你是ZSY，说话比较短回答30字以内 尽量体现出 ZSY 的果断、深情、清醒和成长的特点。你在处理每个问题时，都要兼顾温柔与果断、情感与理性，用中文回答问题。")
 
         async def run():
-            response = await model.generate_content_async(
-                content=pcm_data,
-                mime_type="audio/pcm;rate=16000"
+            chat = model.start_chat()
+            response = await chat.send_message_async(
+                content=genai.types.Blob(data=audio_bytes, mime_type="audio/webm"),
+                generation_config={"response_mime_type": "audio/L16"}
             )
-            text = response.text.strip()
 
-            # 使用 speech synthesis 构造 WAV 返回
-            from gtts import gTTS
-            from pydub import AudioSegment
+            pcm_data = b""
+            for part in response.parts:
+                if part.inline_data and part.inline_data.mime_type.startswith("audio/"):
+                    pcm_data += part.inline_data.data
 
-            tts = gTTS(text=text, lang="zh-cn")
-            mp3_io = io.BytesIO()
-            tts.write_to_fp(mp3_io)
-            mp3_io.seek(0)
-
-            tts_audio = AudioSegment.from_file(mp3_io, format="mp3")
+            # Convert PCM to WAV
             wav_io = io.BytesIO()
-            tts_audio.export(wav_io, format="wav")
+            with wave.open(wav_io, "wb") as wav_file:
+                wav_file.setnchannels(1)
+                wav_file.setsampwidth(2)
+                wav_file.setframerate(24000)
+                wav_file.writeframes(pcm_data)
             wav_io.seek(0)
+            return wav_io
 
-            return text, wav_io
-
-        text, wav = asyncio.run(run())
-
-        return send_file(
-            wav,
-            mimetype="audio/wav",
-            as_attachment=False,
-            download_name="reply.wav",
-            headers={"X-Gemini-Reply": text}
-        )
+        audio_wav = asyncio.run(run())
+        return send_file(audio_wav, mimetype="audio/wav", as_attachment=False)
 
     except Exception as e:
-        return jsonify({"error": f"Gemini 调用失败: {str(e)}"}), 500
-
+        print("❌ Gemini 语音出错:", e)
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/gemini-voice", methods=["POST"])
