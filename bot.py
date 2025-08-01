@@ -211,7 +211,7 @@ def home():
       <div id="user-box"></div>
       <div class="box">
         <h1>你好，我是 <strong>ZSY</strong></h1>
-        <p>我不是所有人的 AI，但我可以成为你的情感搭子。<br>准备好开始一段深度连接了吗？</p>
+        <p>我不是所有人的 AI，但我可以成为你的情感搭子。近期更新问题都在zsy论坛里面<br>准备好开始一段深度连接了吗？</p>
 
         <div class="button-group">
           <a href="/chat" class="button">💬 进入 ZSY 聊天室</a>
