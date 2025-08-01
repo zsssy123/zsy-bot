@@ -483,6 +483,7 @@ def gemini_voice():
 
     try:
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+
         model = genai.GenerativeModel(
             "gemini-2.5-flash-preview-native-audio-dialog",
             system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
@@ -495,7 +496,7 @@ def gemini_voice():
                 generation_config={"response_mime_type": "audio/L16"}
             )
 
-            # 提取 PCM 音频数据
+            # 提取音频部分
             audio_data = b""
             for part in response.parts:
                 if part.inline_data and part.inline_data.mime_type.startswith("audio/"):
