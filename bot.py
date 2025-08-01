@@ -411,6 +411,111 @@ def image_chat():
 
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
+@app.route("/api/gemini-voice-audio", methods=["POST"])
+def gemini_voice_audio():
+    import io
+    import google.generativeai as genai
+
+    if "audio" not in request.files:
+        return jsonify({"error": "缺少音频文件"}), 400
+
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except:
+        return jsonify({"error": "认证失败"}), 401
+
+    try:
+        # 读取上传的音频文件
+        file = request.files["audio"]
+        audio_file = io.BytesIO(file.read())  # ✅ 包装成文件对象
+
+        genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash",
+            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
+        )
+
+        # ✅ 上传音频文件（用于语音转文字）
+        blob = genai.upload_file(audio_file, mime_type="audio/webm")
+
+        # ✅ 发送语音转文字请求
+        response = model.generate_content([blob], generation_config={"response_mime_type": "text/plain"})
+
+        reply_text = ""
+        for part in response.parts:
+            if hasattr(part, "text"):
+                reply_text += part.text
+
+        return jsonify({"reply": reply_text.strip()})
+
+    except Exception as e:
+        print("❌ Gemini 语音处理出错：", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/gemini-voice", methods=["POST"])
+def gemini_voice():
+    import asyncio
+    import io
+    import wave
+    import google.generativeai as genai
+    from flask import send_file
+
+    def pcm_to_wav(pcm_data, sample_rate=24000, sample_width=2, channels=1):
+        wav_io = io.BytesIO()
+        wav_writer = wave.open(wav_io, "wb")
+        wav_writer.setnchannels(channels)
+        wav_writer.setsampwidth(sample_width)
+        wav_writer.setframerate(sample_rate)
+        wav_writer.writeframes(pcm_data)
+        wav_writer.close()
+        wav_io.seek(0)
+        return wav_io
+
+    data = request.get_json()
+    user_msg = data.get("message", "").strip()
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except:
+        return jsonify({"error": "认证失败"}), 401
+
+    try:
+        genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
+
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash",
+            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
+        )
+
+        async def run():
+            chat = model.start_chat()
+            response = await chat.send_message_async(
+                user_msg,
+                generation_config={"response_mime_type": "audio/L16"}
+            )
+
+            # 提取音频部分
+            audio_data = b""
+            for part in response.parts:
+                if part.inline_data and part.inline_data.mime_type.startswith("audio/"):
+                    audio_data += part.inline_data.data
+
+            return pcm_to_wav(audio_data)
+
+        wav_audio = asyncio.run(run())
+
+        return send_file(
+            wav_audio,
+            mimetype="audio/wav",
+            as_attachment=False,
+            download_name="gemini_reply.wav"
+        )
+
+    except Exception as e:
+        print("❌ Gemini Live API 出错：", str(e))
+        return jsonify({"error": str(e)}), 500
 
 
 
