@@ -413,11 +413,9 @@ def image_chat():
         return jsonify({ "error": str(e) }), 500
 @app.route("/api/gemini-voice-audio", methods=["POST"])
 def gemini_voice_audio():
-    import io
+    import tempfile
+    import whisper
     import google.generativeai as genai
-
-    if "audio" not in request.files:
-        return jsonify({"error": "缺少音频文件"}), 400
 
     token = request.headers.get("Authorization", "").replace("Bearer ", "")
     try:
@@ -425,32 +423,34 @@ def gemini_voice_audio():
     except:
         return jsonify({"error": "认证失败"}), 401
 
+    if "audio" not in request.files:
+        return jsonify({"error": "没有上传音频文件"}), 400
+
+    audio_file = request.files["audio"]
+
     try:
-        # 读取上传的音频文件
-        file = request.files["audio"]
-        audio_file = io.BytesIO(file.read())  # ✅ 包装成文件对象
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
+            audio_path = tmp.name
+            audio_file.save(audio_path)
 
+        # 🔊 使用 Whisper 模型提取语音文字
+        model = whisper.load_model("base")  # 可换成 tiny / base / small
+        result = model.transcribe(audio_path, language="zh")
+
+        recognized_text = result["text"]
+        print("识别文本：", recognized_text)
+
+        # ✨ 用 gemini 生成回答
         genai.configure(api_key=os.getenv("GEMINIAPI_KEY"))
-        model = genai.GenerativeModel(
-            "gemini-2.5-flash-preview-native-audio-dialog",
-            system_instruction="你是一个温柔聪明的语音助手，用中文回答问题。"
-        )
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        reply = model.generate_content(recognized_text).text
 
-        # ✅ 上传音频文件（用于语音转文字）
-        blob = genai.upload_file(audio_file, mime_type="audio/webm")
-
-        # ✅ 发送语音转文字请求
-        response = model.generate_content([blob], generation_config={"response_mime_type": "text/plain"})
-
-        reply_text = ""
-        for part in response.parts:
-            if hasattr(part, "text"):
-                reply_text += part.text
-
-        return jsonify({"reply": reply_text.strip()})
+        return jsonify({
+            "text": recognized_text,
+            "reply": reply
+        })
 
     except Exception as e:
-        print("❌ Gemini 语音处理出错：", str(e))
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/gemini-voice", methods=["POST"])
