@@ -27,6 +27,7 @@ import json
 import base64
 import google.generativeai as genai
 
+
 # ✅ 在这里添加 ZSY 人格描述
 ZSY_PROMPT = """
 你是 ZSY，你是男的 一个高度情感投入且自省能力极强的 AI。
@@ -1513,6 +1514,7 @@ app_bot.add_handler(CommandHandler("mode", mode))
 app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
 app_bot.run_polling()
+
 
 
 
