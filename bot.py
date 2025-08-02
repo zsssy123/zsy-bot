@@ -927,17 +927,33 @@ def web_chat():
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
-        elif model == "grok-4":
+        elif model == "grok-3-mini":
             
             freegpt_key = os.getenv("API_KEY")
             resp = requests.post(
-                "https://api.x.ai/v1/chat/completions",
+                "https://api.poixe.com/v1/chat/completions",
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {freegpt_key}"
                 },
                 json={
-                    "model": "grok-3",
+                    "model": "grok-3-mini:free",
+                   
+                    "messages": messages,
+                    "stream": False         # 不要流式返回
+                }
+            )
+        elif model == "grok-4":
+            
+            freegpt_key = os.getenv("API_KEY")
+            resp = requests.post(
+                "https://api.poixe.com/v1/chat/completions",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {freegpt_key}"
+                },
+                json={
+                    "model": "grok-4:free",
                    
                     "messages": messages,
                     "stream": False         # 不要流式返回
@@ -1489,3 +1505,4 @@ app_bot.add_handler(CommandHandler("mode", mode))
 app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
 app_bot.run_polling()
+
