@@ -943,6 +943,11 @@ def web_chat():
                     "stream": False         # 不要流式返回
                 }
             )
+             if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ grok-3 响应错误：", resp.text)
+                reply = f"grok-3 接口出错：{resp.status_code}：{resp.text}"
         elif model == "grok-4":
             
             freegpt_key = os.getenv("API_KEY")
@@ -959,8 +964,11 @@ def web_chat():
                     "stream": False         # 不要流式返回
                 }
             )
-            
-            reply = resp.json()["choices"][0]["message"]["content"]
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+            else:
+                print("❌ grok-4 响应错误：", resp.text)
+                reply = f"grok-4 接口出错：{resp.status_code}：{resp.text}"
             
         
         elif model == "gemini-2.5-pro":
@@ -1505,4 +1513,5 @@ app_bot.add_handler(CommandHandler("mode", mode))
 app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
 app_bot.run_polling()
+
 
