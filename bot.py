@@ -943,9 +943,9 @@ def web_chat():
                     "stream": False         # 不要流式返回
                 }
             )
-             if resp.status_code == 200:
+            if resp.status_code == 200:
                 reply = resp.json()["choices"][0]["message"]["content"]
-             else:
+            else:
                 print("❌ grok-3 响应错误：", resp.text)
                 reply = f"grok-3 接口出错：{resp.status_code}：{resp.text}"
         elif model == "grok-4":
@@ -1513,6 +1513,7 @@ app_bot.add_handler(CommandHandler("mode", mode))
 app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
 app_bot.run_polling()
+
 
 
 
