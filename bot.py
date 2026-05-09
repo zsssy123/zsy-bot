@@ -854,7 +854,7 @@ def web_chat():
             model = "deepseek"
         if model == "deepseek":
             response = client.chat.completions.create(
-                model="deepseek-chat",
+                model="deepseek-v4-flash",
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
@@ -924,7 +924,7 @@ def web_chat():
 
         elif model == "deepseek-r1":
             response = client.chat.completions.create(
-                model="deepseek-reasoner",
+                model="deepseek-v4-pro",
                 messages=messages
             )
             reply = response.choices[0].message.content.strip()
@@ -1491,7 +1491,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model="deepseek-v4-flash",
             messages=[
                 {"role": "system", "content": system_prompt},
                 *history
